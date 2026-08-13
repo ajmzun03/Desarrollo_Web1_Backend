@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^1.0.0-rc.4",
+    "tsx": "^4.23.12"
+  }
+}
