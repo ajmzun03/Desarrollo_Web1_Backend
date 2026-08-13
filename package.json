@@ -1,11 +1,22 @@
 {
+  "name": "API Restaurant",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc"
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "drizzle-orm": "^1.0.0-rc.4",
+    "express": "^5.2.1",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0",
     "drizzle-kit": "^1.0.0-rc.4",
-    "tsx": "^4.23.12"
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
   }
 }
