@@ -1,14 +1,4 @@
 {
-<<<<<<< HEAD
-  "dependencies": {
-    "dotenv": "^17.4.2",
-    "drizzle-orm": "^1.0.0-rc.4",
-    "postgres": "^3.4.9"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^1.0.0-rc.4",
-    "tsx": "^4.23.12"
-=======
   "name": "API Restaurant",
   "type": "module",
   "scripts": {
@@ -28,6 +18,5 @@
     "drizzle-kit": "^1.0.0-rc.4",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
->>>>>>> 459d4654e939daafdbfdfb177ac1846f6a642cd8
-  }
+}
 }
