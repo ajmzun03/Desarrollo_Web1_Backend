@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "db:push": "drizzle-kit generate && drizzle-kit migrate"
   },
   "dependencies": {
     "dotenv": "17.4.2",
