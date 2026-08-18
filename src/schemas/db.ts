@@ -23,6 +23,11 @@ export const estadoOrdenEnum = pgEnum('estado', [
   'CANCELADA'    // orden cancelada
 ]);
 
+export const estadoRecepcion = pgEnum('estado_recepcion',[
+  'COMPLETADO',
+  'PENDIENTE'
+])
+
 export const sucursalTable = pgTable('sucursal', {
   id: integer('id').primaryKey(),
   municipio_id: integer('municipio_id').notNull(),
@@ -208,5 +213,5 @@ export const hojaRecepcionDetalleTable = pgTable("HOJA_RECEPCION_DETALLE", {
   fecha_vencimiento: timestamp('fecha_vencimiento',{mode:"string"}).notNull().defaultNow(),
   merma: doublePrecision('merma'),
   saldo: doublePrecision('saldo').notNull(),
-  estado: estado
+  estado: estadoRecepcion('estado_recepcion').notNull().default('PENDIENTE')
 })
