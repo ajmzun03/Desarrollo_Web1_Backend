@@ -215,3 +215,165 @@ export const hojaRecepcionDetalleTable = pgTable("HOJA_RECEPCION_DETALLE", {
   saldo: doublePrecision('saldo').notNull(),
   estado: estadoRecepcion('estado_recepcion').notNull().default('PENDIENTE')
 })
+
+// ---- Enums nuevos para las tablas agregadas ----
+// (nota: PRODUCTO_LOTE reutiliza estadoLoteEnum, ya definido en el schema,
+// porque sus valores son idénticos: VIGENTE, VENCIDO, AGOTADO)
+
+export const estadoOrdenTrabajoEnum = pgEnum('estado_orden_trabajo', [
+  'PENDIENTE',
+  'EN_PROCESO',
+  'FINALIZADA',
+  'CANCELADA'
+]);
+
+export const estadoTurnoEnum = pgEnum('estado_turno', [
+  'ABIERTO',
+  'CERRADO'
+]);
+
+export const estadoCajaEnum = pgEnum('estado_caja', [
+  'ABIERTA',
+  'CERRADA'
+]);
+
+export const estadoLiquidacionEnum = pgEnum('estado_liquidacion', [
+  'PENDIENTE',
+  'LIQUIDADO'
+]);
+
+export const rolUsuarioEnum = pgEnum('rol_usuario', [
+  'ADMIN',
+  'BODEGUERO',
+  'DESPACHADOR',
+  'REPARTIDOR',
+  'CAJERO'
+]);
+
+// ---- Compras: contraparte de FACTURA_VENTA, ligada a ORDEN_COMPRA ----
+export const facturaCompraTable = pgTable('FACTURA_COMPRA', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  orden_compra_id: bigint('orden_compra_id', { mode: "number" }).notNull(),
+  proveedor_id: integer('proveedor_id').notNull(),
+  serie: varchar('serie', { length: 15 }).notNull(),
+  numero: varchar('numero', { length: 32 }).notNull(),
+  fecha_emision: timestamp('fecha_emision', { mode: "string" }).notNull().defaultNow(),
+  total: doublePrecision('total').notNull(),
+  creado_en: timestamp('creado_en', { mode: "string" }).notNull().defaultNow()
+})
+
+// ---- Orden de trabajo: ejecuta una receta y genera un lote de producto ----
+export const ordenTrabajoTable = pgTable('ORDEN_TRABAJO', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  receta_id: integer('receta_id').notNull(),
+  sucursal_id: integer('sucursal_id').notNull(),
+  usuario_id: integer('usuario_id').notNull(),
+  cantidad_planificada: doublePrecision('cantidad_planificada').notNull(),
+  cantidad_producida: doublePrecision('cantidad_producida'),
+  estado: estadoOrdenTrabajoEnum('estado').notNull().default('PENDIENTE'),
+  fecha_generada: timestamp('fecha_generada', { mode: "string" }).notNull().defaultNow(),
+  fecha_finalizada: timestamp('fecha_finalizada', { mode: "string" })
+})
+
+// ---- Lote de producto terminado: espejo de lote_materia_prima ----
+export const productoLoteTable = pgTable('PRODUCTO_LOTE', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  producto_id: integer('producto_id').notNull(),
+  orden_trabajo_id: bigint('orden_trabajo_id', { mode: "number" }),
+  fecha_vencimiento: date('fecha_vencimiento', { mode: 'string' }),
+  cantidad_inicial: doublePrecision('cantidad_inicial').notNull(),
+  cantidad_actual: doublePrecision('cantidad_actual').notNull(),
+  estado: estadoLoteEnum('estado').notNull().default('VIGENTE'),
+  creado_en: timestamp('creado_en', { mode: "string" }).notNull().defaultNow()
+})
+
+// ---- Producción: receta que transforma materia_prima en producto ----
+export const recetaTable = pgTable('RECETA', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  producto_id: integer('producto_id').notNull(),
+  receta: varchar('receta', { length: 150 }).notNull(),
+  rendimiento: doublePrecision('rendimiento').notNull(), // cuánto produce la receta en la unidad del producto
+  creado_en: timestamp('creado_en', { mode: "string" }).notNull().defaultNow()
+})
+
+export const recetaDetalleTable = pgTable('RECETA_DETALLE', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  receta_id: integer('receta_id').notNull(),
+  materia_prima_id: integer('materia_prima_id').notNull(),
+  cantidad: doublePrecision('cantidad').notNull()
+})
+
+// ---- Hoja de despacho: asigna pedidos a un repartidor dentro de un turno ----
+export const hojaDespachoTable = pgTable('HOJA_DESPACHO', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  turno_despachador_id: bigint('turno_despachador_id', { mode: "number" }).notNull(),
+  repartidor_id: integer('repartidor_id').notNull(),
+  sucursal_id: integer('sucursal_id').notNull(),
+  fecha_generada: timestamp('fecha_generada', { mode: "string" }).notNull().defaultNow(),
+  observaciones: varchar('observaciones', { length: 255 })
+})
+
+export const hojaDespachoDetalleTable = pgTable('HOJA_DESPACHO_DETALLE', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  hoja_despacho_id: bigint('hoja_despacho_id', { mode: "number" }).notNull(),
+  pedido_id: bigint('pedido_id', { mode: "number" }).notNull(),
+  entregado: boolean('entregado').notNull().default(false)
+})
+
+// ---- Caja: control de efectivo por sucursal ----
+export const cajaTable = pgTable('CAJA', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  sucursal_id: integer('sucursal_id').notNull(),
+  usuario_id: integer('usuario_id').notNull(),
+  monto_inicial: doublePrecision('monto_inicial').notNull(),
+  monto_final: doublePrecision('monto_final'),
+  fecha_apertura: timestamp('fecha_apertura', { mode: "string" }).notNull().defaultNow(),
+  fecha_cierre: timestamp('fecha_cierre', { mode: "string" }),
+  estado: estadoCajaEnum('estado').notNull().default('ABIERTA')
+})
+
+// ---- Turno del despachador que agrupa las hojas de despacho del día ----
+export const turnoDespachadorTable = pgTable('TURNO_DESPACHADOR', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  usuario_id: integer('usuario_id').notNull(),
+  sucursal_id: integer('sucursal_id').notNull(),
+  fecha_inicio: timestamp('fecha_inicio', { mode: "string" }).notNull().defaultNow(),
+  fecha_fin: timestamp('fecha_fin', { mode: "string" }),
+  estado: estadoTurnoEnum('estado').notNull().default('ABIERTO')
+})
+
+// ---- Liquidación del repartidor al cerrar su hoja de despacho ----
+export const liquidacionRepartidorTable = pgTable('LIQUIDACION_REPARTIDOR', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  hoja_despacho_id: bigint('hoja_despacho_id', { mode: "number" }).notNull(),
+  repartidor_id: integer('repartidor_id').notNull(),
+  total_entregado: doublePrecision('total_entregado').notNull(),
+  total_efectivo: doublePrecision('total_efectivo').notNull(),
+  diferencia: doublePrecision('diferencia'),
+  estado: estadoLiquidacionEnum('estado').notNull().default('PENDIENTE'),
+  fecha_liquidacion: timestamp('fecha_liquidacion', { mode: "string" }).notNull().defaultNow()
+})
+
+// ---- Gastos registrados contra una sucursal / caja ----
+export const gastosSucursalTable = pgTable('GASTOS_SUCURSAL', {
+  id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  sucursal_id: integer('sucursal_id').notNull(),
+  caja_id: bigint('caja_id', { mode: "number" }),
+  usuario_id: integer('usuario_id').notNull(),
+  descripcion: varchar('descripcion', { length: 255 }).notNull(),
+  monto: doublePrecision('monto').notNull(),
+  fecha_gasto: timestamp('fecha_gasto', { mode: "string" }).notNull().defaultNow()
+})
+
+// ---- Usuarios del sistema (base para turnos, caja, despachos) ----
+export const usuarioTable = pgTable('USUARIO', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  sucursal_id: integer('sucursal_id'),
+  nombre: varchar('nombre', { length: 100 }).notNull(),
+  apellido: varchar('apellido', { length: 100 }).notNull(),
+  usuario: varchar('usuario', { length: 50 }).notNull().unique(),
+  contrasena: varchar('contrasena', { length: 255 }).notNull(),
+  rol: rolUsuarioEnum('rol').notNull(),
+  activo: boolean('activo').notNull().default(true),
+  creado_en: timestamp('creado_en', { mode: "string" }).notNull().defaultNow()
+})
