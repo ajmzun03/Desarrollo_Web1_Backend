@@ -1,13 +1,15 @@
+import type { InsertProveedor, SelectProveedor } from "./schemas/db.ts"
+
 export interface IProveedorModel {
- getAll: () => Promise<any[]>
- getById: (id: number) => Promise<any | null>
- create: (data: any) => Promise<any>
- update: (id: number, data: any) => Promise<any | null>
+ getAll: () => Promise<SelectProveedor[] | null>
+ getById: (id: number) => Promise<SelectProveedor | null>
+ create: (data: InsertProveedor) => Promise<SelectProveedor>
+ update: (data: Partial<InsertProveedor>) => Promise<SelectProveedor | null>
 }
 
 export type Proveedor = {
   id: number
-  noNit: string | number
+  no_nit: string | number
   proveedor: string
-  direccion?: string
+  direccion: string | null
 }
