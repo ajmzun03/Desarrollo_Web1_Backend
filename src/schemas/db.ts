@@ -366,3 +366,6 @@ export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   rol: rolUsuarioEnum('rol_usuario').notNull(),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
+
+export type InsertProveedor = typeof proveedorTable.$inferInsert
+export type SelectProveedor = typeof proveedorTable.$inferSelect
