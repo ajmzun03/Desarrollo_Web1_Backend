@@ -13,3 +13,21 @@ export type Proveedor = {
   proveedor: string
   direccion: string | null
 }
+
+import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "./schemas/db.ts"
+
+export interface ISucursalModel {
+  getAll: () => Promise<SelectSucursal[]>
+  getById: (id: number) => Promise<SelectSucursal | null>
+  create: (data: InsertSucursal) => Promise<SelectSucursal>
+  update: (id: number, data: UpdateSucursal) => Promise<SelectSucursal | null>
+}
+
+export type Sucursal = {
+  id: number
+  municipio_id: number
+  sucursal: string
+  direccion: string
+}
+
+

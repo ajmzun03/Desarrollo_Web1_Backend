@@ -3,4 +3,6 @@ import postgres from 'postgres';
 import { supabaseUrl } from '../../config.js';
 
 const client = postgres(supabaseUrl);
-export const db = drizzle(client);
+
+// Pasa 'client' dentro de un objeto
+export const db = drizzle({ client });

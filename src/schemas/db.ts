@@ -369,3 +369,15 @@ export const usuarioTable = pgTable('USUARIO', { //36 Carlos
 
 export type InsertProveedor = typeof proveedorTable.$inferInsert
 export type SelectProveedor = typeof proveedorTable.$inferSelect
+
+export type InsertSucursal = typeof sucursalTable.$inferInsert
+export type SelectSucursal = typeof sucursalTable.$inferSelect
+export type UpdateSucursal = Partial<typeof sucursalTable.$inferInsert>
+
+
+
+
+
+
+
+
