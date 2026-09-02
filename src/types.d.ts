@@ -1,6 +1,8 @@
-//PROVEEDOR
 import type { InsertProveedor, SelectProveedor } from "./schemas/db.ts"
+import type { SelectMunicipio } from "./schemas/db.ts"
+import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "./schemas/db.ts"
 
+//PROVEEDOR
 export interface IProveedorModel {
  getAll: () => Promise<SelectProveedor[] | null>
  getById: (id: number) => Promise<SelectProveedor | null>
@@ -16,8 +18,6 @@ export type Proveedor = {
 }
 
 //SUCURSAL
-import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "./schemas/db.ts"
-
 export interface ISucursalModel {
   getAll: () => Promise<SelectSucursal[]>
   getById: (id: number) => Promise<SelectSucursal | null>
@@ -33,8 +33,6 @@ export type Sucursal = {
 }
 
 //MUNICIPIO
-import type { SelectMunicipio } from "./schemas/db.ts"
-
 export interface IMunicipioModel {
   getAll: () => Promise<SelectMunicipio[]>
   getById: (id: number) => Promise<SelectMunicipio | null>
