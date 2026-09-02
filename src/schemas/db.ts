@@ -374,10 +374,31 @@ export type InsertSucursal = typeof sucursalTable.$inferInsert
 export type SelectSucursal = typeof sucursalTable.$inferSelect
 export type UpdateSucursal = Partial<typeof sucursalTable.$inferInsert>
 
+export type SelectMunicipio = typeof municipioTable.$inferSelect
 
+export type SelectDepartamento = typeof departamentoTable.$inferSelect
+export type InsertDepartamento = typeof departamentoTable.$inferInsert
 
+export type SelectCategoria = typeof categoriaTable.$inferSelect
+export type InsertCategoria = typeof categoriaTable.$inferInsert
+export type UpdateCategoria = Partial<typeof categoriaTable.$inferInsert>
 
+export type SelectUnidadMedida = typeof unidadMedidaTable.$inferSelect
+export type InsertUnidadMedida = typeof unidadMedidaTable.$inferInsert
+export type UpdateUnidadMedida = Partial<typeof unidadMedidaTable.$inferInsert>
 
+export type SelectUsuario = typeof usuarioTable.$inferSelect
+export type InsertUsuario = typeof usuarioTable.$inferInsert
+export type UpdateUsuario = Partial<typeof usuarioTable.$inferInsert>
 
+export type selectCliente = typeof clienteTable.$inferSelect
+export type insertCliente = typeof clienteTable.$inferInsert
+export type updateCliente = Partial<typeof clienteTable.$inferInsert>
 
+export type selectDireccion = typeof direccionTable.$inferSelect
+export type insertDireccion = typeof direccionTable.$inferInsert
+export type updateDireccion = Partial<typeof direccionTable.$inferInsert>
 
+export type selectMateriaPrima = typeof materiaPrimaTable.$inferSelect
+export type insertMateriaPrima = typeof materiaPrimaTable.$inferInsert
+export type updateMateriaPrima = Partial<typeof materiaPrimaTable.$inferInsert>
