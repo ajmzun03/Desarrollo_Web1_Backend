@@ -366,6 +366,7 @@ export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
+// PascalCase for naming types
 export type InsertProveedor = typeof proveedorTable.$inferInsert
 export type SelectProveedor = typeof proveedorTable.$inferSelect
 
@@ -390,14 +391,14 @@ export type SelectUsuario = typeof usuarioTable.$inferSelect
 export type InsertUsuario = typeof usuarioTable.$inferInsert
 export type UpdateUsuario = Partial<typeof usuarioTable.$inferInsert>
 
-export type selectCliente = typeof clienteTable.$inferSelect
-export type insertCliente = typeof clienteTable.$inferInsert
-export type updateCliente = Partial<typeof clienteTable.$inferInsert>
+export type SelectCliente = typeof clienteTable.$inferSelect
+export type InsertCliente = typeof clienteTable.$inferInsert
+export type UpdateCliente = Partial<typeof clienteTable.$inferInsert>
 
-export type selectDireccion = typeof direccionTable.$inferSelect
-export type insertDireccion = typeof direccionTable.$inferInsert
-export type updateDireccion = Partial<typeof direccionTable.$inferInsert>
+export type SelectDireccion = typeof direccionTable.$inferSelect
+export type InsertDireccion = typeof direccionTable.$inferInsert
+export type UpdateDireccion = Partial<typeof direccionTable.$inferInsert>
 
-export type selectMateriaPrima = typeof materiaPrimaTable.$inferSelect
-export type insertMateriaPrima = typeof materiaPrimaTable.$inferInsert
-export type updateMateriaPrima = Partial<typeof materiaPrimaTable.$inferInsert>
+export type SelectMateriaPrima = typeof materiaPrimaTable.$inferSelect
+export type InsertMateriaPrima = typeof materiaPrimaTable.$inferInsert
+export type UpdateMateriaPrima = Partial<typeof materiaPrimaTable.$inferInsert>

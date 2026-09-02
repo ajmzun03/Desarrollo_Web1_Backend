@@ -1,6 +1,13 @@
 import type { InsertProveedor, SelectProveedor } from "./schemas/db.ts"
 import type { SelectMunicipio } from "./schemas/db.ts"
 import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "./schemas/db.ts"
+import type { SelectDepartamento, InsertDepartamento } from "./schemas/db.ts"
+import type { SelectMateriaPrima, InsertMateriaPrima, UpdateMateriaPrima } from "./schemas/db.ts"
+import type { SelectCategoria, InsertCategoria, UpdateCategoria } from "./schemas/db.ts"
+import type { selectCliente, insertCliente, updateCliente } from "./schemas/db.ts"
+import type { selectDireccion, insertDireccion, updateDireccion } from "./schemas/db.ts"
+import type { SelectUnidadMedida, InsertUnidadMedida, UpdateUnidadMedida } from "./schemas/db.ts"
+import type { SelectUsuario, InsertUsuario, UpdateUsuario } from "./schemas/db.ts"
 
 //PROVEEDOR
 export interface IProveedorModel {
@@ -44,10 +51,7 @@ export type Municipio = {
   municipio: string
 }
 
-
 //DEPARTAMENTO
-import type { SelectDepartamento, InsertDepartamento } from "./schemas/db.ts"
-
 export interface IDepartamentoModel {
   getAll: () => Promise<SelectDepartamento[]>
   getById: (id: number) => Promise<SelectDepartamento | null>
@@ -59,7 +63,6 @@ export type Departamento = {
 }
 
 //CATEGORIA
-import type { SelectCategoria, InsertCategoria, UpdateCategoria } from "./schemas/db.ts"
 
 export interface ICategoriaModel {
   getAll: () => Promise<SelectCategoria[]>
@@ -76,7 +79,6 @@ export type Categoria = {
 }
 
 //UNIDAD DE MEDIDA
-import type { SelectUnidadMedida, InsertUnidadMedida, UpdateUnidadMedida } from "./schemas/db.ts"
 
 export interface IUnidadMedidaModel {
   getAll: () => Promise<SelectUnidadMedida[]>
@@ -93,8 +95,6 @@ export type UnidadMedida = {
 }
 
 //USUARIO
-import type { SelectUsuario, InsertUsuario, UpdateUsuario } from "./schemas/db.ts"
-
 export interface IUsuarioModel {
   getAll: () => Promise<Omit<SelectUsuario, 'contrasenia'>[]>
   getById: (id: number) => Promise<Omit<SelectUsuario, 'contrasenia'> | null>
@@ -113,7 +113,6 @@ export type Usuario = {
 
 //CLIENTE
 
-import type { selectCliente, insertCliente, updateCliente } from "./schemas/db.ts"
 
 export interface IClienteModel {
   getAll: () => Promise<selectCliente[]>
@@ -133,8 +132,6 @@ export type Cliente = {
 
 //DIRECCION
 
-import type { selectDireccion, insertDireccion, updateDireccion } from "./schemas/db.ts"
-
 export interface IDireccionModel {
   getAll: () => Promise<selectDireccion[]>
   getById: (id: number) => Promise<selectDireccion | null>
@@ -151,9 +148,6 @@ export type Direccion = {
 }
 
 //MATERIA PRIMA
-
-import type { SelectMateriaPrima, InsertMateriaPrima, UpdateMateriaPrima } from "./schemas/db.ts"
-
 export interface IMateriaPrimaModel {
   getAll: () => Promise<SelectMateriaPrima[]>
   getById: (id: number) => Promise<SelectMateriaPrima | null>
