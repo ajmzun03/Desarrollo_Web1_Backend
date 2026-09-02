@@ -13,11 +13,11 @@ const schemaDireccion = z.object({
     direccion1: z.string()
         .trim()
         .min(3, "La dirección debe tener al menos 3 caracteres")
-        .max(155,"La dirección no puede tener más de 155 caracteres"),
+        .max(155, "La dirección no puede tener más de 155 caracteres"),
 
     direccion2: z.string()
         .trim()
-        .max(100,"La dirección no puede tener más de 100 caracteres")      
+        .max(100, "La dirección no puede tener más de 100 caracteres")
 })
 
 export function validateDireccion(object: any) {

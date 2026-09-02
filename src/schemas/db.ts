@@ -2,56 +2,55 @@ import { pgTable, varchar, integer, bigint, timestamp, boolean, date, doublePrec
 import { pgEnum } from "drizzle-orm/pg-core";
 
 export const movimientoEnum = pgEnum('movimiento', [
-  'ING', //ingreso de producto/materia prima
-  'SLD', //salida de producto/materia prima
-  'MER', //merma de producto/materia prima
-  'VNC', //vencimiento de producto/materia prima
-  'TRS' //traslado de producto/materia prima
+  'INGRESO',    // ingreso de producto/materia prima
+  'SALIDA',     // salida de producto/materia prima
+  'MERMA',      // merma de producto/materia prima
+  'VENCIMIENTO',// vencimiento de producto/materia prima
+  'TRASLADO'    // traslado de producto/materia prima
 ]);
 
-
 export const estadoLoteEnum = pgEnum('estado_lote', [
-  'Vigente',
-  'Vencido',
-  'Agotado'
+  'VIGENTE',
+  'VENCIDO',
+  'AGOTADO'
 ]);
 
 export const estadoPedidoEnum = pgEnum('estado_pedido', [
-  'CREADO', //Creado
-  'LST', //Listo
-  'ANL', //Anulado
-  'ENR', //En ruta
-  'ENT' //Entregado
+  'CREADO',
+  'LISTO',
+  'ANULADO',
+  'EN_RUTA',
+  'ENTREGADO'
 ]);
 
-export const estadoOrdenCompraEnum = pgEnum('estado_orden_compra', [ //Estado de la orden de compra
-  'CRD', //Creada
-  'ENP', //En proceso
-  'FNL', //Finalizado
-  'ANL' //Anulado
+export const estadoOrdenCompraEnum = pgEnum('estado_orden_compra', [
+  'CREADA',
+  'EN_PROCESO',
+  'FINALIZADO',
+  'ANULADO'
 ]);
 
 export const tipoRecepcionEnum = pgEnum('tipo_recepcion', [
-  'Total',
-  'Parcial'
+  'TOTAL',
+  'PARCIAL'
 ]);
 
 export const estadoRecepcionEnum = pgEnum('estado_recepcion', [
-  'Completa',
-  'Incompleta'
+  'COMPLETA',
+  'INCOMPLETA'
 ]);
 
 export const estadoOrdenTrabajoEnum = pgEnum('estado_orden_trabajo', [
   'GENERADA',
-  'EN PROCESO',
+  'EN_PROCESO',
   'ANULADA',
   'FINALIZADA'
 ]);
 
 export const tipoCajaEnum = pgEnum('tipo_caja', [
-  'Caja chica',
-  'GastosR',
-  'Transito'
+  'CAJA_CHICA',
+  'GASTOS_REPRESENTACION', // ojo: "GastosR" era ambiguo, ajusta el nombre completo si el significado es otro
+  'TRANSITO'
 ]);
 
 export const rolUsuarioEnum = pgEnum('rol_usuario', [
@@ -127,7 +126,7 @@ export const loteMateriaPrimaTable = pgTable('LOTE_MATERIA_PRIMA', { //9 - Angel
   fecha_vencimiento: date('fecha_vencimiento', { mode: 'string' }).notNull(),
   cantidad_inicial: doublePrecision('cantidad_inicial').notNull(),
   cantidad_actual: doublePrecision('cantidad_actual').notNull(),
-  estado: estadoLoteEnum('estado').notNull().default('Vigente'),
+  estado: estadoLoteEnum('estado').notNull().default('VIGENTE'),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -219,7 +218,7 @@ export const ordenCompraTable = pgTable('ORDEN_COMPRA', { //21 - Adrian
   proveedor_id: integer('proveedor_id').references(() => proveedorTable.id),
   sucursal_destino: integer('sucursal_destino').references(() => sucursalTable.id),
   fecha_generada: timestamp('fecha_generada', { mode: "string" }).notNull().defaultNow(),
-  estado_orden: estadoOrdenCompraEnum('estado_orden').notNull().default("CRD")
+  estado_orden: estadoOrdenCompraEnum('estado_orden').notNull().default("CREADA")
 })
 
 export const detalleOrdenCompraTable = pgTable('DETALLE_ORDEN_COMPRA', { //22 - Adrian
@@ -235,7 +234,7 @@ export const hojaRecepcionTable = pgTable("HOJA_RECEPCION", { //23 - Adrian
   id: bigint('id', { mode: "number" }).notNull().primaryKey().generatedByDefaultAsIdentity(),
   sucursal_receptora: integer('sucursal_receptora').references(() => sucursalTable.id),
   orden_compra_id: bigint('orden_compra_id', { mode: "number" }).references(() => ordenCompraTable.id),
-  tipo_recepcion: tipoRecepcionEnum('tipo_recepcion').notNull().default('Total'),
+  tipo_recepcion: tipoRecepcionEnum('tipo_recepcion').notNull().default('TOTAL'),
   fecha_generada: timestamp('fecha_generada', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -247,7 +246,7 @@ export const hojaRecepcionDetalleTable = pgTable("HOJA_RECEPCION_DETALLE", { //2
   fecha_vencimiento: timestamp('fecha_vencimiento', { mode: "string" }).notNull().defaultNow(),
   merma: doublePrecision('merma'),
   saldo: doublePrecision('saldo').notNull(),
-  estado: estadoRecepcionEnum('estado_recepcion').notNull().default('Completa')
+  estado: estadoRecepcionEnum('estado_recepcion').notNull().default('COMPLETA')
 })
 
 //Carlos Hernández
@@ -277,7 +276,7 @@ export const productoLoteTable = pgTable('PRODUCTO_LOTE', { //27 Carlos
   orden_id: bigint('orden_id', { mode: 'number' }).references(() => ordenTrabajoTable.id), // ORDEN_TRABAJO.id
   cantidad_inicial: doublePrecision('cantidad_inicial'),
   cantidad_actual: doublePrecision('cantidad_actual'),
-  estado: estadoLoteEnum('estado').default('Vigente'),
+  estado: estadoLoteEnum('estado').default('VIGENTE'),
   producido_en: timestamp('producido_en', { mode: 'string' }).notNull().defaultNow()
 })
 
