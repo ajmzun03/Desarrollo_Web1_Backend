@@ -1,14 +1,4 @@
-import type { InsertProveedor, SelectProveedor } from "./schemas/db.ts"
-import type { SelectMunicipio } from "./schemas/db.ts"
-import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "./schemas/db.ts"
-import type { SelectDepartamento, InsertDepartamento } from "./schemas/db.ts"
-import type { SelectMateriaPrima, InsertMateriaPrima, UpdateMateriaPrima } from "./schemas/db.ts"
-import type { SelectCategoria, InsertCategoria, UpdateCategoria } from "./schemas/db.ts"
-import type { selectCliente, insertCliente, updateCliente } from "./schemas/db.ts"
-import type { selectDireccion, insertDireccion, updateDireccion } from "./schemas/db.ts"
-import type { SelectUnidadMedida, InsertUnidadMedida, UpdateUnidadMedida } from "./schemas/db.ts"
-import type { SelectUsuario, InsertUsuario, UpdateUsuario } from "./schemas/db.ts"
-
+import type {} from "./schemas"
 //PROVEEDOR
 export interface IProveedorModel {
  getAll: () => Promise<SelectProveedor[] | null>
