@@ -1,8 +1,8 @@
-import { db } from "./db.js"
-import { materiaPrimaTable } from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { materiaPrimaTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IMateriaPrimaModel } from "../../types.js";
-import type { InsertMateriaPrima, SelectMateriaPrima, UpdateMateriaPrima } from "../../schemas/db.js";
+import type { InsertMateriaPrima, SelectMateriaPrima, UpdateMateriaPrima } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const MateriaPrimaModel: IMateriaPrimaModel = {

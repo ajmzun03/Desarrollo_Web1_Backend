@@ -1,8 +1,8 @@
-import { db } from "./db.js"
-import { direccionTable } from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { direccionTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IDireccionModel } from "../../types.js";
-import type { SelectDireccion, InsertDireccion, UpdateDireccion } from "../../schemas/db.js";
+import type { SelectDireccion, InsertDireccion, UpdateDireccion } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const DireccionModel: IDireccionModel = {

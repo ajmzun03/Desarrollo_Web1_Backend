@@ -1,8 +1,8 @@
-import { db } from "./db.js"
-import { usuarioTable } from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { usuarioTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IUsuarioModel } from "../../types.js";
-import type { InsertUsuario, SelectUsuario, UpdateUsuario } from "../../schemas/db.js";
+import type { InsertUsuario, SelectUsuario, UpdateUsuario } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 // Columnas seguras para exponer al cliente (sin contrasenia)
