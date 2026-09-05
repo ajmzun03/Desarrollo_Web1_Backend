@@ -1,8 +1,8 @@
-import { db } from "./db.js"
-import { categoriaTable } from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { categoriaTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { ICategoriaModel } from "../../types.js";
-import type { SelectCategoria, InsertCategoria, UpdateCategoria } from "../../schemas/db.js";
+import type { SelectCategoria, InsertCategoria, UpdateCategoria } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const CategoriaModel: ICategoriaModel = {

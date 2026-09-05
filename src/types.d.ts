@@ -1,10 +1,41 @@
-import type {} from "./schemas"
+import type {
+  InsertProveedor,
+  SelectProveedor,
+  SelectMunicipio,
+  InsertSucursal,
+  SelectSucursal,
+  UpdateSucursal,
+  SelectDepartamento,
+  InsertDepartamento,
+  SelectMateriaPrima,
+  InsertMateriaPrima,
+  UpdateMateriaPrima,
+  SelectCategoria,
+  InsertCategoria,
+  UpdateCategoria,
+  SelectCliente,
+  InsertCliente,
+  UpdateCliente,
+  SelectDireccion,
+  InsertDireccion,
+  UpdateDireccion,
+  SelectUnidadMedida,
+  InsertUnidadMedida,
+  UpdateUnidadMedida,
+  SelectUsuario,
+  InsertUsuario,
+  UpdateUsuario,
+  SelectPedido,
+  UpdatePedido,
+  InsertPedido,
+} from "./schemas/db.schema.ts";
+
 //PROVEEDOR
 export interface IProveedorModel {
- getAll: () => Promise<SelectProveedor[] | null>
- getById: (id: number) => Promise<SelectProveedor | null>
- create: (data: InsertProveedor) => Promise<SelectProveedor>
- update: (data: Partial<InsertProveedor>) => Promise<SelectProveedor | null>
+  getAll: () => Promise<SelectProveedor[] | null>
+  getById: (id: number) => Promise<SelectProveedor | null>
+  create: (data: InsertProveedor) => Promise<SelectProveedor>
+  update: (data: Partial<InsertProveedor>) => Promise<SelectProveedor | null>
 }
 
 export type Proveedor = {
@@ -153,4 +184,11 @@ export type MateriaPrima = {
   es_perecedera: boolean
   maneja_merma: boolean
   creado_en: Date
+}
+
+export interface IPedidoModel {
+  getPedidosCliente: (id: number) => Promise<SelectPedido[] | null>
+  getPedidoId: (id: number) => Promise<SelectPedido | null>
+  createPedido:(data: InsertPedido) => Promise<SelectPedido>
+  updatePedido: (id: number, data: UpdatePedido) => Promise<SelectPedido | null>
 }

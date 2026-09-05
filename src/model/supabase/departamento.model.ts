@@ -1,8 +1,8 @@
-import {db} from "./db.js"
-import {departamentoTable} from "../../schemas/db.js";
-import {eq} from "drizzle-orm";
-import type {IDepartamentoModel} from "../../types.js";
-import type {InsertDepartamento, SelectDepartamento} from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { departamentoTable } from "../../schemas/db.schema.js";
+import { eq } from "drizzle-orm";
+import type { IDepartamentoModel } from "../../types.js";
+import type { InsertDepartamento, SelectDepartamento } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const DepartamentoModel: IDepartamentoModel = {

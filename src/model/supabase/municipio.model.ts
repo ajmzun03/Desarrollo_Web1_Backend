@@ -1,25 +1,25 @@
-import { db } from "./db.js"
-import { municipioTable } from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { municipioTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IMunicipioModel } from "../../types.js";
-import type { SelectMunicipio } from "../../schemas/db.js";
+import type { SelectMunicipio } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const MunicipioModel: IMunicipioModel = {
   async getAll(): Promise<SelectMunicipio[]> {
     const municipios = await db.select().from(municipioTable).limit(100).offset(0);
     if (municipios.length === 0) {
-        logger.warn("No se encontraron municipios")
-        throw new Error("No se encontraron municipios")
+      logger.warn("No se encontraron municipios")
+      throw new Error("No se encontraron municipios")
     }
     logger.info(`Se encontraron ${municipios.length} municipios`);
     return municipios;
   },
   async getById(id: number): Promise<SelectMunicipio | null> {
-    const municipio = await db.select().from(municipioTable).where(eq(municipioTable.id, id));    
+    const municipio = await db.select().from(municipioTable).where(eq(municipioTable.id, id));
     if (!municipio[0]) {
-        logger.warn(`Municipio con id ${id} no encontrado`)
-        throw new Error("Municipio no encontrado");
+      logger.warn(`Municipio con id ${id} no encontrado`)
+      throw new Error("Municipio no encontrado");
     }
     logger.info(`Municipio con id ${id} encontrado`);
     return municipio[0] || null;

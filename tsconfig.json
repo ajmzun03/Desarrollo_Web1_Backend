@@ -44,7 +44,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "src/model/supabase/direccion.model.ts"  ],
   "exclude": [
     "node_modules",
     "dist"

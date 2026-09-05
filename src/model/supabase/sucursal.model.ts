@@ -1,9 +1,9 @@
-import { db } from "./db.js";
-import {sucursalTable} from "../../schemas/db.js";
-import {eq} from "drizzle-orm";
+import { db } from "./db.model.js";
+import { sucursalTable } from "../../schemas/db.schema.js";
+import { eq } from "drizzle-orm";
 
 import type { ISucursalModel } from "../../types.js";
-import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "../../schemas/db.js";
+import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const SucursalModel: ISucursalModel = {
@@ -24,7 +24,7 @@ export const SucursalModel: ISucursalModel = {
         return sucursal[0] || null;
     },
     async create(data: InsertSucursal): Promise<SelectSucursal> {
-        const [result] = await db.insert(sucursalTable).values({ ...data }).returning(); 
+        const [result] = await db.insert(sucursalTable).values({ ...data }).returning();
         if (result) {
             logger.info("Sucursal creada exitosamente");
             return result;

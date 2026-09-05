@@ -1,8 +1,8 @@
-import { db } from "./db.js"
-import { proveedorTable } from "../../schemas/db.js";
+import { db } from "./db.model.js"
+import { proveedorTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IProveedorModel } from "../../types.js";
-import type { InsertProveedor, SelectProveedor } from "../../schemas/db.js";
+import type { InsertProveedor, SelectProveedor } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const ProveedorModel: IProveedorModel = {

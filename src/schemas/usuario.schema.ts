@@ -1,5 +1,5 @@
 import z from 'zod'
-import { rolUsuarioEnum } from './db.js'
+import { rolUsuarioEnum } from './db.schema.js'
 
 const estadoRolEnum = rolUsuarioEnum.enumValues
 
