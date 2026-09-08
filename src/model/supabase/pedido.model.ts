@@ -3,7 +3,6 @@ import { type SelectPedido, type InsertPedido, type UpdatePedido, pedidoTable } 
 import { db } from "./db.model.js";
 import { eq } from "drizzle-orm";
 import logger from "../../config/logger.js";
-import { Cache } from "drizzle-orm/cache/core";
 
 export const PedidoModel: IPedidoModel = {
   async getPedidosCliente(id: number): Promise<SelectPedido[] | null> {
