@@ -170,3 +170,90 @@ export type MateriaPrima = {
   maneja_merma: boolean
   creado_en: Date
 }
+
+//LOTE MATERIA PRIMA
+
+import type { SelectLoteMateriaPrima, UpdateLoteMateriaPrima } from "./schemas/db.ts";
+
+export interface ILoteMateriaPrimaModel {
+  getAll: () => Promise<SelectLoteMateriaPrima[]>;
+  getById: (id: number) => Promise<SelectLoteMateriaPrima | null>
+  update: (id: number, data: UpdateLoteMateriaPrima) => Promise<SelectLoteMateriaPrima | null>
+}
+
+export type LoteMateriaPrima = {
+  id: number;
+  materia_prima_id: number;
+  fecha_vencimiento: string; 
+  cantidad_inicial: number;
+  cantidad_actual: number;
+  estado: 'VIGENTE' | 'VENCIDO' | 'AGOTADO';
+  creado_en: string;
+};
+
+//BODEGA
+
+import type {SelectBodega, InsertBodega, UpdateBodega } from "./schemas/db.ts";
+
+export interface IBodegaModel {
+  getAll: () => Promise<SelectBodega[]>;
+  getById: (id: number) => Promise<SelectBodega | null>
+  create: (data: InsertBodega) => Promise<SelectBodega>
+  update: (id: number, data: UpdateBodega) => Promise<SelectBodega | null>
+}
+
+export type Bodega = {
+  id: number;
+  sucursal_id: number
+  bodega: string
+}
+
+//STOCK BODEGA
+
+import type { SelectStrockBodega } from "./schemas/db.ts";
+
+export interface IStockBodegaModel {
+  getAll: () => Promise<SelectStockBodega[]>;
+  getById: (id: number) => Promise<SelectStockBodega | null>
+}
+
+export type StockBodega = {
+  id: number;
+  bodega_id: number;
+  lote_id: number;
+}
+
+//KARDEX BODEGA
+
+import type { SelectKardezBodega } from "./schemas/db.ts";
+
+export interface IKardexBodegaModel {
+  getAll: () => Promise<SelectKardezBodega[]>;
+  getById: (id: number) => Promise<SelectKardexBodega | null>
+}
+
+export type KardexBodega = {
+  id: number;
+  bodega_id: number;
+  lote_id: number;
+  tipo_movimiento: string;
+  cantidad: number;
+}
+
+//ALACENA
+
+import type { SelectAlacena, InsertAlacena, UpdateAlacena } from "./schemas/db.ts";
+
+export interface IAlacenaModel {
+  getAll: () => Promise<SelectAlacena[]>;
+  getById: (id: number) => Promise<SelectAlacena | null>
+  create: (data: InsertAlacena) => Promise<SelectAlacena> 
+  update: (id: number, data: UpdateAlacena) => Promise<SelectAlacena | null>
+}
+
+export type Alacena ={
+  id: number;
+  bodega_id: number;
+  alacena: string;
+  creado_en: Date;
+}

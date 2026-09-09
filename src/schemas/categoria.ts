@@ -10,3 +10,7 @@ const schemaCategoria = z.object({
         .min(3, "La descripción de la categoría debe tener al menos 3 caracteres")
         .max(100, "La descripción de la categoría no puede tener más de 100 caracteres"),
 })
+
+export function validateCategoria(object: any) {
+    return schemaCategoria.safeParse(object)
+}
