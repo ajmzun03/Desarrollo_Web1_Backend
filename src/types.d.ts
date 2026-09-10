@@ -28,6 +28,7 @@ import type {
   SelectPedido,
   UpdatePedido,
   InsertPedido,
+  SelectStockAlacena,
 } from "./schemas/db.schema.ts";
 
 //PROVEEDOR
@@ -189,6 +190,10 @@ export type MateriaPrima = {
 export interface IPedidoModel {
   getPedidosCliente: (id: number) => Promise<SelectPedido[] | null>
   getPedidoId: (id: number) => Promise<SelectPedido | null>
-  createPedido:(data: InsertPedido) => Promise<SelectPedido>
+  createPedido: (data: InsertPedido) => Promise<SelectPedido>
   updatePedido: (id: number, data: UpdatePedido) => Promise<SelectPedido | null>
+}
+
+export interface IStockAlacenaModel {
+  getAlacenaById: (id: number, lote: number) => Promise<SelectStockAlacena | null>
 }
