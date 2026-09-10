@@ -407,3 +407,5 @@ export type UpdateMateriaPrima = Partial<typeof materiaPrimaTable.$inferInsert>
 export type SelectPedido = typeof pedidoTable.$inferSelect
 export type InsertPedido = typeof pedidoTable.$inferInsert
 export type UpdatePedido = Partial<typeof pedidoTable.$inferInsert>
+
+export type SelectStockAlacena = typeof stockAlacenaTable.$inferSelect
