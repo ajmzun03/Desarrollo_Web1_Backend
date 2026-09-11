@@ -29,6 +29,7 @@ import type {
   UpdatePedido,
   InsertPedido,
   SelectStockAlacena,
+  SelectKardexAlacena,
 } from "./schemas/db.schema.ts";
 
 //PROVEEDOR
@@ -196,4 +197,8 @@ export interface IPedidoModel {
 
 export interface IStockAlacenaModel {
   getAlacenaById: (id: number, lote: number) => Promise<SelectStockAlacena | null>
+}
+
+export interface IKardexAlacenaModel {
+  getKardexAlacenaById: (id: number, lote: number) => Promise<SelectKardexAlacena | null>
 }

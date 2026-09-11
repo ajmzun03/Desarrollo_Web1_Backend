@@ -409,3 +409,5 @@ export type InsertPedido = typeof pedidoTable.$inferInsert
 export type UpdatePedido = Partial<typeof pedidoTable.$inferInsert>
 
 export type SelectStockAlacena = typeof stockAlacenaTable.$inferSelect
+
+export type SelectKardexAlacena = typeof kardexAlacenaTable.$inferSelect
