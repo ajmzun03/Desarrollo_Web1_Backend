@@ -411,3 +411,102 @@ export type UpdatePedido = Partial<typeof pedidoTable.$inferInsert>
 export type SelectStockAlacena = typeof stockAlacenaTable.$inferSelect
 
 export type SelectKardexAlacena = typeof kardexAlacenaTable.$inferSelect
+
+// PRODUCTO
+export type SelectProducto = typeof productoTable.$inferSelect
+export type InsertProducto = typeof productoTable.$inferInsert
+export type UpdateProducto = Partial<typeof productoTable.$inferInsert>
+
+// RECETA
+export type SelectReceta = typeof recetaTable.$inferSelect
+export type InsertReceta = typeof recetaTable.$inferInsert
+export type UpdateReceta = Partial<typeof recetaTable.$inferInsert>
+
+export type SelectRecetaDetalle = typeof recetaDetalleTable.$inferSelect
+export type InsertRecetaDetalle = typeof recetaDetalleTable.$inferInsert
+
+// BODEGA
+export type SelectBodega = typeof bodegaTable.$inferSelect
+export type InsertBodega = typeof bodegaTable.$inferInsert
+export type UpdateBodega = Partial<typeof bodegaTable.$inferInsert>
+
+// ALACENA
+export type SelectAlacena = typeof alacenaTable.$inferSelect
+export type InsertAlacena = typeof alacenaTable.$inferInsert
+export type UpdateAlacena = Partial<typeof alacenaTable.$inferInsert>
+
+// CAJA
+export type SelectCaja = typeof cajaTable.$inferSelect
+export type InsertCaja = typeof cajaTable.$inferInsert
+export type UpdateCaja = Partial<typeof cajaTable.$inferInsert>
+
+// ORDEN COMPRA
+export type SelectOrdenCompra = typeof ordenCompraTable.$inferSelect
+export type InsertOrdenCompra = typeof ordenCompraTable.$inferInsert
+export type UpdateOrdenCompra = Partial<typeof ordenCompraTable.$inferInsert>
+
+export type SelectDetalleOrdenCompra = typeof detalleOrdenCompraTable.$inferSelect
+export type InsertDetalleOrdenCompra = typeof detalleOrdenCompraTable.$inferInsert
+
+// ORDEN TRABAJO
+export type SelectOrdenTrabajo = typeof ordenTrabajoTable.$inferSelect
+export type InsertOrdenTrabajo = typeof ordenTrabajoTable.$inferInsert
+export type UpdateOrdenTrabajo = Partial<typeof ordenTrabajoTable.$inferInsert>
+
+// PRODUCTO LOTE
+export type SelectProductoLote = typeof productoLoteTable.$inferSelect
+export type InsertProductoLote = typeof productoLoteTable.$inferInsert
+export type UpdateProductoLote = Partial<typeof productoLoteTable.$inferInsert>
+
+// LOTE MATERIA PRIMA
+export type SelectLoteMateriaPrima = typeof loteMateriaPrimaTable.$inferSelect
+export type InsertLoteMateriaPrima = typeof loteMateriaPrimaTable.$inferInsert
+export type UpdateLoteMateriaPrima = Partial<typeof loteMateriaPrimaTable.$inferInsert>
+
+// KARDEX BODEGA
+export type SelectKardexBodega = typeof kardexBodegaTable.$inferSelect
+export type InsertKardexBodega = typeof kardexBodegaTable.$inferInsert
+
+// STOCK BODEGA
+export type SelectStockBodega = typeof stockBodegaTable.$inferSelect
+export type InsertStockBodega = typeof stockBodegaTable.$inferInsert
+
+// HOJA RECEPCION
+export type SelectHojaRecepcion = typeof hojaRecepcionTable.$inferSelect
+export type InsertHojaRecepcion = typeof hojaRecepcionTable.$inferInsert
+export type UpdateHojaRecepcion = Partial<typeof hojaRecepcionTable.$inferInsert>
+
+export type SelectHojaRecepcionDetalle = typeof hojaRecepcionDetalleTable.$inferSelect
+export type InsertHojaRecepcionDetalle = typeof hojaRecepcionDetalleTable.$inferInsert
+
+// FACTURA COMPRA
+export type SelectFacturaCompra = typeof facturaCompraTable.$inferSelect
+export type InsertFacturaCompra = typeof facturaCompraTable.$inferInsert
+
+// FACTURA VENTA
+export type SelectFacturaVenta = typeof facturaVentaTable.$inferSelect
+export type InsertFacturaVenta = typeof facturaVentaTable.$inferInsert
+
+// HOJA DESPACHO
+export type SelectHojaDespacho = typeof hojaDespachoTable.$inferSelect
+export type InsertHojaDespacho = typeof hojaDespachoTable.$inferInsert
+
+export type SelectHojaDespachoDetalle = typeof hojaDespachoDetalleTable.$inferSelect
+export type InsertHojaDespachoDetalle = typeof hojaDespachoDetalleTable.$inferInsert
+
+// TURNO DESPACHADOR
+export type SelectTurnoDespachador = typeof turnoDespachadorTable.$inferSelect
+export type InsertTurnoDespachador = typeof turnoDespachadorTable.$inferInsert
+export type UpdateTurnoDespachador = Partial<typeof turnoDespachadorTable.$inferInsert>
+
+// GASTOS SUCURSAL
+export type SelectGastosSucursal = typeof gastosSucursalTable.$inferSelect
+export type InsertGastosSucursal = typeof gastosSucursalTable.$inferInsert
+
+// LIQUIDACION REPARTIDOR
+export type SelectLiquidacionRepartidor = typeof liquidacionRepartidorTable.$inferSelect
+export type InsertLiquidacionRepartidor = typeof liquidacionRepartidorTable.$inferInsert
+
+// DETALLE PEDIDO
+export type SelectDetallePedido = typeof detallePedidoTable.$inferSelect
+export type InsertDetallePedido = typeof detallePedidoTable.$inferInsert

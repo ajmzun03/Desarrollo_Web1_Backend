@@ -30,6 +30,63 @@ import type {
   InsertPedido,
   SelectStockAlacena,
   SelectKardexAlacena,
+  SelectProducto,
+  InsertProducto,
+  UpdateProducto,
+  SelectReceta,
+  InsertReceta,
+  UpdateReceta,
+  SelectRecetaDetalle,
+  InsertRecetaDetalle,
+  SelectBodega,
+  InsertBodega,
+  UpdateBodega,
+  SelectAlacena,
+  InsertAlacena,
+  UpdateAlacena,
+  SelectCaja,
+  InsertCaja,
+  UpdateCaja,
+  SelectOrdenCompra,
+  InsertOrdenCompra,
+  UpdateOrdenCompra,
+  SelectDetalleOrdenCompra,
+  InsertDetalleOrdenCompra,
+  SelectOrdenTrabajo,
+  InsertOrdenTrabajo,
+  UpdateOrdenTrabajo,
+  SelectProductoLote,
+  InsertProductoLote,
+  UpdateProductoLote,
+  SelectLoteMateriaPrima,
+  InsertLoteMateriaPrima,
+  UpdateLoteMateriaPrima,
+  SelectKardexBodega,
+  InsertKardexBodega,
+  SelectStockBodega,
+  InsertStockBodega,
+  SelectHojaRecepcion,
+  InsertHojaRecepcion,
+  UpdateHojaRecepcion,
+  SelectHojaRecepcionDetalle,
+  InsertHojaRecepcionDetalle,
+  SelectFacturaCompra,
+  InsertFacturaCompra,
+  SelectFacturaVenta,
+  InsertFacturaVenta,
+  SelectHojaDespacho,
+  InsertHojaDespacho,
+  SelectHojaDespachoDetalle,
+  InsertHojaDespachoDetalle,
+  SelectTurnoDespachador,
+  InsertTurnoDespachador,
+  UpdateTurnoDespachador,
+  SelectGastosSucursal,
+  InsertGastosSucursal,
+  SelectLiquidacionRepartidor,
+  InsertLiquidacionRepartidor,
+  SelectDetallePedido,
+  InsertDetallePedido,
 } from "./schemas/db.schema.ts";
 
 //PROVEEDOR
@@ -201,4 +258,186 @@ export interface IStockAlacenaModel {
 
 export interface IKardexAlacenaModel {
   getKardexAlacenaById: (id: number, lote: number) => Promise<SelectKardexAlacena | null>
+}
+
+// ========== PRODUCTO ==========
+export interface IProductoModel {
+  getAll: () => Promise<SelectProducto[]>
+  getById: (id: number) => Promise<SelectProducto | null>
+  create: (data: InsertProducto) => Promise<SelectProducto>
+  update: (id: number, data: UpdateProducto) => Promise<SelectProducto | null>
+}
+
+// ========== RECETA ==========
+export interface IRecetaModel {
+  getAll: () => Promise<SelectReceta[]>
+  getById: (id: number) => Promise<SelectReceta | null>
+  create: (data: InsertReceta) => Promise<SelectReceta>
+  update: (id: number, data: UpdateReceta) => Promise<SelectReceta | null>
+}
+
+export interface IRecetaDetalleModel {
+  getByRecetaId: (recetaId: number) => Promise<SelectRecetaDetalle[]>
+  create: (data: InsertRecetaDetalle) => Promise<SelectRecetaDetalle>
+}
+
+// ========== BODEGA ==========
+export interface IBodegaModel {
+  getAll: () => Promise<SelectBodega[]>
+  getById: (id: number) => Promise<SelectBodega | null>
+  getBySucursalId: (sucursalId: number) => Promise<SelectBodega[]>
+  create: (data: InsertBodega) => Promise<SelectBodega>
+  update: (id: number, data: UpdateBodega) => Promise<SelectBodega | null>
+}
+
+// ========== ALACENA ==========
+export interface IAlacenaModel {
+  getAll: () => Promise<SelectAlacena[]>
+  getById: (id: number) => Promise<SelectAlacena | null>
+  getByBodegaId: (bodegaId: number) => Promise<SelectAlacena[]>
+  create: (data: InsertAlacena) => Promise<SelectAlacena>
+  update: (id: number, data: UpdateAlacena) => Promise<SelectAlacena | null>
+}
+
+// ========== CAJA ==========
+export interface ICajaModel {
+  getAll: () => Promise<SelectCaja[]>
+  getById: (id: number) => Promise<SelectCaja | null>
+  getBySucursalId: (sucursalId: number) => Promise<SelectCaja[]>
+  create: (data: InsertCaja) => Promise<SelectCaja>
+  update: (id: number, data: UpdateCaja) => Promise<SelectCaja | null>
+}
+
+// ========== ORDEN COMPRA ==========
+export interface IOrdenCompraModel {
+  getAll: () => Promise<SelectOrdenCompra[]>
+  getById: (id: number) => Promise<SelectOrdenCompra | null>
+  getByEstado: (estado: string) => Promise<SelectOrdenCompra[]>
+  getBySucursalId: (sucursalId: number) => Promise<SelectOrdenCompra[]>
+  create: (data: InsertOrdenCompra) => Promise<SelectOrdenCompra>
+  update: (id: number, data: UpdateOrdenCompra) => Promise<SelectOrdenCompra | null>
+}
+
+export interface IDetalleOrdenCompraModel {
+  getByOrdenCompraId: (ordenCompraId: number) => Promise<SelectDetalleOrdenCompra[]>
+  create: (data: InsertDetalleOrdenCompra) => Promise<SelectDetalleOrdenCompra>
+}
+
+// ========== ORDEN TRABAJO ==========
+export interface IOrdenTrabajoModel {
+  getAll: () => Promise<SelectOrdenTrabajo[]>
+  getById: (id: number) => Promise<SelectOrdenTrabajo | null>
+  getBySucursalId: (sucursalId: number) => Promise<SelectOrdenTrabajo[]>
+  getByEstado: (estado: string) => Promise<SelectOrdenTrabajo[]>
+  create: (data: InsertOrdenTrabajo) => Promise<SelectOrdenTrabajo>
+  update: (id: number, data: UpdateOrdenTrabajo) => Promise<SelectOrdenTrabajo | null>
+}
+
+// ========== PRODUCTO LOTE ==========
+export interface IProductoLoteModel {
+  getAll: () => Promise<SelectProductoLote[]>
+  getById: (id: number) => Promise<SelectProductoLote | null>
+  getByOrdenId: (ordenId: number) => Promise<SelectProductoLote[]>
+  create: (data: InsertProductoLote) => Promise<SelectProductoLote>
+  update: (id: number, data: UpdateProductoLote) => Promise<SelectProductoLote | null>
+}
+
+// ========== LOTE MATERIA PRIMA ==========
+export interface ILoteMateriaPrimaModel {
+  getAll: () => Promise<SelectLoteMateriaPrima[]>
+  getById: (id: number) => Promise<SelectLoteMateriaPrima | null>
+  getByMateriaPrimaId: (materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
+  getByBodegaId: (bodegaId: number) => Promise<SelectLoteMateriaPrima[]>
+  getFEFO: (bodegaId: number, materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
+  create: (data: InsertLoteMateriaPrima) => Promise<SelectLoteMateriaPrima>
+  update: (id: number, data: UpdateLoteMateriaPrima) => Promise<SelectLoteMateriaPrima | null>
+}
+
+// ========== KARDEX BODEGA ==========
+export interface IKardexBodegaModel {
+  getAll: () => Promise<SelectKardexBodega[]>
+  getByBodegaId: (bodegaId: number) => Promise<SelectKardexBodega[]>
+  getByLoteId: (loteId: number) => Promise<SelectKardexBodega[]>
+  create: (data: InsertKardexBodega) => Promise<SelectKardexBodega>
+}
+
+// ========== STOCK BODEGA ==========
+export interface IStockBodegaModel {
+  getAll: () => Promise<SelectStockBodega[]>
+  getByBodegaId: (bodegaId: number) => Promise<SelectStockBodega[]>
+  create: (data: InsertStockBodega) => Promise<SelectStockBodega>
+}
+
+// ========== HOJA RECEPCION ==========
+export interface IHojaRecepcionModel {
+  getAll: () => Promise<SelectHojaRecepcion[]>
+  getById: (id: number) => Promise<SelectHojaRecepcion | null>
+  getBySucursalId: (sucursalId: number) => Promise<SelectHojaRecepcion[]>
+  create: (data: InsertHojaRecepcion) => Promise<SelectHojaRecepcion>
+  update: (id: number, data: UpdateHojaRecepcion) => Promise<SelectHojaRecepcion | null>
+}
+
+export interface IHojaRecepcionDetalleModel {
+  getByHojaRecepcionId: (hojaRecepcionId: number) => Promise<SelectHojaRecepcionDetalle[]>
+  create: (data: InsertHojaRecepcionDetalle) => Promise<SelectHojaRecepcionDetalle>
+}
+
+// ========== FACTURA COMPRA ==========
+export interface IFacturaCompraModel {
+  getAll: () => Promise<SelectFacturaCompra[]>
+  getById: (id: number) => Promise<SelectFacturaCompra | null>
+  getByHojaRecepcionId: (hojaRecepcionId: number) => Promise<SelectFacturaCompra[]>
+  create: (data: InsertFacturaCompra) => Promise<SelectFacturaCompra>
+}
+
+// ========== FACTURA VENTA ==========
+export interface IFacturaVentaModel {
+  getAll: () => Promise<SelectFacturaVenta[]>
+  getById: (id: number) => Promise<SelectFacturaVenta | null>
+  getByPedidoId: (pedidoId: number) => Promise<SelectFacturaVenta[]>
+  create: (data: InsertFacturaVenta) => Promise<SelectFacturaVenta>
+}
+
+// ========== HOJA DESPACHO ==========
+export interface IHojaDespachoModel {
+  getAll: () => Promise<SelectHojaDespacho[]>
+  getById: (id: number) => Promise<SelectHojaDespacho | null>
+  getByPedidoId: (pedidoId: number) => Promise<SelectHojaDespacho[]>
+  create: (data: InsertHojaDespacho) => Promise<SelectHojaDespacho>
+}
+
+export interface IHojaDespachoDetalleModel {
+  getByHojaDespachoId: (hojaDespachoId: number) => Promise<SelectHojaDespachoDetalle[]>
+  create: (data: InsertHojaDespachoDetalle) => Promise<SelectHojaDespachoDetalle>
+}
+
+// ========== TURNO DESPACHADOR ==========
+export interface ITurnoDespachadorModel {
+  getAll: () => Promise<SelectTurnoDespachador[]>
+  getById: (id: number) => Promise<SelectTurnoDespachador | null>
+  getAbiertos: () => Promise<SelectTurnoDespachador[]>
+  create: (data: InsertTurnoDespachador) => Promise<SelectTurnoDespachador>
+  update: (id: number, data: UpdateTurnoDespachador) => Promise<SelectTurnoDespachador | null>
+}
+
+// ========== GASTOS SUCURSAL ==========
+export interface IGastosSucursalModel {
+  getAll: () => Promise<SelectGastosSucursal[]>
+  getById: (id: number) => Promise<SelectGastosSucursal | null>
+  getBySucursalId: (sucursalId: number) => Promise<SelectGastosSucursal[]>
+  create: (data: InsertGastosSucursal) => Promise<SelectGastosSucursal>
+}
+
+// ========== LIQUIDACION REPARTIDOR ==========
+export interface ILiquidacionRepartidorModel {
+  getAll: () => Promise<SelectLiquidacionRepartidor[]>
+  getById: (id: number) => Promise<SelectLiquidacionRepartidor | null>
+  getByTurnoId: (turnoId: number) => Promise<SelectLiquidacionRepartidor[]>
+  create: (data: InsertLiquidacionRepartidor) => Promise<SelectLiquidacionRepartidor>
+}
+
+// ========== DETALLE PEDIDO ==========
+export interface IDetallePedidoModel {
+  getByPedidoId: (pedidoId: number) => Promise<SelectDetallePedido[]>
+  create: (data: InsertDetallePedido) => Promise<SelectDetallePedido>
 }
