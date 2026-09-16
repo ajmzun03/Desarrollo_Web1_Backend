@@ -1,10 +1,22 @@
 import type { IPedidoModel } from "../../types.js";
 import { type SelectPedido, type InsertPedido, type UpdatePedido, pedidoTable } from "../../schemas/db.schema.js";
 import { db } from "./db.model.js";
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import logger from "../../config/logger.js";
 
 export const PedidoModel: IPedidoModel = {
+  async getAll(): Promise<SelectPedido[]> {
+    const pedidos = await db.select().from(pedidoTable).limit(100).offset(0);
+    logger.info(`Se encontraron ${pedidos.length} pedidos`);
+    return pedidos;
+  },
+
+  async getByEstado(estado: string): Promise<SelectPedido[]> {
+    const pedidos = await db.select().from(pedidoTable).where(eq(pedidoTable.estado, estado as any));
+    logger.info(`Se encontraron ${pedidos.length} pedidos con estado ${estado}`);
+    return pedidos;
+  },
+
   async getPedidosCliente(id: number): Promise<SelectPedido[] | null> {
     const pedidosCliente = await db.select().from(pedidoTable).where(eq(pedidoTable.cliente_id, id))
     if (pedidosCliente.length === 0) {

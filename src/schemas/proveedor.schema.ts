@@ -1,6 +1,6 @@
 import z from 'zod'
 
-const schemaProveedor = z.object({
+export const schemaProveedor = z.object({
   noNit: z.string()
     .min(8, "El NIT debe tener al menos 8 caracteres")
     .max(13, "El NIT no puede tener más de 13 caracteres")
