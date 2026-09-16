@@ -32,7 +32,7 @@ export const HojasRecepcionController = {
     }
   },
 
-  async create(data: { sucursal_receptora: number; orden_compra_id?: number; tipo_recepcion?: string; items: Array<{ materia_prima_id: number; cantidad_recibida: number; fecha_vencimiento: string; merma?: number }> }) {
+  async create(data: { sucursal_receptora: number; orden_compra_id?: number; tipo_recepcion?: 'TOTAL' | 'PARCIAL'; items: Array<{ materia_prima_id: number; cantidad_recibida: number; fecha_vencimiento: string; merma?: number }> }) {
     try {
       if (!data.sucursal_receptora || !data.items || !Array.isArray(data.items)) {
         return { data: null, error: 'sucursal_receptora y items son requeridos', status: 400 };

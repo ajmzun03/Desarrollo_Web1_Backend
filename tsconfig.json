@@ -44,9 +44,14 @@
   },
   "include": [
     "src/**/*"
-, "src/model/supabase/direccion.model.ts"  ],
+  ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/model/supabase/alacena.ts",
+    "src/model/supabase/bodega.ts",
+    "src/model/supabase/kardexBodega.ts",
+    "src/model/supabase/loteMateriaPrima.ts",
+    "src/model/supabase/stockBodega.ts"
   ]
 }

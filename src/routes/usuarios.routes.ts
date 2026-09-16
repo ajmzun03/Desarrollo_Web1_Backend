@@ -4,7 +4,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaUsuario } from '../schemas/usuario.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // Todas las rutas requieren ADMIN
 router.use(authenticate, requireRole('ADMIN'));

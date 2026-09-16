@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { FacturasVentaController } from '../controllers/facturasVenta.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaFacturaVenta } from '../schemas/facturaVenta.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /facturas-venta?pedido_id= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -18,7 +20,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /facturas-venta — CAJERO o ADMIN
-router.post('/', authenticate, requireRole('CAJERO', 'ADMIN'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('CAJERO', 'ADMIN'), validate(schemaFacturaVenta), async (req: Request, res: Response) => {
   const result = await FacturasVentaController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

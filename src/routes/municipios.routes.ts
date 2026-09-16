@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { MunicipiosController } from '../controllers/municipios.controller.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /municipios?departamento_id= — público (dato semilla)
 router.get('/', async (req: Request, res: Response) => {

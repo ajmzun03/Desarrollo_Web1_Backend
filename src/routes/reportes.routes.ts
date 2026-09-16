@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { ReportesController } from '../controllers/reportes.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /reportes/utilidad-diaria — ADMIN
 router.get('/utilidad-diaria', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {

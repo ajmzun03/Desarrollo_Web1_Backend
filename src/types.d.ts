@@ -178,6 +178,8 @@ export type UnidadMedida = {
 export interface IUsuarioModel {
   getAll: () => Promise<Omit<SelectUsuario, 'contrasenia'>[]>
   getById: (id: number) => Promise<Omit<SelectUsuario, 'contrasenia'> | null>
+  getByUsuario: (usuario: string) => Promise<SelectUsuario | null>
+  getByRol: (rol: string) => Promise<Omit<SelectUsuario, 'contrasenia'>[]>
   create: (data: InsertUsuario) => Promise<SelectUsuario>
   update: (id: number, data: Partial<InsertUsuario>) => Promise<SelectUsuario | null>
 }

@@ -1,25 +1,28 @@
 import z from 'zod'
 
-const schemaDireccion = z.object({
+export const schemaDireccion = z.object({
     cliente_id: z.number()
         .int("El ID del cliente debe ser un número entero")
         .positive("El ID del cliente debe ser un número positivo"),
-
-
     municipio_id: z.number()
         .int("El ID del municipio debe ser un número entero")
         .positive("El ID del municipio debe ser un número positivo"),
-
     direccion1: z.string()
         .trim()
-        .min(3, "La dirección debe tener al menos 3 caracteres")
-        .max(155, "La dirección no puede tener más de 155 caracteres"),
-
+        .min(3, "La dirección principal debe tener al menos 3 caracteres")
+        .max(155, "La dirección principal no puede tener más de 155 caracteres"),
     direccion2: z.string()
         .trim()
-        .max(100, "La dirección no puede tener más de 100 caracteres")
+        .min(1, "La dirección secundaria es requerida")
+        .max(100, "La dirección secundaria no puede tener más de 100 caracteres")
 })
 
-export function validateDireccion(object: any) {
+export const schemaDireccionUpdate = schemaDireccion.partial().strict()
+
+export function validateDireccion(object: unknown) {
     return schemaDireccion.safeParse(object)
+}
+
+export function validateDireccionUpdate(object: unknown) {
+    return schemaDireccionUpdate.safeParse(object)
 }

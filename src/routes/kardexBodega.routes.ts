@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { KardexBodegaController } from '../controllers/kardexBodega.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /kardex-bodega?bodega_id=&lote_id= — ADMIN (solo lectura)
 router.get('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {

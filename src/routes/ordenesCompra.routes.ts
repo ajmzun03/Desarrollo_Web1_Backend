@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { OrdenesCompraController } from '../controllers/ordenesCompra.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaOrdenCompra, schemaOrdenCompraEstado } from '../schemas/ordenCompra.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /ordenes-compra?estado=&sucursal_id= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -26,7 +28,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /ordenes-compra — ADMIN
-router.post('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenCompra), async (req: Request, res: Response) => {
   const result = await OrdenesCompraController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -38,7 +40,7 @@ router.patch('/:id/agendar', authenticate, requireRole('ADMIN'), async (req: Req
 });
 
 // PATCH /ordenes-compra/:id/estado — ADMIN
-router.patch('/:id/estado', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaOrdenCompraEstado), async (req: Request, res: Response) => {
   const result = await OrdenesCompraController.updateEstado(Number(req.params.id), req.body.estado);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

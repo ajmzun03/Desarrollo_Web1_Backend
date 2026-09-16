@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { GastosSucursalController } from '../controllers/gastosSucursal.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaGastoSucursal } from '../schemas/gastoSucursal.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /gastos-sucursal?sucursal_id= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -18,7 +20,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /gastos-sucursal — solo ADMIN
-router.post('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaGastoSucursal), async (req: Request, res: Response) => {
   const result = await GastosSucursalController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

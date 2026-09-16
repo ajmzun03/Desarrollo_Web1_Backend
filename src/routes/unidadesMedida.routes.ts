@@ -4,7 +4,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaUnidadMedida } from '../schemas/unidadMedida.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET — público
 router.get('/', async (_req: Request, res: Response) => {

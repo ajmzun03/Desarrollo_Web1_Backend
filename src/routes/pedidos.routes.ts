@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { PedidosController } from '../controllers/pedidos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaPedidoCreate, schemaPedidoEstado } from '../schemas/pedido.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /pedidos — autenticado
 router.get('/', authenticate, async (_req: Request, res: Response) => {
@@ -23,13 +25,13 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /pedidos — autenticado
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, validate(schemaPedidoCreate), async (req: Request, res: Response) => {
   const result = await PedidosController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
 // PATCH /pedidos/:id/estado — solo ADMIN (cambio genérico de estado)
-router.patch('/:id/estado', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaPedidoEstado), async (req: Request, res: Response) => {
   const result = await PedidosController.updateEstado(Number(req.params.id), req.body.estado);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

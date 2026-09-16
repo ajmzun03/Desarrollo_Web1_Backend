@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { LiquidacionesController } from '../controllers/liquidaciones.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaLiquidacion } from '../schemas/liquidacion.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /liquidaciones?turno_id= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -18,7 +20,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /liquidaciones — REPARTIDOR o ADMIN
-router.post('/', authenticate, requireRole('REPARTIDOR', 'ADMIN'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('REPARTIDOR', 'ADMIN'), validate(schemaLiquidacion), async (req: Request, res: Response) => {
   const result = await LiquidacionesController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

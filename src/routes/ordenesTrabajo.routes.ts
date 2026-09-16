@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { OrdenesTrabajoController } from '../controllers/ordenesTrabajo.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaOrdenTrabajo, schemaOrdenTrabajoEstado } from '../schemas/ordenTrabajo.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /ordenes-trabajo?sucursal_id=&estado= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -32,13 +34,13 @@ router.get('/:id/receta', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /ordenes-trabajo — ADMIN
-router.post('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
 // PATCH /ordenes-trabajo/:id/estado — ADMIN
-router.patch('/:id/estado', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajoEstado), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.updateEstado(Number(req.params.id), req.body.estado);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

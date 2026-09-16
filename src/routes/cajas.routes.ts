@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { CajasController } from '../controllers/cajas.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaCaja, schemaCajaUpdate } from '../schemas/caja.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /cajas?sucursal_id= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -18,13 +20,13 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /cajas — solo ADMIN
-router.post('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaCaja), async (req: Request, res: Response) => {
   const result = await CajasController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
 // PATCH /cajas/:id — solo ADMIN
-router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaCajaUpdate), async (req: Request, res: Response) => {
   const result = await CajasController.update(Number(req.params.id), req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

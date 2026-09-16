@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { BodegasController } from '../controllers/bodegas.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaBodega, schemaBodegaUpdate } from '../schemas/bodega.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /bodegas?sucursal_id= — autenticado
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -26,13 +28,13 @@ router.get('/lotes/fefo', authenticate, requireRole('BODEGUERO', 'ADMIN'), async
 });
 
 // POST /bodegas — ADMIN o BODEGUERO
-router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaBodega), async (req: Request, res: Response) => {
   const result = await BodegasController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
 // PATCH /bodegas/:id — ADMIN o BODEGUERO
-router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaBodegaUpdate), async (req: Request, res: Response) => {
   const result = await BodegasController.update(Number(req.params.id), req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

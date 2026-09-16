@@ -39,7 +39,7 @@ export const ProveedoresController = {
 
   async update(id: number, data: Record<string, any>) {
     try {
-      const proveedor = await ProveedorModel.update(id, data);
+      const proveedor = await ProveedorModel.update({ id, ...data });
       if (!proveedor) {
         return { data: null, error: 'Proveedor no encontrado', status: 404 };
       }

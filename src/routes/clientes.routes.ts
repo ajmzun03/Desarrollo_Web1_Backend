@@ -4,7 +4,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaCliente } from '../schemas/cliente.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET /clientes?telefono= — requiere auth
 router.get('/', authenticate, async (req: Request, res: Response) => {

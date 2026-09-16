@@ -8,8 +8,7 @@ export const AuthController = {
       return { data: null, error: 'Usuario y contraseña requeridos', status: 400 };
     }
 
-    const usuarios = await UsuarioModel.getAll();
-    const user = usuarios.find(u => u.usuario === usuario);
+    const user = await UsuarioModel.getByUsuario(usuario);
 
     if (!user) {
       return { data: null, error: 'Credenciales inválidas', status: 401 };
@@ -65,8 +64,6 @@ export const AuthController = {
       return { data: null, error: 'Usuario no encontrado', status: 404 };
     }
 
-    const { contrasenia: _, ...userWithoutPassword } = usuario;
-
-    return { data: userWithoutPassword, error: null, status: 200 };
+    return { data: usuario, error: null, status: 200 };
   }
 };

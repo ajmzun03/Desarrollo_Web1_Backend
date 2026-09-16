@@ -25,7 +25,7 @@ export const UsuariosController = {
     }
   },
 
-  async create(data: { usuario: string; correo_electronico?: string; contrasenia: string; rol: string }) {
+  async create(data: { usuario: string; correo_electronico?: string; contrasenia: string; rol: 'ADMIN' | 'BODEGUERO' | 'DESPACHADOR' | 'REPARTIDOR' | 'CAJERO' }) {
     try {
       if (!data.usuario || !data.contrasenia || !data.rol) {
         return { data: null, error: 'usuario, contrasenia y rol son requeridos', status: 400 };

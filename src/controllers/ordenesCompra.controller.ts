@@ -83,7 +83,7 @@ export const OrdenesCompraController = {
     }
   },
 
-  async updateEstado(id: number, estado: string) {
+  async updateEstado(id: number, estado: 'CREADA' | 'EN_PROCESO' | 'FINALIZADO' | 'ANULADO') {
     try {
       const orden = await OrdenCompraModel.update(id, { estado_orden: estado });
       if (!orden) {

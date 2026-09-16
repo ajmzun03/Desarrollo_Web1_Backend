@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
 import { ProductosController } from '../controllers/productos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaProducto, schemaProductoUpdate, schemaProductoStockMinimo } from '../schemas/producto.schema.js';
 
-const router = Router();
+const router: Router = Router();
 
 // GET — público
 router.get('/', async (_req: Request, res: Response) => {
@@ -22,17 +24,17 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST/PATCH — ADMIN o BODEGUERO
-router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaProducto), async (req: Request, res: Response) => {
   const result = await ProductosController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
-router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaProductoUpdate), async (req: Request, res: Response) => {
   const result = await ProductosController.update(Number(req.params.id), req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
-router.patch('/:id/stock-minimo', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id/stock-minimo', authenticate, requireRole('ADMIN'), validate(schemaProductoStockMinimo), async (req: Request, res: Response) => {
   const result = await ProductosController.updateStockMinimo(Number(req.params.id), req.body.stock_minimo);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

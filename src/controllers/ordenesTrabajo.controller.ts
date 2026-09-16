@@ -75,7 +75,7 @@ export const OrdenesTrabajoController = {
     }
   },
 
-  async updateEstado(id: number, estado: string) {
+  async updateEstado(id: number, estado: 'GENERADA' | 'EN_PROCESO' | 'ANULADA' | 'FINALIZADA') {
     try {
       const orden = await OrdenTrabajoModel.update(id, { estado });
       if (!orden) {
