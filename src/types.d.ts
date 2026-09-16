@@ -195,10 +195,11 @@ export type Usuario = {
 
 
 export interface IClienteModel {
-  getAll: () => Promise<selectCliente[]>
-  getById: (id: number) => Promise<selectCliente | null>
-  create: (data: insertCliente) => Promise<selectCliente>
-  update: (id: number, data: updateCliente) => Promise<selectCliente | null>
+  getAll: () => Promise<SelectCliente[]>
+  getById: (id: number) => Promise<SelectCliente | null>
+  getByTelefono: (telefono: string) => Promise<SelectCliente | null>
+  create: (data: InsertCliente) => Promise<SelectCliente>
+  update: (id: number, data: UpdateCliente) => Promise<SelectCliente | null>
 }
 
 export type Cliente = {
@@ -246,6 +247,8 @@ export type MateriaPrima = {
 }
 
 export interface IPedidoModel {
+  getAll: () => Promise<SelectPedido[]>
+  getByEstado: (estado: string) => Promise<SelectPedido[]>
   getPedidosCliente: (id: number) => Promise<SelectPedido[] | null>
   getPedidoId: (id: number) => Promise<SelectPedido | null>
   createPedido: (data: InsertPedido) => Promise<SelectPedido>
@@ -253,11 +256,15 @@ export interface IPedidoModel {
 }
 
 export interface IStockAlacenaModel {
+  getAll: () => Promise<SelectStockAlacena[]>
   getAlacenaById: (id: number, lote: number) => Promise<SelectStockAlacena | null>
+  getByAlacenaId: (alacenaId: number) => Promise<SelectStockAlacena[]>
 }
 
 export interface IKardexAlacenaModel {
+  getAll: () => Promise<SelectKardexAlacena[]>
   getKardexAlacenaById: (id: number, lote: number) => Promise<SelectKardexAlacena | null>
+  getByAlacenaId: (alacenaId: number) => Promise<SelectKardexAlacena[]>
 }
 
 // ========== PRODUCTO ==========

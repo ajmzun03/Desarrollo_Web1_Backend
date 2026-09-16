@@ -1,8 +1,18 @@
 import { pedidoTable } from "../../schemas/db.schema.js";
 import { db } from "./db.model.js";
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import logger from "../../config/logger.js";
 export const PedidoModel = {
+    async getAll() {
+        const pedidos = await db.select().from(pedidoTable).limit(100).offset(0);
+        logger.info(`Se encontraron ${pedidos.length} pedidos`);
+        return pedidos;
+    },
+    async getByEstado(estado) {
+        const pedidos = await db.select().from(pedidoTable).where(eq(pedidoTable.estado, estado));
+        logger.info(`Se encontraron ${pedidos.length} pedidos con estado ${estado}`);
+        return pedidos;
+    },
     async getPedidosCliente(id) {
         const pedidosCliente = await db.select().from(pedidoTable).where(eq(pedidoTable.cliente_id, id));
         if (pedidosCliente.length === 0) {

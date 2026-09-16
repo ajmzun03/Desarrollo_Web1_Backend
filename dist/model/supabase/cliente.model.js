@@ -21,6 +21,15 @@ export const ClienteModel = {
         logger.info(`Se encontró el cliente con ID ${id}`);
         return cliente[0] || null;
     },
+    async getByTelefono(telefono) {
+        const cliente = await db.select().from(clienteTable).where(eq(clienteTable.telefono, telefono)).limit(1);
+        if (cliente.length === 0) {
+            logger.warn(`Cliente con teléfono ${telefono} no encontrado`);
+            return null;
+        }
+        logger.info(`Se encontró el cliente con teléfono ${telefono}`);
+        return cliente[0] || null;
+    },
     async create(data) {
         const [result] = await db.insert(clienteTable).values({ ...data }).returning();
         if (result) {
