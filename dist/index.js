@@ -1,0 +1,78 @@
+import express from "express";
+import cookieParser from 'cookie-parser';
+import rateLimit from "express-rate-limit";
+import { corsMiddleware } from "./middleware/cors.js";
+const app = express();
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    legacyHeaders: false,
+    message: { message: 'Demasiadas request, Por favor intenta más tarde.' }
+});
+const PORT = process.env.PORT ?? 3000;
+app.use(limiter);
+app.use(cookieParser());
+app.use(corsMiddleware());
+app.use(express.json());
+app.disable('x-powered-by');
+// Rutas públicas
+app.get("/health", (_req, res) => {
+    res.json({ status: "ok" });
+});
+// Rutas API
+import authRoutes from './routes/auth.routes.js';
+import sucursalesRoutes from './routes/sucursales.routes.js';
+import usuariosRoutes from './routes/usuarios.routes.js';
+import categoriasRoutes from './routes/categorias.routes.js';
+import unidadesMedidaRoutes from './routes/unidadesMedida.routes.js';
+import proveedoresRoutes from './routes/proveedores.routes.js';
+import materiasPrimasRoutes from './routes/materiasPrimas.routes.js';
+import productosRoutes from './routes/productos.routes.js';
+import clientesRoutes from './routes/clientes.routes.js';
+import pedidosRoutes from './routes/pedidos.routes.js';
+import recetasRoutes from './routes/recetas.routes.js';
+import ordenesTrabajoRoutes from './routes/ordenesTrabajo.routes.js';
+import ordenesCompraRoutes from './routes/ordenesCompra.routes.js';
+import facturasCompraRoutes from './routes/facturasCompra.routes.js';
+import bodegasRoutes from './routes/bodegas.routes.js';
+import alacenasRoutes from './routes/alacenas.routes.js';
+import hojasRecepcionRoutes from './routes/hojasRecepcion.routes.js';
+import turnosRoutes from './routes/turnos.routes.js';
+import hojasDespachoRoutes from './routes/hojasDespacho.routes.js';
+import gastosSucursalRoutes from './routes/gastosSucursal.routes.js';
+import reportesRoutes from './routes/reportes.routes.js';
+import municipiosRoutes from './routes/municipios.routes.js';
+// Auth
+app.use('/auth', authRoutes);
+// Catálogos
+app.use('/sucursales', sucursalesRoutes);
+app.use('/usuarios', usuariosRoutes);
+app.use('/categorias', categoriasRoutes);
+app.use('/unidades-medida', unidadesMedidaRoutes);
+app.use('/proveedores', proveedoresRoutes);
+app.use('/materias-primas', materiasPrimasRoutes);
+app.use('/productos', productosRoutes);
+app.use('/municipios', municipiosRoutes);
+// Ventas
+app.use('/clientes', clientesRoutes);
+app.use('/pedidos', pedidosRoutes);
+// Cocina
+app.use('/recetas', recetasRoutes);
+app.use('/ordenes-trabajo', ordenesTrabajoRoutes);
+// Compras
+app.use('/ordenes-compra', ordenesCompraRoutes);
+app.use('/facturas-compra', facturasCompraRoutes);
+// Bodega
+app.use('/bodegas', bodegasRoutes);
+app.use('/alacenas', alacenasRoutes);
+app.use('/hojas-recepcion', hojasRecepcionRoutes);
+// Despacho
+app.use('/turnos', turnosRoutes);
+app.use('/hojas-despacho', hojasDespachoRoutes);
+// Admin y Gerencia
+app.use('/gastos-sucursal', gastosSucursalRoutes);
+app.use('/reportes', reportesRoutes);
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
+//# sourceMappingURL=index.js.map
