@@ -1,0 +1,4678 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "d326bcf5-9a96-44ff-9bfc-c8ab02665c2e",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "ddl": [
+    {
+      "values": [
+        "VIGENTE",
+        "VENCIDO",
+        "AGOTADO"
+      ],
+      "name": "estado_lote",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "CREADA",
+        "EN_PROCESO",
+        "FINALIZADO",
+        "ANULADO"
+      ],
+      "name": "estado_orden_compra",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "GENERADA",
+        "EN_PROCESO",
+        "ANULADA",
+        "FINALIZADA"
+      ],
+      "name": "estado_orden_trabajo",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "CREADO",
+        "LISTO",
+        "ANULADO",
+        "EN_RUTA",
+        "ENTREGADO"
+      ],
+      "name": "estado_pedido",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "COMPLETA",
+        "INCOMPLETA"
+      ],
+      "name": "estado_recepcion",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "PENDIENTE",
+        "ENVIADA",
+        "RECIBIDA",
+        "CANCELADA"
+      ],
+      "name": "estado_solicitud_insumo",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "INGRESO",
+        "SALIDA",
+        "MERMA",
+        "VENCIMIENTO",
+        "TRASLADO"
+      ],
+      "name": "movimiento",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "ADMIN",
+        "BODEGUERO",
+        "DESPACHADOR",
+        "REPARTIDOR",
+        "CAJERO"
+      ],
+      "name": "rol_usuario",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "CAJA_CHICA",
+        "GASTOS_REPRESENTACION",
+        "TRANSITO"
+      ],
+      "name": "tipo_caja",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "TOTAL",
+        "PARCIAL"
+      ],
+      "name": "tipo_recepcion",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ALACENA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "BODEGA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "CAJA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "CATEGORIA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "CLIENTE",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DEPARTAMENTO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DETALLE_ORDEN_COMPRA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DETALLE_PEDIDO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DETALLE_SOLICITUD_INSUMO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DIRECCION",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "FACTURA_COMPRA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "FACTURA_VENTA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "GASTOS_SUCURSAL",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "HOJA_DESPACHO_DETALLE",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "HOJA_DESPACHO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "HOJA_RECEPCION_DETALLE",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "HOJA_RECEPCION",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "KARDEX_ALACENA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "KARDEX_BODEGA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "LIQUIDACION_REPARTIDOR",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "LOTE_MATERIA_PRIMA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "MATERIA_PRIMA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "MUNICIPIO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ORDEN_COMPRA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ORDEN_TRABAJO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PEDIDO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PRODUCTO_LOTE",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PRODUCTO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PROVEEDOR",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "RECETA_DETALLE",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "RECETA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "SOLICITUD_INSUMO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "STOCK_ALACENA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "STOCK_BODEGA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "SUCURSAL",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TURNO_DESPACHADOR",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "UNIDAD_MEDIDA",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "USUARIO",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "ALACENA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ALACENA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bodega_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ALACENA"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "alacena",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ALACENA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ALACENA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "BODEGA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "BODEGA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "BODEGA"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bodega",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "BODEGA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "CAJA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CAJA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CAJA"
+    },
+    {
+      "type": "tipo_caja",
+      "typeSchema": "public",
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "tipo",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CAJA"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "nombre",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CAJA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "CATEGORIA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CATEGORIA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "categoria_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CATEGORIA"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "descripcion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CATEGORIA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CATEGORIA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "CLIENTE_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CLIENTE"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "nombre",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CLIENTE"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "apellido",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CLIENTE"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "telefono",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CLIENTE"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "telefono_ref",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CLIENTE"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "CLIENTE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "DEPARTAMENTO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DEPARTAMENTO"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "departamento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DEPARTAMENTO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "DETALLE_ORDEN_COMPRA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "orden_compra_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materia_prima_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_solicitada",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "precio_unitario",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "subtotal",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "DETALLE_PEDIDO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "pedido_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "producto_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "precio_unitario",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "DETALLE_SOLICITUD_INSUMO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "solicitud_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materia_prima_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_solicitada",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_recibida",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "DIRECCION_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cliente_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "municipio_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "type": "varchar(155)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "direccion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "direccion2",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "FACTURA_COMPRA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "hoja_recepcion_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "varchar(15)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "serie",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "varchar(32)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "numero",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "fecha_emision",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "total",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_ingreso",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "FACTURA_VENTA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "pedido_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "varchar(15)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "serie",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "varchar(32)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "numero",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_emision",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "total",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "GASTOS_SUCURSAL_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "caja_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "usuario_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_apertura",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_cierre_declarado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_cierre_sistema",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "abierto_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cerrado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "HOJA_DESPACHO_DETALLE_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "hoja_despacho_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "producto_lote_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_despachada",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "HOJA_DESPACHO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "pedido_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_despacho",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "despachado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_DESPACHO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "HOJA_RECEPCION_DETALLE_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "hoja_recepcion_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materia_prima_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_recibida",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_vencimiento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "merma",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "saldo",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "estado_recepcion",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'COMPLETA'",
+      "generated": null,
+      "identity": null,
+      "name": "estado_recepcion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "HOJA_RECEPCION_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_receptora",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "orden_compra_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "type": "tipo_recepcion",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'TOTAL'",
+      "generated": null,
+      "identity": null,
+      "name": "tipo_recepcion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_generada",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "KARDEX_ALACENA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "alacena_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "lote_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "type": "movimiento",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "movimiento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_movimiento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "KARDEX_BODEGA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bodega_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "lote_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "type": "movimiento",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "movimiento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_movimiento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "LIQUIDACION_REPARTIDOR_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "turno_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "repartidor_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_entregado_repartidor",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_recaudado_efectivo",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_recaudado_voucher",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "LOTE_MATERIA_PRIMA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materia_prima_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "fecha_vencimiento",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_inicial",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_actual",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "estado_lote",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'VIGENTE'",
+      "generated": null,
+      "identity": null,
+      "name": "estado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "MATERIA_PRIMA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "categoria_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "unidad_medida_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "varchar(150)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materia_prima",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "es_perecedera",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "maneja_merma",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MUNICIPIO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "departamento_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MUNICIPIO"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "municipio",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MUNICIPIO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "ORDEN_COMPRA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "proveedor_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_destino",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_generada",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "type": "estado_orden_compra",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'CREADA'",
+      "generated": null,
+      "identity": null,
+      "name": "estado_orden",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "ORDEN_TRABAJO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "receta_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_produccion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "type": "estado_orden_trabajo",
+      "typeSchema": "public",
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "estado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "PEDIDO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cliente_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_pedido",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "observaciones",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "total",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "type": "estado_pedido",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'CREADO'",
+      "generated": null,
+      "identity": null,
+      "name": "estado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "PRODUCTO_LOTE_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "orden_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_inicial",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_actual",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "type": "estado_lote",
+      "typeSchema": "public",
+      "notNull": false,
+      "dimensions": 0,
+      "default": "'VIGENTE'",
+      "generated": null,
+      "identity": null,
+      "name": "estado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "producido_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "PRODUCTO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "categoria_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "unidad_medida_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "type": "varchar(150)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "producto",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "precio",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "PROVEEDOR_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PROVEEDOR"
+    },
+    {
+      "type": "varchar(13)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "no_nit",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PROVEEDOR"
+    },
+    {
+      "type": "varchar(150)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "proveedor",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PROVEEDOR"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "direccion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PROVEEDOR"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "RECETA_DETALLE_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA_DETALLE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "receta_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA_DETALLE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materia_prima_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA_DETALLE"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_necesaria",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA_DETALLE"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "RECETA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "producto_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA"
+    },
+    {
+      "type": "varchar(150)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "nombre",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cantidad_lote",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creada_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RECETA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "SOLICITUD_INSUMO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "solicitado_por",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "type": "estado_solicitud_insumo",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'PENDIENTE'",
+      "generated": null,
+      "identity": null,
+      "name": "estado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "fecha_solicitud",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "STOCK_ALACENA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "STOCK_ALACENA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "alacena_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "STOCK_ALACENA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "lote_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "STOCK_ALACENA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "STOCK_BODEGA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "STOCK_BODEGA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bodega_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "STOCK_BODEGA"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "lote_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "STOCK_BODEGA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "SUCURSAL_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SUCURSAL"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "municipio_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SUCURSAL"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sucursal",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SUCURSAL"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "direccion",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SUCURSAL"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "TURNO_DESPACHADOR_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "caja_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "usuario_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "administrador_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_apertura",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_cierre_declarado",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "monto_cierre_sistema",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "abierto_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cerrado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "UNIDAD_MEDIDA_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UNIDAD_MEDIDA"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "unidad",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UNIDAD_MEDIDA"
+    },
+    {
+      "type": "varchar(4)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "abreviatura",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UNIDAD_MEDIDA"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UNIDAD_MEDIDA"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "USUARIO_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "2147483647",
+        "cache": 1,
+        "cycle": false
+      },
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "USUARIO"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "usuario",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "USUARIO"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "correo_electronico",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "USUARIO"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "contrasenia",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "USUARIO"
+    },
+    {
+      "type": "rol_usuario",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "rol_usuario",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "USUARIO"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "creado_en",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "USUARIO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "bodega_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "BODEGA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "ALACENA_bodega_id_BODEGA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ALACENA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "BODEGA_sucursal_id_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "BODEGA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "CAJA_sucursal_id_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "CAJA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "orden_compra_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ORDEN_COMPRA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DETALLE_ORDEN_COMPRA_orden_compra_id_ORDEN_COMPRA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materia_prima_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DETALLE_ORDEN_COMPRA_materia_prima_id_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "pedido_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PEDIDO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DETALLE_PEDIDO_pedido_id_PEDIDO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "producto_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PRODUCTO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DETALLE_PEDIDO_producto_id_PRODUCTO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "solicitud_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SOLICITUD_INSUMO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DETALLE_SOLICITUD_INSUMO_solicitud_id_SOLICITUD_INSUMO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materia_prima_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DETALLE_SOLICITUD_INSUMO_materia_prima_id_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "cliente_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "CLIENTE",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DIRECCION_cliente_id_CLIENTE_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "municipio_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MUNICIPIO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "DIRECCION_municipio_id_MUNICIPIO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DIRECCION"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "hoja_recepcion_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "HOJA_RECEPCION",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "FACTURA_COMPRA_hoja_recepcion_id_HOJA_RECEPCION_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "FACTURA_COMPRA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "pedido_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PEDIDO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "FACTURA_VENTA_pedido_id_PEDIDO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "FACTURA_VENTA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "caja_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "CAJA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "GASTOS_SUCURSAL_caja_id_CAJA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "usuario_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "USUARIO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "GASTOS_SUCURSAL_usuario_id_USUARIO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "GASTOS_SUCURSAL_sucursal_id_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "hoja_despacho_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "HOJA_DESPACHO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_DESPACHO_DETALLE_hoja_despacho_id_HOJA_DESPACHO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "producto_lote_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PRODUCTO_LOTE",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_DESPACHO_DETALLE_producto_lote_id_PRODUCTO_LOTE_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "pedido_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PEDIDO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_DESPACHO_pedido_id_PEDIDO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_DESPACHO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_despacho"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_DESPACHO_sucursal_despacho_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_DESPACHO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "hoja_recepcion_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "HOJA_RECEPCION",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_RECEPCION_DETALLE_hoja_recepcion_id_HOJA_RECEPCION_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materia_prima_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_RECEPCION_DETALLE_materia_prima_id_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_receptora"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_RECEPCION_sucursal_receptora_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "orden_compra_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ORDEN_COMPRA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "HOJA_RECEPCION_orden_compra_id_ORDEN_COMPRA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "HOJA_RECEPCION"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "alacena_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ALACENA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "KARDEX_ALACENA_alacena_id_ALACENA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "lote_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "LOTE_MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "KARDEX_ALACENA_lote_id_LOTE_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "KARDEX_ALACENA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "bodega_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "BODEGA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "KARDEX_BODEGA_bodega_id_BODEGA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "lote_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "LOTE_MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "KARDEX_BODEGA_lote_id_LOTE_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "KARDEX_BODEGA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "turno_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TURNO_DESPACHADOR",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "LIQUIDACION_REPARTIDOR_turno_id_TURNO_DESPACHADOR_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "repartidor_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "USUARIO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "LIQUIDACION_REPARTIDOR_repartidor_id_USUARIO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materia_prima_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "LOTE_MATERIA_PRIMA_materia_prima_id_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "categoria_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "CATEGORIA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "MATERIA_PRIMA_categoria_id_CATEGORIA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "unidad_medida_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "UNIDAD_MEDIDA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "MATERIA_PRIMA_unidad_medida_id_UNIDAD_MEDIDA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MATERIA_PRIMA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "departamento_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "DEPARTAMENTO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "MUNICIPIO_departamento_id_DEPARTAMENTO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MUNICIPIO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "proveedor_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PROVEEDOR",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "ORDEN_COMPRA_proveedor_id_PROVEEDOR_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_destino"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "ORDEN_COMPRA_sucursal_destino_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ORDEN_COMPRA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "ORDEN_TRABAJO_sucursal_id_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "receta_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "RECETA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "ORDEN_TRABAJO_receta_id_RECETA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "cliente_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "CLIENTE",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "PEDIDO_cliente_id_CLIENTE_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PEDIDO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "orden_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ORDEN_TRABAJO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "PRODUCTO_LOTE_orden_id_ORDEN_TRABAJO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "categoria_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "CATEGORIA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "PRODUCTO_categoria_id_CATEGORIA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "unidad_medida_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "UNIDAD_MEDIDA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "PRODUCTO_unidad_medida_id_UNIDAD_MEDIDA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PRODUCTO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "receta_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "RECETA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "RECETA_DETALLE_receta_id_RECETA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "RECETA_DETALLE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materia_prima_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "RECETA_DETALLE_materia_prima_id_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "RECETA_DETALLE"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "producto_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PRODUCTO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "RECETA_producto_id_PRODUCTO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "RECETA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "SOLICITUD_INSUMO_sucursal_id_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "solicitado_por"
+      ],
+      "schemaTo": "public",
+      "tableTo": "USUARIO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "SOLICITUD_INSUMO_solicitado_por_USUARIO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "alacena_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ALACENA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "STOCK_ALACENA_alacena_id_ALACENA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "STOCK_ALACENA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "lote_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "LOTE_MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "STOCK_ALACENA_lote_id_LOTE_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "STOCK_ALACENA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "bodega_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "BODEGA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "STOCK_BODEGA_bodega_id_BODEGA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "STOCK_BODEGA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "lote_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "LOTE_MATERIA_PRIMA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "STOCK_BODEGA_lote_id_LOTE_MATERIA_PRIMA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "STOCK_BODEGA"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "municipio_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "MUNICIPIO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "SUCURSAL_municipio_id_MUNICIPIO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SUCURSAL"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "caja_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "CAJA",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "TURNO_DESPACHADOR_caja_id_CAJA_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "usuario_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "USUARIO",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "TURNO_DESPACHADOR_usuario_id_USUARIO_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "administrador_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "SUCURSAL",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "TURNO_DESPACHADOR_administrador_id_SUCURSAL_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ALACENA_pkey",
+      "schema": "public",
+      "table": "ALACENA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "BODEGA_pkey",
+      "schema": "public",
+      "table": "BODEGA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "CAJA_pkey",
+      "schema": "public",
+      "table": "CAJA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "CATEGORIA_pkey",
+      "schema": "public",
+      "table": "CATEGORIA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "CLIENTE_pkey",
+      "schema": "public",
+      "table": "CLIENTE",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "DEPARTAMENTO_pkey",
+      "schema": "public",
+      "table": "DEPARTAMENTO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "DETALLE_ORDEN_COMPRA_pkey",
+      "schema": "public",
+      "table": "DETALLE_ORDEN_COMPRA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "DETALLE_PEDIDO_pkey",
+      "schema": "public",
+      "table": "DETALLE_PEDIDO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "DETALLE_SOLICITUD_INSUMO_pkey",
+      "schema": "public",
+      "table": "DETALLE_SOLICITUD_INSUMO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "DIRECCION_pkey",
+      "schema": "public",
+      "table": "DIRECCION",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "FACTURA_COMPRA_pkey",
+      "schema": "public",
+      "table": "FACTURA_COMPRA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "FACTURA_VENTA_pkey",
+      "schema": "public",
+      "table": "FACTURA_VENTA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "GASTOS_SUCURSAL_pkey",
+      "schema": "public",
+      "table": "GASTOS_SUCURSAL",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "HOJA_DESPACHO_DETALLE_pkey",
+      "schema": "public",
+      "table": "HOJA_DESPACHO_DETALLE",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "HOJA_DESPACHO_pkey",
+      "schema": "public",
+      "table": "HOJA_DESPACHO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "HOJA_RECEPCION_DETALLE_pkey",
+      "schema": "public",
+      "table": "HOJA_RECEPCION_DETALLE",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "HOJA_RECEPCION_pkey",
+      "schema": "public",
+      "table": "HOJA_RECEPCION",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "KARDEX_ALACENA_pkey",
+      "schema": "public",
+      "table": "KARDEX_ALACENA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "KARDEX_BODEGA_pkey",
+      "schema": "public",
+      "table": "KARDEX_BODEGA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "LIQUIDACION_REPARTIDOR_pkey",
+      "schema": "public",
+      "table": "LIQUIDACION_REPARTIDOR",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "LOTE_MATERIA_PRIMA_pkey",
+      "schema": "public",
+      "table": "LOTE_MATERIA_PRIMA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "MATERIA_PRIMA_pkey",
+      "schema": "public",
+      "table": "MATERIA_PRIMA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "MUNICIPIO_pkey",
+      "schema": "public",
+      "table": "MUNICIPIO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ORDEN_COMPRA_pkey",
+      "schema": "public",
+      "table": "ORDEN_COMPRA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ORDEN_TRABAJO_pkey",
+      "schema": "public",
+      "table": "ORDEN_TRABAJO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "PEDIDO_pkey",
+      "schema": "public",
+      "table": "PEDIDO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "PRODUCTO_LOTE_pkey",
+      "schema": "public",
+      "table": "PRODUCTO_LOTE",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "PRODUCTO_pkey",
+      "schema": "public",
+      "table": "PRODUCTO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "PROVEEDOR_pkey",
+      "schema": "public",
+      "table": "PROVEEDOR",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "RECETA_DETALLE_pkey",
+      "schema": "public",
+      "table": "RECETA_DETALLE",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "RECETA_pkey",
+      "schema": "public",
+      "table": "RECETA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "SOLICITUD_INSUMO_pkey",
+      "schema": "public",
+      "table": "SOLICITUD_INSUMO",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "STOCK_ALACENA_pkey",
+      "schema": "public",
+      "table": "STOCK_ALACENA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "STOCK_BODEGA_pkey",
+      "schema": "public",
+      "table": "STOCK_BODEGA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "SUCURSAL_pkey",
+      "schema": "public",
+      "table": "SUCURSAL",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "TURNO_DESPACHADOR_pkey",
+      "schema": "public",
+      "table": "TURNO_DESPACHADOR",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "UNIDAD_MEDIDA_pkey",
+      "schema": "public",
+      "table": "UNIDAD_MEDIDA",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "USUARIO_pkey",
+      "schema": "public",
+      "table": "USUARIO",
+      "entityType": "pks"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "bodega"
+      ],
+      "nullsNotDistinct": false,
+      "name": "BODEGA_bodega_key",
+      "schema": "public",
+      "table": "BODEGA",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "categoria_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "CATEGORIA_categoria_id_key",
+      "schema": "public",
+      "table": "CATEGORIA",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "telefono"
+      ],
+      "nullsNotDistinct": false,
+      "name": "CLIENTE_telefono_key",
+      "schema": "public",
+      "table": "CLIENTE",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "telefono_ref"
+      ],
+      "nullsNotDistinct": false,
+      "name": "CLIENTE_telefono_ref_key",
+      "schema": "public",
+      "table": "CLIENTE",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "departamento"
+      ],
+      "nullsNotDistinct": false,
+      "name": "DEPARTAMENTO_departamento_key",
+      "schema": "public",
+      "table": "DEPARTAMENTO",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "municipio"
+      ],
+      "nullsNotDistinct": false,
+      "name": "MUNICIPIO_municipio_key",
+      "schema": "public",
+      "table": "MUNICIPIO",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "no_nit"
+      ],
+      "nullsNotDistinct": false,
+      "name": "PROVEEDOR_no_nit_key",
+      "schema": "public",
+      "table": "PROVEEDOR",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "proveedor"
+      ],
+      "nullsNotDistinct": false,
+      "name": "PROVEEDOR_proveedor_key",
+      "schema": "public",
+      "table": "PROVEEDOR",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "sucursal"
+      ],
+      "nullsNotDistinct": false,
+      "name": "SUCURSAL_sucursal_key",
+      "schema": "public",
+      "table": "SUCURSAL",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "abreviatura"
+      ],
+      "nullsNotDistinct": false,
+      "name": "UNIDAD_MEDIDA_abreviatura_key",
+      "schema": "public",
+      "table": "UNIDAD_MEDIDA",
+      "entityType": "uniques"
+    }
+  ],
+  "renames": []
+}
