@@ -39,9 +39,7 @@ import stockBodegaRoutes from './routes/stockBodega.routes.js';
 import stockAlacenaRoutes from './routes/stockAlacena.routes.js';
 import kardexBodegaRoutes from './routes/kardexBodega.routes.js';
 import kardexAlacenaRoutes from './routes/kardexAlacena.routes.js';
-import fs from 'fs';
 
-fs.mkdirSync('./logs', { recursive: true });
 
 const app = express();
 app.use(helmet());
