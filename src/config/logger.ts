@@ -1,4 +1,7 @@
 import pino from 'pino'
+import fs from 'fs';
+
+fs.mkdirSync('./logs', { recursive: true });
 
 const transport = pino.transport({
   target: 'pino/file',
