@@ -11,6 +11,10 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
+        url: 'https://desarrollo-web1-backend.onrender.com',
+        description: 'Servidor de producción (Render)',
+      },
+      {
         url: 'http://localhost:3000',
         description: 'Servidor local de desarrollo',
       },
