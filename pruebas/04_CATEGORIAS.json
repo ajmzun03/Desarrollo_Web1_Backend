@@ -1,0 +1,132 @@
+{
+  "_instrucciones": "PRUEBAS DE CATEGORÍAS - Headers: Authorization: Bearer <token>",
+  "pruebas": {
+
+    "200_OK": [
+      {
+        "nombre": "Listar categorías (público)",
+        "metodo": "GET",
+        "ruta": "/categorias",
+        "headers": {},
+        "body": null
+      },
+      {
+        "nombre": "Obtener categoría por ID",
+        "metodo": "GET",
+        "ruta": "/categorias/1",
+        "headers": {},
+        "body": null
+      }
+    ],
+
+    "201_CREATED": [
+      {
+        "nombre": "Crear categoría válida",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 100,
+          "descripcion": "Categoría Test Nueva"
+        }
+      }
+    ],
+
+    "400_BAD_REQUEST": [
+      {
+        "nombre": "categoria_id no entero",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "categoria_id": 1.5, "descripcion": "Test" },
+        "error_esperado": "El ID de la categoría debe ser un número entero"
+      },
+      {
+        "nombre": "categoria_id negativo",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "categoria_id": -1, "descripcion": "Test" },
+        "error_esperado": "El ID de la categoría debe ser un número positivo"
+      },
+      {
+        "nombre": "Descripción muy corta (min 3 caracteres)",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "categoria_id": 1, "descripcion": "AB" },
+        "error_esperado": "La descripción debe tener al menos 3 caracteres"
+      },
+      {
+        "nombre": "Campos requeridos faltantes",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "descripcion": "Solo descripción" },
+        "error_esperado": "categoria_id y descripcion son requeridos"
+      },
+      {
+        "nombre": "Body vacío",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {},
+        "error_esperado": "categoria_id y descripcion son requeridos"
+      }
+    ],
+
+    "401_UNAUTHORIZED": [
+      {
+        "nombre": "Crear categoría sin token",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": { "Content-Type": "application/json" },
+        "body": { "categoria_id": 1, "descripcion": "Test" },
+        "error_esperado": "Token no proporcionado"
+      }
+    ],
+
+    "403_FORBIDDEN": [
+      {
+        "nombre": "Token de CAJERO creando categoría (solo ADMIN)",
+        "metodo": "POST",
+        "ruta": "/categorias",
+        "headers": {
+          "Authorization": "Bearer {{token_de_cajero}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "categoria_id": 1, "descripcion": "Test" },
+        "error_esperado": "Acceso denegado. Roles permitidos: ADMIN"
+      }
+    ],
+
+    "404_NOT_FOUND": [
+      {
+        "nombre": "Categoría con ID inexistente",
+        "metodo": "GET",
+        "ruta": "/categorias/99999",
+        "headers": {},
+        "body": null,
+        "error_esperado": "Categoría no encontrada"
+      }
+    ]
+  }
+}

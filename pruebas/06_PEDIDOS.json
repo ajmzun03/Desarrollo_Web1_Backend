@@ -1,0 +1,177 @@
+{
+  "_instrucciones": "PRUEBAS DE PEDIDOS - Headers: Authorization: Bearer <token>",
+  "pruebas": {
+
+    "200_OK": [
+      {
+        "nombre": "Listar pedidos",
+        "metodo": "GET",
+        "ruta": "/pedidos",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      },
+      {
+        "nombre": "Obtener pedido por ID",
+        "metodo": "GET",
+        "ruta": "/pedidos/1",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      }
+    ],
+
+    "201_CREATED": [
+      {
+        "nombre": "Crear pedido válido con items",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1,
+          "observaciones": "Sin cebolla",
+          "items": [
+            { "producto_id": 1, "cantidad": 2 },
+            { "producto_id": 2, "cantidad": 1 }
+          ]
+        }
+      },
+      {
+        "nombre": "Crear pedido sin observaciones (campo opcional)",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1,
+          "items": [
+            { "producto_id": 1, "cantidad": 1 }
+          ]
+        }
+      }
+    ],
+
+    "400_BAD_REQUEST": [
+      {
+        "nombre": "cliente_id no entero",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1.5,
+          "items": [{ "producto_id": 1, "cantidad": 1 }]
+        },
+        "error_esperado": "El ID del cliente debe ser un número entero"
+      },
+      {
+        "nombre": "cliente_id negativo",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": -1,
+          "items": [{ "producto_id": 1, "cantidad": 1 }]
+        },
+        "error_esperado": "El ID del cliente debe ser un número positivo"
+      },
+      {
+        "nombre": "cantidad de producto negativa",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1,
+          "items": [{ "producto_id": 1, "cantidad": -5 }]
+        },
+        "error_esperado": "La cantidad debe ser un número positivo"
+      },
+      {
+        "nombre": "items vacío (min 1 item)",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1,
+          "items": []
+        },
+        "error_esperado": "Debe incluir al menos un producto en el pedido"
+      },
+      {
+        "nombre": "Sin campo items",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1
+        },
+        "error_esperado": "cliente_id y items son requeridos"
+      },
+      {
+        "nombre": "Body vacío",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {},
+        "error_esperado": "cliente_id y items son requeridos"
+      },
+      {
+        "nombre": "Observaciones muy largas (max 255)",
+        "metodo": "POST",
+        "ruta": "/pedidos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cliente_id": 1,
+          "observaciones": "A".repeat(256),
+          "items": [{ "producto_id": 1, "cantidad": 1 }]
+        },
+        "error_esperado": "Las observaciones no pueden tener más de 255 caracteres"
+      }
+    ],
+
+    "401_UNAUTHORIZED": [
+      {
+        "nombre": "Listar pedidos sin token",
+        "metodo": "GET",
+        "ruta": "/pedidos",
+        "headers": {},
+        "body": null,
+        "error_esperado": "Token no proporcionado"
+      }
+    ],
+
+    "404_NOT_FOUND": [
+      {
+        "nombre": "Pedido con ID inexistente",
+        "metodo": "GET",
+        "ruta": "/pedidos/99999",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null,
+        "error_esperado": "Pedido no encontrado"
+      }
+    ]
+  }
+}

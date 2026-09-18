@@ -1,0 +1,294 @@
+{
+  "_instrucciones": "PRUEBAS DE PRODUCTOS - Headers: Authorization: Bearer <token>",
+  "pruebas": {
+
+    "200_OK": [
+      {
+        "nombre": "Listar productos (público, sin auth)",
+        "metodo": "GET",
+        "ruta": "/productos",
+        "headers": {},
+        "body": null
+      },
+      {
+        "nombre": "Obtener producto por ID (público)",
+        "metodo": "GET",
+        "ruta": "/productos/1",
+        "headers": {},
+        "body": null
+      },
+      {
+        "nombre": "Obtener disponibilidad de productos",
+        "metodo": "GET",
+        "ruta": "/productos/disponibilidad",
+        "headers": {},
+        "body": null
+      },
+      {
+        "nombre": "Obtener disponibilidad por sucursal",
+        "metodo": "GET",
+        "ruta": "/productos/disponibilidad?sucursal_id=1",
+        "headers": {},
+        "body": null
+      },
+      {
+        "nombre": "Actualizar producto válido (PATCH)",
+        "metodo": "PATCH",
+        "ruta": "/productos/1",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "precio": 45.00,
+          "producto": "Hamburguesa Especial"
+        }
+      },
+      {
+        "nombre": "Actualizar stock mínimo (PATCH)",
+        "metodo": "PATCH",
+        "ruta": "/productos/1/stock-minimo",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "stock_minimo": 10 }
+      }
+    ],
+
+    "201_CREATED": [
+      {
+        "nombre": "Crear producto válido",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 1,
+          "unidad_medida_id": 1,
+          "producto": "Tacos al Pastor",
+          "precio": 25.00
+        }
+      }
+    ],
+
+    "400_BAD_REQUEST": [
+      {
+        "nombre": "Producto muy corto (min 2 caracteres)",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 1,
+          "unidad_medida_id": 1,
+          "producto": "X",
+          "precio": 25.00
+        },
+        "error_esperado": "El nombre del producto debe tener al menos 2 caracteres"
+      },
+      {
+        "nombre": "Precio negativo",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 1,
+          "unidad_medida_id": 1,
+          "producto": "Tacos",
+          "precio": -5
+        },
+        "error_esperado": "El precio debe ser un número positivo"
+      },
+      {
+        "nombre": "Precio cero",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 1,
+          "unidad_medida_id": 1,
+          "producto": "Tacos",
+          "precio": 0
+        },
+        "error_esperado": "El precio debe ser un número positivo"
+      },
+      {
+        "nombre": "categoria_id no entero",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 1.5,
+          "unidad_medida_id": 1,
+          "producto": "Tacos",
+          "precio": 25.00
+        },
+        "error_esperado": "El ID de la categoría debe ser un número entero"
+      },
+      {
+        "nombre": "categoria_id negativo",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": -1,
+          "unidad_medida_id": 1,
+          "producto": "Tacos",
+          "precio": 25.00
+        },
+        "error_esperado": "El ID de la categoría debe ser un número positivo"
+      },
+      {
+        "nombre": "Campos requeridos faltantes (solo producto)",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "producto": "Tacos" },
+        "error_esperado": "categoria_id, unidad_medida_id, producto y precio son requeridos"
+      },
+      {
+        "nombre": "Body vacío",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {},
+        "error_esperado": "categoria_id, unidad_medida_id, producto y precio son requeridos"
+      },
+      {
+        "nombre": "PATCH con propiedad extra (strict mode)",
+        "metodo": "PATCH",
+        "ruta": "/productos/1",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "precio": 30.00,
+          "campoInvalido": "no debería existir"
+        },
+        "error_esperado": "Unrecognized key(s) in object: 'campoInvalido'"
+      },
+      {
+        "nombre": "PATCH precio negativo",
+        "metodo": "PATCH",
+        "ruta": "/productos/1",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "precio": -10 },
+        "error_esperado": "El precio debe ser un número positivo"
+      },
+      {
+        "nombre": "Stock mínimo negativo",
+        "metodo": "PATCH",
+        "ruta": "/productos/1/stock-minimo",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "stock_minimo": -5 },
+        "error_esperado": "El stock mínimo no puede ser negativo"
+      },
+      {
+        "nombre": "Stock mínimo no entero",
+        "metodo": "PATCH",
+        "ruta": "/productos/1/stock-minimo",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "stock_minimo": 3.5 },
+        "error_esperado": "El stock mínimo debe ser un número entero"
+      }
+    ],
+
+    "401_UNAUTHORIZED": [
+      {
+        "nombre": "Crear producto sin token",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": { "Content-Type": "application/json" },
+        "body": {
+          "categoria_id": 1,
+          "unidad_medida_id": 1,
+          "producto": "Tacos",
+          "precio": 25.00
+        },
+        "error_esperado": "Token no proporcionado"
+      },
+      {
+        "nombre": "PATCH producto sin token",
+        "metodo": "PATCH",
+        "ruta": "/productos/1",
+        "headers": { "Content-Type": "application/json" },
+        "body": { "precio": 30.00 },
+        "error_esperado": "Token no proporcionado"
+      }
+    ],
+
+    "403_FORBIDDEN": [
+      {
+        "nombre": "Token de CAJERO creando producto (solo ADMIN/BODEGUERO)",
+        "metodo": "POST",
+        "ruta": "/productos",
+        "headers": {
+          "Authorization": "Bearer {{token_de_cajero}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoria_id": 1,
+          "unidad_medida_id": 1,
+          "producto": "Tacos",
+          "precio": 25.00
+        },
+        "error_esperado": "Acceso denegado. Roles permitidos: ADMIN, BODEGUERO"
+      }
+    ],
+
+    "404_NOT_FOUND": [
+      {
+        "nombre": "Producto con ID inexistente",
+        "metodo": "GET",
+        "ruta": "/productos/99999",
+        "headers": {},
+        "body": null,
+        "error_esperado": "Producto no encontrado"
+      },
+      {
+        "nombre": "Actualizar producto inexistente",
+        "metodo": "PATCH",
+        "ruta": "/productos/99999",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "precio": 30.00 },
+        "error_esperado": "Producto no encontrado"
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import { CategoriaModel } from '../model/supabase/categoria.model.js';
+import logger from '../config/logger.js';
 
 export const CategoriasController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const CategoriasController = {
       const categorias = await CategoriaModel.getAll();
       return { data: categorias, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get categorias:', error);
+      logger.error({ error }, 'Error get categorias:');
       return { data: null, error: 'Error al obtener categorías', status: 500 };
     }
   },
@@ -19,7 +20,7 @@ export const CategoriasController = {
       }
       return { data: categoria, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get categoria:', error);
+      logger.error({ error }, 'Error get categoria:');
       return { data: null, error: 'Error al obtener categoría', status: 500 };
     }
   },
@@ -32,7 +33,7 @@ export const CategoriasController = {
       const nuevaCategoria = await CategoriaModel.create(data);
       return { data: nuevaCategoria, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create categoria:', error);
+      logger.error({ error }, 'Error create categoria:');
       return { data: null, error: 'Error al crear categoría', status: 500 };
     }
   },
@@ -45,7 +46,7 @@ export const CategoriasController = {
       }
       return { data: categoria, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update categoria:', error);
+      logger.error({ error }, 'Error update categoria:');
       return { data: null, error: 'Error al actualizar categoría', status: 500 };
     }
   }

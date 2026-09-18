@@ -1,65 +1,116 @@
 import { Router } from 'express';
-import { CategoriaModel } from '../model/supabase/categoria.model.js';
+import { CategoriasController } from '../controllers/categorias.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaCategoria } from '../schemas/categoria.schema.js';
 const router = Router();
-// GET /categorias
+/**
+ * @openapi
+ * /categorias:
+ *   get:
+ *     summary: Listar todas las categorías
+ *     tags: [Categorías]
+ *     responses:
+ *       200:
+ *         description: Lista de categorías
+ */
 router.get('/', async (_req, res) => {
-    try {
-        const categorias = await CategoriaModel.getAll();
-        res.json({ data: categorias, error: null });
-    }
-    catch (error) {
-        console.error('Error get categorias:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener categorías' });
-    }
+    const result = await CategoriasController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /categorias/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const categoria = await CategoriaModel.getById(id);
-        if (!categoria) {
-            res.status(404).json({ data: null, error: 'Categoría no encontrada' });
-            return;
-        }
-        res.json({ data: categoria, error: null });
-    }
-    catch (error) {
-        console.error('Error get categoria:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener categoría' });
-    }
+/**
+ * @openapi
+ * /categorias/{id}:
+ *   get:
+ *     summary: Obtener una categoría por ID
+ *     tags: [Categorías]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la categoría
+ *     responses:
+ *       200:
+ *         description: Categoría encontrada
+ *       404:
+ *         description: Categoría no encontrada
+ */
+router.get('/:id', async (req, res) => {
+    const result = await CategoriasController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /categorias
-router.post('/', async (_req, res) => {
-    try {
-        const { categoria_id, descripcion } = _req.body;
-        if (!categoria_id || !descripcion) {
-            res.status(400).json({ data: null, error: 'categoria_id y descripcion son requeridos' });
-            return;
-        }
-        const nuevaCategoria = await CategoriaModel.create({ categoria_id, descripcion });
-        res.status(201).json({ data: nuevaCategoria, error: null });
-    }
-    catch (error) {
-        console.error('Error create categoria:', error);
-        res.status(500).json({ data: null, error: 'Error al crear categoría' });
-    }
+/**
+ * @openapi
+ * /categorias:
+ *   post:
+ *     summary: Crear una nueva categoría (solo ADMIN)
+ *     tags: [Categorías]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [categoria_id, descripcion]
+ *             properties:
+ *               categoria_id:
+ *                 type: integer
+ *                 example: 1
+ *               descripcion:
+ *                 type: string
+ *                 example: Bebidas
+ *     responses:
+ *       201:
+ *         description: Categoría creada
+ *       400:
+ *         description: Datos inválidos
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ */
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaCategoria), async (req, res) => {
+    const result = await CategoriasController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /categorias/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const data = _req.body;
-        const categoria = await CategoriaModel.update(id, data);
-        if (!categoria) {
-            res.status(404).json({ data: null, error: 'Categoría no encontrada' });
-            return;
-        }
-        res.json({ data: categoria, error: null });
-    }
-    catch (error) {
-        console.error('Error update categoria:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar categoría' });
-    }
+/**
+ * @openapi
+ * /categorias/{id}:
+ *   patch:
+ *     summary: Actualizar una categoría existente (solo ADMIN)
+ *     tags: [Categorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la categoría a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               descripcion:
+ *                 type: string
+ *                 example: Bebidas frías
+ *     responses:
+ *       200:
+ *         description: Categoría actualizada
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Categoría no encontrada
+ */
+router.patch('/:id', authenticate, requireRole('ADMIN'), async (req, res) => {
+    const result = await CategoriasController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=categorias.routes.js.map

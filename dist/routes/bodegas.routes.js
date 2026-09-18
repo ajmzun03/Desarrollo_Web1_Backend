@@ -1,89 +1,188 @@
 import { Router } from 'express';
-import { BodegaModel } from '../model/supabase/bodega.model.js';
-import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
+import { BodegasController } from '../controllers/bodegas.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaBodega, schemaBodegaUpdate } from '../schemas/bodega.js';
 const router = Router();
-// GET /bodegas
-router.get('/', async (_req, res) => {
-    try {
-        const { sucursal_id } = _req.query;
-        let bodegas;
-        if (sucursal_id) {
-            bodegas = await BodegaModel.getBySucursalId(Number(sucursal_id));
-        }
-        else {
-            bodegas = await BodegaModel.getAll();
-        }
-        res.json({ data: bodegas, error: null });
-    }
-    catch (error) {
-        console.error('Error get bodegas:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener bodegas' });
-    }
+/**
+ * @openapi
+ * /bodegas:
+ *   get:
+ *     summary: Listar todas las bodegas (filtrable por sucursal)
+ *     tags: [Bodegas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sucursal_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filtrar bodegas por ID de sucursal
+ *     responses:
+ *       200:
+ *         description: Lista de bodegas
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error al obtener bodegas
+ */
+router.get('/', authenticate, async (req, res) => {
+    const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
+    const result = await BodegasController.getAll(sucursalId);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /bodegas/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const bodega = await BodegaModel.getById(id);
-        if (!bodega) {
-            res.status(404).json({ data: null, error: 'Bodega no encontrada' });
-            return;
-        }
-        res.json({ data: bodega, error: null });
-    }
-    catch (error) {
-        console.error('Error get bodega:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener bodega' });
-    }
+/**
+ * @openapi
+ * /bodegas/{id}:
+ *   get:
+ *     summary: Obtener una bodega por ID
+ *     tags: [Bodegas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la bodega
+ *     responses:
+ *       200:
+ *         description: Bodega encontrada
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       404:
+ *         description: Bodega no encontrada
+ *       500:
+ *         description: Error al obtener bodega
+ */
+router.get('/:id', authenticate, async (req, res) => {
+    const result = await BodegasController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /bodegas
-router.post('/', async (_req, res) => {
-    try {
-        const { sucursal_id, bodega } = _req.body;
-        if (!sucursal_id || !bodega) {
-            res.status(400).json({ data: null, error: 'sucursal_id y bodega son requeridos' });
-            return;
-        }
-        const nuevaBodega = await BodegaModel.create({ sucursal_id, bodega });
-        res.status(201).json({ data: nuevaBodega, error: null });
-    }
-    catch (error) {
-        console.error('Error create bodega:', error);
-        res.status(500).json({ data: null, error: 'Error al crear bodega' });
-    }
+/**
+ * @openapi
+ * /bodegas/lotes/fefo:
+ *   get:
+ *     summary: Obtener lotes de materia prima por vencimiento (FEFO)
+ *     tags: [Bodegas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: bodega_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filtrar lotes por ID de bodega
+ *       - in: query
+ *         name: materia_prima_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la materia prima (obligatorio)
+ *     responses:
+ *       200:
+ *         description: Lista de lotes ordenados por vencimiento
+ *       400:
+ *         description: materia_prima_id es requerido
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (BODEGUERO o ADMIN)
+ *       500:
+ *         description: Error al obtener lotes FEFO
+ */
+router.get('/lotes/fefo', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req, res) => {
+    const bodegaId = req.query.bodega_id ? Number(req.query.bodega_id) : undefined;
+    const materiaPrimaId = req.query.materia_prima_id ? Number(req.query.materia_prima_id) : undefined;
+    const result = await BodegasController.getLotesFEFO(bodegaId, materiaPrimaId);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /bodegas/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const data = _req.body;
-        const bodega = await BodegaModel.update(id, data);
-        if (!bodega) {
-            res.status(404).json({ data: null, error: 'Bodega no encontrada' });
-            return;
-        }
-        res.json({ data: bodega, error: null });
-    }
-    catch (error) {
-        console.error('Error update bodega:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar bodega' });
-    }
+/**
+ * @openapi
+ * /bodegas:
+ *   post:
+ *     summary: Crear una nueva bodega (solo ADMIN o BODEGUERO)
+ *     tags: [Bodegas]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [sucursal_id, bodega]
+ *             properties:
+ *               sucursal_id:
+ *                 type: integer
+ *                 example: 1
+ *               bodega:
+ *                 type: string
+ *                 example: Bodega Central
+ *     responses:
+ *       201:
+ *         description: Bodega creada
+ *       400:
+ *         description: Datos inválidos (sucursal_id y bodega son requeridos)
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o BODEGUERO)
+ *       500:
+ *         description: Error al crear bodega
+ */
+router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaBodega), async (req, res) => {
+    const result = await BodegasController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /lotes/fefo?bodega_id=&materia_prima_id=
-router.get('/lotes/fefo', async (_req, res) => {
-    try {
-        const { bodega_id, materia_prima_id } = _req.query;
-        if (!materia_prima_id) {
-            res.status(400).json({ data: null, error: 'materia_prima_id es requerido' });
-            return;
-        }
-        const lotes = await LoteMateriaPrimaModel.getFEFO(Number(bodega_id) || 0, Number(materia_prima_id));
-        res.json({ data: lotes, error: null });
-    }
-    catch (error) {
-        console.error('Error get lotes FEFO:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener lotes FEFO' });
-    }
+/**
+ * @openapi
+ * /bodegas/{id}:
+ *   patch:
+ *     summary: Actualizar una bodega existente (solo ADMIN o BODEGUERO)
+ *     tags: [Bodegas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la bodega a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sucursal_id:
+ *                 type: integer
+ *                 example: 1
+ *               bodega:
+ *                 type: string
+ *                 example: Bodega Norte
+ *     responses:
+ *       200:
+ *         description: Bodega actualizada
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o BODEGUERO)
+ *       404:
+ *         description: Bodega no encontrada
+ *       500:
+ *         description: Error al actualizar bodega
+ */
+router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaBodegaUpdate), async (req, res) => {
+    const result = await BodegasController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=bodegas.routes.js.map

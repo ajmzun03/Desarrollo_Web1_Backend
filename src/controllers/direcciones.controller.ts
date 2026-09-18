@@ -1,4 +1,5 @@
 import { DireccionModel } from '../model/supabase/direccion.model.js';
+import logger from '../config/logger.js';
 
 export const DireccionesController = {
   async getAll(clienteId?: number) {
@@ -10,7 +11,7 @@ export const DireccionesController = {
       if (error instanceof Error && error.message === 'No se encontraron direcciones') {
         return { data: [], error: null, status: 200 };
       }
-      console.error('Error get direcciones:', error);
+      logger.error({ error }, 'Error get direcciones:');
       return { data: null, error: 'Error al obtener direcciones', status: 500 };
     }
   },
@@ -23,7 +24,7 @@ export const DireccionesController = {
       if (error instanceof Error && error.message === 'Direccion no encontrada') {
         return { data: null, error: 'Dirección no encontrada', status: 404 };
       }
-      console.error('Error get direccion:', error);
+      logger.error({ error }, 'Error get direccion:');
       return { data: null, error: 'Error al obtener dirección', status: 500 };
     }
   },
@@ -36,7 +37,7 @@ export const DireccionesController = {
       const nuevaDireccion = await DireccionModel.create(data);
       return { data: nuevaDireccion, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create direccion:', error);
+      logger.error({ error }, 'Error create direccion:');
       return { data: null, error: 'Error al crear dirección', status: 500 };
     }
   },
@@ -49,7 +50,7 @@ export const DireccionesController = {
       if (error instanceof Error && error.message === 'Error al actualizar la direccion') {
         return { data: null, error: 'Dirección no encontrada', status: 404 };
       }
-      console.error('Error update direccion:', error);
+      logger.error({ error }, 'Error update direccion:');
       return { data: null, error: 'Error al actualizar dirección', status: 500 };
     }
   }

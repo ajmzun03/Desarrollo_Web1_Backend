@@ -1,4 +1,5 @@
 import { KardexBodegaModel } from '../model/supabase/kardexBodega.model.js';
+import logger from '../config/logger.js';
 
 export const KardexBodegaController = {
   async getAll(bodegaId?: number, loteId?: number) {
@@ -13,7 +14,7 @@ export const KardexBodegaController = {
       }
       return { data: movimientos, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get kardex-bodega:', error);
+      logger.error({ error }, 'Error get kardex-bodega:');
       return { data: null, error: 'Error al obtener kardex de bodega', status: 500 };
     }
   }

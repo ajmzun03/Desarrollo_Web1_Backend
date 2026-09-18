@@ -1,0 +1,146 @@
+{
+  "_instrucciones": "PRUEBAS DE PROVEEDORES - Headers: Authorization: Bearer <token>",
+  "pruebas": {
+
+    "200_OK": [
+      {
+        "nombre": "Listar proveedores (público)",
+        "metodo": "GET",
+        "ruta": "/proveedores",
+        "headers": {},
+        "body": null
+      },
+      {
+        "nombre": "Obtener proveedor por ID",
+        "metodo": "GET",
+        "ruta": "/proveedores/1",
+        "headers": {},
+        "body": null
+      }
+    ],
+
+    "201_CREATED": [
+      {
+        "nombre": "Crear proveedor válido",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "no_nit": "12345678",
+          "proveedor": "Proveedor Test SA"
+        }
+      },
+      {
+        "nombre": "Crear proveedor con dirección",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "no_nit": "87654321",
+          "proveedor": "Proveedor Con Dirección",
+          "direccion": "Av. Principal 123"
+        }
+      }
+    ],
+
+    "400_BAD_REQUEST": [
+      {
+        "nombre": "NIT con letras (debe ser solo dígitos)",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "no_nit": "ABC12345", "proveedor": "Test" },
+        "error_esperado": "NIT debe contener solo dígitos"
+      },
+      {
+        "nombre": "NIT muy corto (min 8 caracteres)",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "no_nit": "12345", "proveedor": "Test" },
+        "error_esperado": "NIT debe tener al menos 8 caracteres"
+      },
+      {
+        "nombre": "NIT muy largo (max 13 caracteres)",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "no_nit": "12345678901234", "proveedor": "Test" },
+        "error_esperado": "NIT no puede tener más de 13 caracteres"
+      },
+      {
+        "nombre": "Nombre del proveedor muy corto (min 3)",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "no_nit": "12345678", "proveedor": "AB" },
+        "error_esperado": "El nombre del proveedor debe tener al menos 3 caracteres"
+      },
+      {
+        "nombre": "Campos requeridos faltantes",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "proveedor": "Solo nombre" },
+        "error_esperado": "no_nit y proveedor son requeridos"
+      }
+    ],
+
+    "401_UNAUTHORIZED": [
+      {
+        "nombre": "Crear proveedor sin token",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": { "Content-Type": "application/json" },
+        "body": { "no_nit": "12345678", "proveedor": "Test" },
+        "error_esperado": "Token no proporcionado"
+      }
+    ],
+
+    "403_FORBIDDEN": [
+      {
+        "nombre": "Token de CAJERO creando proveedor (solo ADMIN)",
+        "metodo": "POST",
+        "ruta": "/proveedores",
+        "headers": {
+          "Authorization": "Bearer {{token_de_cajero}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "no_nit": "12345678", "proveedor": "Test" },
+        "error_esperado": "Acceso denegado. Roles permitidos: ADMIN"
+      }
+    ],
+
+    "404_NOT_FOUND": [
+      {
+        "nombre": "Proveedor con ID inexistente",
+        "metodo": "GET",
+        "ruta": "/proveedores/99999",
+        "headers": {},
+        "body": null,
+        "error_esperado": "Proveedor no encontrado"
+      }
+    ]
+  }
+}

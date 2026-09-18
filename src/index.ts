@@ -1,4 +1,7 @@
 import express from "express";
+import helmet from 'helmet'
+import logger from './config/logger.js'
+import pagosRoutes from './routes/pagos.routes.js';
 import cookieParser from 'cookie-parser'
 import type { Request, Response } from "express";
 import rateLimit from "express-rate-limit"
@@ -38,6 +41,7 @@ import kardexBodegaRoutes from './routes/kardexBodega.routes.js';
 import kardexAlacenaRoutes from './routes/kardexAlacena.routes.js';
 
 const app = express();
+app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -106,9 +110,12 @@ app.use('/liquidaciones', liquidacionesRoutes);
 app.use('/gastos-sucursal', gastosSucursalRoutes);
 app.use('/reportes', reportesRoutes);
 
+//PAGOS STRIPE
+app.use('/pagos', pagosRoutes);
+
 // Handler global de errores (debe ir después de todas las rutas)
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  logger.info({ port: PORT }, 'Servidor corriendo');
 });

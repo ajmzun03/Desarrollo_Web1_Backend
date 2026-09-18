@@ -1,4 +1,5 @@
 import { CajaModel } from '../model/supabase/caja.model.js';
+import logger from '../config/logger.js';
 
 export const CajasController = {
   async getAll(sucursalId?: number) {
@@ -11,7 +12,7 @@ export const CajasController = {
       if (error instanceof Error && error.message === 'No se encontraron cajas') {
         return { data: [], error: null, status: 200 };
       }
-      console.error('Error get cajas:', error);
+      logger.error({ error }, 'Error get cajas:');
       return { data: null, error: 'Error al obtener cajas', status: 500 };
     }
   },
@@ -24,7 +25,7 @@ export const CajasController = {
       if (error instanceof Error && error.message === 'Caja no encontrada') {
         return { data: null, error: 'Caja no encontrada', status: 404 };
       }
-      console.error('Error get caja:', error);
+      logger.error({ error }, 'Error get caja:');
       return { data: null, error: 'Error al obtener caja', status: 500 };
     }
   },
@@ -37,7 +38,7 @@ export const CajasController = {
       const nuevaCaja = await CajaModel.create(data);
       return { data: nuevaCaja, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create caja:', error);
+      logger.error({ error }, 'Error create caja:');
       return { data: null, error: 'Error al crear caja', status: 500 };
     }
   },
@@ -50,7 +51,7 @@ export const CajasController = {
       if (error instanceof Error && error.message === 'Error al actualizar la caja') {
         return { data: null, error: 'Caja no encontrada', status: 404 };
       }
-      console.error('Error update caja:', error);
+      logger.error({ error }, 'Error update caja:');
       return { data: null, error: 'Error al actualizar caja', status: 500 };
     }
   }

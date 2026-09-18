@@ -1,4 +1,5 @@
 import { OrdenTrabajoModel } from '../model/supabase/ordenTrabajo.model.js';
+import logger from '../config/logger.js';
 import { RecetaDetalleModel } from '../model/supabase/receta.model.js';
 import { ProductoLoteModel } from '../model/supabase/productoLote.model.js';
 
@@ -15,7 +16,7 @@ export const OrdenesTrabajoController = {
       }
       return { data: ordenes, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get ordenes-trabajo:', error);
+      logger.error({ error }, 'Error get ordenes-trabajo:');
       return { data: null, error: 'Error al obtener órdenes de trabajo', status: 500 };
     }
   },
@@ -25,7 +26,7 @@ export const OrdenesTrabajoController = {
       const ordenes = await OrdenTrabajoModel.getByEstado('GENERADA');
       return { data: ordenes, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get cola ordenes-trabajo:', error);
+      logger.error({ error }, 'Error get cola ordenes-trabajo:');
       return { data: null, error: 'Error al obtener cola de órdenes', status: 500 };
     }
   },
@@ -38,7 +39,7 @@ export const OrdenesTrabajoController = {
       }
       return { data: orden, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get orden-trabajo:', error);
+      logger.error({ error }, 'Error get orden-trabajo:');
       return { data: null, error: 'Error al obtener orden de trabajo', status: 500 };
     }
   },
@@ -52,7 +53,7 @@ export const OrdenesTrabajoController = {
       const detalles = await RecetaDetalleModel.getByRecetaId(orden.receta_id);
       return { data: { orden, detalles }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get receta orden:', error);
+      logger.error({ error }, 'Error get receta orden:');
       return { data: null, error: 'Error al obtener receta de la orden', status: 500 };
     }
   },
@@ -70,7 +71,7 @@ export const OrdenesTrabajoController = {
       });
       return { data: nuevaOrden, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create orden-trabajo:', error);
+      logger.error({ error }, 'Error create orden-trabajo:');
       return { data: null, error: 'Error al crear orden de trabajo', status: 500 };
     }
   },
@@ -83,7 +84,7 @@ export const OrdenesTrabajoController = {
       }
       return { data: orden, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update estado orden-trabajo:', error);
+      logger.error({ error }, 'Error update estado orden-trabajo:');
       return { data: null, error: 'Error al actualizar estado de orden de trabajo', status: 500 };
     }
   },
@@ -96,7 +97,7 @@ export const OrdenesTrabajoController = {
       }
       return { data: orden, error: null, status: 200 };
     } catch (error) {
-      console.error('Error iniciar orden-trabajo:', error);
+      logger.error({ error }, 'Error iniciar orden-trabajo:');
       return { data: null, error: 'Error al iniciar orden de trabajo', status: 500 };
     }
   },
@@ -116,7 +117,7 @@ export const OrdenesTrabajoController = {
       const ordenActualizada = await OrdenTrabajoModel.update(id, { estado: 'FINALIZADA' });
       return { data: { orden: ordenActualizada, lote }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error terminar orden-trabajo:', error);
+      logger.error({ error }, 'Error terminar orden-trabajo:');
       return { data: null, error: 'Error al terminar orden de trabajo', status: 500 };
     }
   }

@@ -1,5 +1,5 @@
 import z from 'zod';
-const schemaUnidadMedida = z.object({
+export const schemaUnidadMedida = z.object({
     unidad: z.string()
         .trim()
         .min(2, "La unidad de medida debe tener al menos 2 caracteres")

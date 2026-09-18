@@ -1,0 +1,144 @@
+{
+  "_instrucciones": "PRUEBAS ESPECIALES: FECHAS, ENUMS INVÁLIDOS, PROPIEDADES EXTRA, LOTES",
+  "pruebas": {
+
+    "LOTES_MATERIA_PRIMA": {
+      "_nota": "Estos campos se validan internamente al crear hojas de recepción",
+      "REGLAS": {
+        "fecha_vencimiento": "Debe ser fecha válida Y >= hoy (no en el pasado)",
+        "cantidad_actual": "Debe ser <= cantidad_inicial",
+        "estado": "VIGENTE | VENCIDO | AGOTADO"
+      },
+      "CASOS_INVALIDOS": [
+        {
+          "nombre": "Fecha en el pasado",
+          "campo": "fecha_vencimiento",
+          "valor": "2020-01-01",
+          "error_esperado": "La fecha de vencimiento debe ser igual o posterior a la fecha actual"
+        },
+        {
+          "nombre": "Fecha no válida (texto)",
+          "campo": "fecha_vencimiento",
+          "valor": "no-es-fecha",
+          "error_esperado": "Fecha no válida"
+        },
+        {
+          "nombre": "cantidad_actual > cantidad_inicial",
+          "campo": "cantidad_actual",
+          "valor": "cantidad_inicial + 1",
+          "error_esperado": "La cantidad actual no puede ser mayor que la cantidad inicial"
+        }
+      ]
+    },
+
+    "ENUMS_INVALIDOS": [
+      {
+        "entidad": "Pedido",
+        "campo": "estado",
+        "valor_invalido": "PENDIENTE",
+        "valores_validos": "CREADO, LISTO, ANULADO, EN_RUTA, ENTREGADO"
+      },
+      {
+        "entidad": "Orden de Compra",
+        "campo": "estado",
+        "valor_invalido": "ENVIADO",
+        "valores_validos": "CREADA, EN_PROCESO, FINALIZADO, ANULADO"
+      },
+      {
+        "entidad": "Orden de Trabajo",
+        "campo": "estado",
+        "valor_invalido": "COMPLETADO",
+        "valores_validos": "GENERADA, EN_PROCESO, ANULADA, FINALIZADA"
+      },
+      {
+        "entidad": "Caja",
+        "campo": "tipo",
+        "valor_invalido": "NORMAL",
+        "valores_validos": "CAJA_CHICA, GASTOS_REPRESENTACION, TRANSITO"
+      },
+      {
+        "entidad": "Usuario",
+        "campo": "rol",
+        "valor_invalido": "SUPERVISOR",
+        "valores_validos": "ADMIN, BODEGUERO, DESPACHADOR, REPARTIDOR, CAJERO"
+      }
+    ],
+
+    "PROPIEDADES_EXTRA_STRICT_MODE": [
+      {
+        "_nota": "Estos schemas usan .strict() que rechaza propiedades no definidas",
+        "schemas_con_strict": [
+          "schemaProductoUpdate",
+          "schemaBodegaUpdate",
+          "schemaAlacenaUpdate",
+          "schemaCajaUpdate",
+          "schemaDireccionUpdate",
+          "schemaRecetaUpdate"
+        ],
+        "ejemplo_invalido": {
+          "ruta": "PATCH /productos/1",
+          "body": { "precio": 30.00, "campoExtra": "no permitido" },
+          "error_esperado": "Unrecognized key(s) in object: 'campoExtra'"
+        }
+      }
+    ],
+
+    "TIPOS_INCORRECTOS": [
+      {
+        "campo": "categoria_id",
+        "tipo_esperado": "number (int, positive)",
+        "casos_invalidos": [
+          { "valor": "abc", "error": "Expected number, received string" },
+          { "valor": "123", "error": "Expected number, received string" },
+          { "valor": true, "error": "Expected number, received boolean" },
+          { "valor": null, "error": "Expected number, received null" }
+        ]
+      },
+      {
+        "campo": "precio",
+        "tipo_esperado": "number (positive)",
+        "casos_invalidos": [
+          { "valor": "abc", "error": "Expected number, received string" },
+          { "valor": "25.50", "error": "Expected number, received string (no parsea strings)" }
+        ]
+      },
+      {
+        "campo": "es_perecedera",
+        "tipo_esperado": "boolean",
+        "casos_invalidos": [
+          { "valor": "si", "error": "Expected boolean, received string" },
+          { "valor": 1, "error": "Expected boolean, received number" },
+          { "valor": "true", "error": "Expected boolean, received string" }
+        ]
+      }
+    ],
+
+    "RATE_LIMITING": {
+      "_nota": "100 requests por ventana de 15 minutos por IP",
+      "prueba": "Enviar más de 100 requests rápidas a cualquier endpoint",
+      "respuesta_esperada": {
+        "status": 429,
+        "body": { "message": "Demasiadas request, Por favor intenta más tarde." }
+      }
+    },
+
+    "CORS": {
+      "_nota": "Solo permite orígenes específicos",
+      "origenes_permitidos": [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5500",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ],
+      "prueba": "Hacer petición desde un origen no permitido",
+      "respuesta_esperada": "Error CORS (navegador bloquea la petición)"
+    },
+
+    "HEADERS_SEGURIDAD": {
+      "_nota": "x-powered-by debe estar desactivado",
+      "prueba": "Verificar que el header X-Powered-By NO existe en la respuesta",
+      "metodo": "curl -I http://localhost:3000/"
+    }
+  }
+}

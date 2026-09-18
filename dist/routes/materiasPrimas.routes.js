@@ -1,71 +1,141 @@
 import { Router } from 'express';
-import { MateriaPrimaModel } from '../model/supabase/materiaPrima.model.js';
+import { MateriasPrimasController } from '../controllers/materiasPrimas.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaMateriaPrima } from '../schemas/materiaPrima.schema.js';
 const router = Router();
-// GET /materias-primas
+// GET — público
+/**
+ * @openapi
+ * /materias-primas:
+ *   get:
+ *     summary: Listar todas las materias primas
+ *     tags: [MateriasPrimas]
+ *     responses:
+ *       200:
+ *         description: Lista de materias primas
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.get('/', async (_req, res) => {
-    try {
-        const materias = await MateriaPrimaModel.getAll();
-        res.json({ data: materias, error: null });
-    }
-    catch (error) {
-        console.error('Error get materias-primas:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener materias primas' });
-    }
+    const result = await MateriasPrimasController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /materias-primas/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const materia = await MateriaPrimaModel.getById(id);
-        if (!materia) {
-            res.status(404).json({ data: null, error: 'Materia prima no encontrada' });
-            return;
-        }
-        res.json({ data: materia, error: null });
-    }
-    catch (error) {
-        console.error('Error get materia:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener materia prima' });
-    }
+/**
+ * @openapi
+ * /materias-primas/{id}:
+ *   get:
+ *     summary: Obtener una materia prima por ID
+ *     tags: [MateriasPrimas]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la materia prima
+ *     responses:
+ *       200:
+ *         description: Materia prima encontrada
+ *       404:
+ *         description: Materia prima no encontrada
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', async (req, res) => {
+    const result = await MateriasPrimasController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /materias-primas
-router.post('/', async (_req, res) => {
-    try {
-        const { categoria_id, unidad_medida_id, materia_prima, es_perecedera, maneja_merma } = _req.body;
-        if (!categoria_id || !unidad_medida_id || !materia_prima) {
-            res.status(400).json({ data: null, error: 'categoria_id, unidad_medida_id y materia_prima son requeridos' });
-            return;
-        }
-        const nuevaMateria = await MateriaPrimaModel.create({
-            categoria_id,
-            unidad_medida_id,
-            materia_prima,
-            es_perecedera: es_perecedera ?? false,
-            maneja_merma: maneja_merma ?? false
-        });
-        res.status(201).json({ data: nuevaMateria, error: null });
-    }
-    catch (error) {
-        console.error('Error create materia:', error);
-        res.status(500).json({ data: null, error: 'Error al crear materia prima' });
-    }
+// POST/PATCH — ADMIN o BODEGUERO
+/**
+ * @openapi
+ * /materias-primas:
+ *   post:
+ *     summary: Crear una nueva materia prima (ADMIN o BODEGUERO)
+ *     tags: [MateriasPrimas]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [categoria_id, unidad_medida_id, materia_prima, es_perecedera, maneja_merma]
+ *             properties:
+ *               categoria_id:
+ *                 type: integer
+ *                 example: 1
+ *               unidad_medida_id:
+ *                 type: integer
+ *                 example: 3
+ *               materia_prima:
+ *                 type: string
+ *                 example: Harina de trigo
+ *               es_perecedera:
+ *                 type: boolean
+ *                 example: true
+ *               maneja_merma:
+ *                 type: boolean
+ *                 example: false
+ *     responses:
+ *       201:
+ *         description: Materia prima creada
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o BODEGUERO)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaMateriaPrima), async (req, res) => {
+    const result = await MateriasPrimasController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /materias-primas/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const data = _req.body;
-        const materia = await MateriaPrimaModel.update(id, data);
-        if (!materia) {
-            res.status(404).json({ data: null, error: 'Materia prima no encontrada' });
-            return;
-        }
-        res.json({ data: materia, error: null });
-    }
-    catch (error) {
-        console.error('Error update materia:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar materia prima' });
-    }
+/**
+ * @openapi
+ * /materias-primas/{id}:
+ *   patch:
+ *     summary: Actualizar una materia prima existente (ADMIN o BODEGUERO)
+ *     tags: [MateriasPrimas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la materia prima a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               materia_prima:
+ *                 type: string
+ *                 example: Harina de maíz
+ *               es_perecedera:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Materia prima actualizada
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o BODEGUERO)
+ *       404:
+ *         description: Materia prima no encontrada
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req, res) => {
+    const result = await MateriasPrimasController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=materiasPrimas.routes.js.map

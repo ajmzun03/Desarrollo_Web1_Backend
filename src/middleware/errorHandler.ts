@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import logger from '../config/logger.js';
 
 /**
  * Handler global de errores para Express.
@@ -14,7 +15,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error('[Error]', err.message);
+  logger.error({ error: err.message }, '[Error]');
 
   // Errores de validación Zod
   if (err instanceof ZodError) {

@@ -1,5 +1,5 @@
 import z from 'zod';
-const schemaMateriaPrima = z.object({
+export const schemaMateriaPrima = z.object({
     categoria_id: z.number()
         .int("El ID de la categoría debe ser un número entero")
         .positive("El ID de la categoría debe ser un número positivo"),

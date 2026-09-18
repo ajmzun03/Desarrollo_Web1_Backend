@@ -1,94 +1,129 @@
 import { Router } from 'express';
-import { HojaRecepcionModel, HojaRecepcionDetalleModel } from '../model/supabase/hojaRecepcion.model.js';
-import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
-import { KardexBodegaModel } from '../model/supabase/kardexBodega.model.js';
+import { HojasRecepcionController } from '../controllers/hojasRecepcion.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaHojaRecepcion } from '../schemas/hojaRecepcion.schema.js';
 const router = Router();
-// GET /hojas-recepcion
-router.get('/', async (_req, res) => {
-    try {
-        const { sucursal_id } = _req.query;
-        let hojas;
-        if (sucursal_id) {
-            hojas = await HojaRecepcionModel.getBySucursalId(Number(sucursal_id));
-        }
-        else {
-            hojas = await HojaRecepcionModel.getAll();
-        }
-        res.json({ data: hojas, error: null });
-    }
-    catch (error) {
-        console.error('Error get hojas-recepcion:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener hojas de recepción' });
-    }
+// GET /hojas-recepcion?sucursal_id= — BODEGUERO o ADMIN
+/**
+ * @openapi
+ * /hojas-recepcion:
+ *   get:
+ *     summary: Listar hojas de recepción con filtro opcional de sucursal
+ *     tags: [HojasRecepcion]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sucursal_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filtra por sucursal receptora
+ *     responses:
+ *       200:
+ *         description: Lista de hojas de recepción
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (BODEGUERO o ADMIN)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req, res) => {
+    const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
+    const result = await HojasRecepcionController.getAll(sucursalId);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /hojas-recepcion/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const hoja = await HojaRecepcionModel.getById(id);
-        if (!hoja) {
-            res.status(404).json({ data: null, error: 'Hoja de recepción no encontrada' });
-            return;
-        }
-        const detalles = await HojaRecepcionDetalleModel.getByHojaRecepcionId(id);
-        res.json({ data: { ...hoja, detalles }, error: null });
-    }
-    catch (error) {
-        console.error('Error get hoja-recepcion:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener hoja de recepción' });
-    }
+// GET /hojas-recepcion/:id — BODEGUERO o ADMIN
+/**
+ * @openapi
+ * /hojas-recepcion/{id}:
+ *   get:
+ *     summary: Obtener una hoja de recepción por ID con sus detalles
+ *     tags: [HojasRecepcion]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la hoja de recepción
+ *     responses:
+ *       200:
+ *         description: Hoja de recepción encontrada
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (BODEGUERO o ADMIN)
+ *       404:
+ *         description: Hoja de recepción no encontrada
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req, res) => {
+    const result = await HojasRecepcionController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /hojas-recepcion - Endpoint clave: registra recepción
-router.post('/', async (_req, res) => {
-    try {
-        const { sucursal_receptora, orden_compra_id, tipo_recepcion, items } = _req.body;
-        if (!sucursal_receptora || !items || !Array.isArray(items)) {
-            res.status(400).json({ data: null, error: 'sucursal_receptora y items son requeridos' });
-            return;
-        }
-        // Crear la hoja de recepción
-        const nuevaHoja = await HojaRecepcionModel.create({
-            sucursal_receptora,
-            orden_compra_id,
-            tipo_recepcion: tipo_recepcion || 'TOTAL'
-        });
-        // Procesar cada item
-        for (const item of items) {
-            // Calcular saldo (recibido - merma)
-            const saldo = item.cantidad_recibida - (item.merma || 0);
-            // Crear detalle de recepción
-            const detalle = await HojaRecepcionDetalleModel.create({
-                hoja_recepcion_id: Number(nuevaHoja.id),
-                materia_prima_id: item.materia_prima_id,
-                cantidad_recibida: item.cantidad_recibida,
-                fecha_vencimiento: item.fecha_vencimiento,
-                merma: item.merma || 0,
-                saldo: saldo,
-                estado: saldo > 0 ? 'COMPLETA' : 'INCOMPLETA'
-            });
-            // Crear lote de materia prima
-            const lote = await LoteMateriaPrimaModel.create({
-                materia_prima_id: item.materia_prima_id,
-                fecha_vencimiento: item.fecha_vencimiento,
-                cantidad_inicial: saldo,
-                cantidad_actual: saldo,
-                estado: 'VIGENTE'
-            });
-            // Crear movimiento de kardex
-            await KardexBodegaModel.create({
-                bodega_id: sucursal_receptora, // Asumiendo que sucursal tiene bodega
-                lote_id: Number(lote.id),
-                tipo_movimiento: 'INGRESO',
-                cantidad: saldo
-            });
-        }
-        const detalles = await HojaRecepcionDetalleModel.getByHojaRecepcionId(Number(nuevaHoja.id));
-        res.status(201).json({ data: { ...nuevaHoja, detalles }, error: null });
-    }
-    catch (error) {
-        console.error('Error create hoja-recepcion:', error);
-        res.status(500).json({ data: null, error: 'Error al crear hoja de recepción' });
-    }
+// POST /hojas-recepcion — BODEGUERO o ADMIN
+/**
+ * @openapi
+ * /hojas-recepcion:
+ *   post:
+ *     summary: Crear una hoja de recepción (BODEGUERO o ADMIN)
+ *     tags: [HojasRecepcion]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [sucursal_receptora, items]
+ *             properties:
+ *               sucursal_receptora:
+ *                 type: integer
+ *                 example: 2
+ *               orden_compra_id:
+ *                 type: integer
+ *                 example: 5
+ *               tipo_recepcion:
+ *                 type: string
+ *                 enum: [TOTAL, PARCIAL]
+ *                 example: TOTAL
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required: [materia_prima_id, cantidad_recibida, fecha_vencimiento]
+ *                   properties:
+ *                     materia_prima_id:
+ *                       type: integer
+ *                     cantidad_recibida:
+ *                       type: number
+ *                     fecha_vencimiento:
+ *                       type: string
+ *                       format: date
+ *                     merma:
+ *                       type: number
+ *     responses:
+ *       201:
+ *         description: Hoja de recepción creada
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (BODEGUERO o ADMIN)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/', authenticate, requireRole('BODEGUERO', 'ADMIN'), validate(schemaHojaRecepcion), async (req, res) => {
+    const result = await HojasRecepcionController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=hojasRecepcion.routes.js.map

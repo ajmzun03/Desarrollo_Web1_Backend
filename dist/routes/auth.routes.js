@@ -1,81 +1,72 @@
 import { Router } from 'express';
-import { UsuarioModel } from '../model/supabase/usuario.model.js';
-import { comparePassword } from '../utils/hashPassword.js';
-import { generarToken, getInfoToToken } from '../utils/generateToken.js';
+import { AuthController } from '../controllers/auth.controller.js';
+import { authenticate } from '../middleware/auth.js';
 const router = Router();
-// POST /auth/login
-router.post('/login', async (_req, res) => {
-    try {
-        const { usuario, contrasenia } = _req.body;
-        if (!usuario || !contrasenia) {
-            res.status(400).json({ data: null, error: 'Usuario y contraseña requeridos' });
-            return;
-        }
-        const usuarios = await UsuarioModel.getAll();
-        const user = usuarios.find(u => u.usuario === usuario);
-        if (!user) {
-            res.status(401).json({ data: null, error: 'Credenciales inválidas' });
-            return;
-        }
-        const isValid = await comparePassword({ input: contrasenia, hashedInput: user.contrasenia });
-        if (!isValid) {
-            res.status(401).json({ data: null, error: 'Credenciales inválidas' });
-            return;
-        }
-        const token = generarToken({
-            id: user.id,
-            usuario: user.usuario,
-            rol: user.rol
-        });
-        if (!token) {
-            res.status(500).json({ data: null, error: 'Error al generar token' });
-            return;
-        }
-        const { contrasenia: _, ...userWithoutPassword } = user;
-        res.json({
-            data: {
-                usuario: userWithoutPassword,
-                token
-            },
-            error: null
-        });
-    }
-    catch (error) {
-        console.error('Error en login:', error);
-        res.status(500).json({ data: null, error: 'Error interno del servidor' });
-    }
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     summary: Iniciar sesión
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [usuario, contrasenia]
+ *             properties:
+ *               usuario:
+ *                 type: string
+ *                 example: admin.mc
+ *               contrasenia:
+ *                 type: string
+ *                 format: password
+ *                 example: umg123
+ *     responses:
+ *       200:
+ *         description: Login exitoso, devuelve el token JWT :)
+ *       401:
+ *         description: Credenciales inválidas :(
+ */
+router.post('/login', async (req, res) => {
+    const { usuario, contrasenia } = req.body;
+    const result = await AuthController.login(usuario, contrasenia);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /auth/logout
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     summary: Cerrar sesión
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Logout exitoso :)
+ */
 router.post('/logout', async (_req, res) => {
-    // En un sistema real, invalidarías el token en Redis o DB
-    res.json({ data: { message: 'Sesión cerrada exitosamente' }, error: null });
+    const result = await AuthController.logout();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /auth/me
-router.get('/me', async (_req, res) => {
-    try {
-        const authHeader = _req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            res.status(401).json({ data: null, error: 'Token no proporcionado' });
-            return;
-        }
-        const token = authHeader.split(' ')[1];
-        const decoded = getInfoToToken(token);
-        if (!decoded) {
-            res.status(401).json({ data: null, error: 'Token inválido o expirado' });
-            return;
-        }
-        const usuario = await UsuarioModel.getById(Number(decoded.id));
-        if (!usuario) {
-            res.status(404).json({ data: null, error: 'Usuario no encontrado' });
-            return;
-        }
-        const { contrasenia: _, ...userWithoutPassword } = usuario;
-        res.json({ data: userWithoutPassword, error: null });
-    }
-    catch (error) {
-        console.error('Error en /me:', error);
-        res.status(500).json({ data: null, error: 'Error interno del servidor' });
-    }
+/**
+ * @openapi
+ * /auth/me:
+ *   get:
+ *     summary: Obtener el usuario autenticado actual
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Datos del usuario autenticado :)
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado :(
+ */
+router.get('/me', authenticate, async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(' ')[1];
+    const result = await AuthController.me(token);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=auth.routes.js.map

@@ -1,5 +1,5 @@
 import z from 'zod';
-const schemaSucursal = z.object({
+export const schemaSucursal = z.object({
     municipio_id: z.number().int().positive("El ID del municipio debe ser un número entero positivo"),
     sucursal: z.string()
         .min(3, "El nombre de la sucursal debe tener al menos 3 caracteres")

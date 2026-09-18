@@ -1,4 +1,4 @@
-import jwt, { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
+import jwt, {} from 'jsonwebtoken';
 import { SECRET_KEY } from '../config.js';
 export function generarToken(userData, time = '1d') {
     if (!SECRET_KEY)

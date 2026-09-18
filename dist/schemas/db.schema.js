@@ -51,6 +51,12 @@ export const rolUsuarioEnum = pgEnum('rol_usuario', [
     'REPARTIDOR',
     'CAJERO'
 ]);
+export const estadoSolicitudInsumoEnum = pgEnum('estado_solicitud_insumo', [
+    'PENDIENTE',
+    'ENVIADA',
+    'RECIBIDA',
+    'CANCELADA'
+]);
 export const sucursalTable = pgTable('SUCURSAL', {
     id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     municipio_id: integer('municipio_id').notNull().references(() => municipioTable.id),
@@ -160,13 +166,30 @@ export const pedidoTable = pgTable('PEDIDO', {
     cliente_id: bigint('cliente_id', { mode: 'number' }).notNull().references(() => clienteTable.id),
     fecha_pedido: timestamp('fecha_pedido', { mode: 'string' }).notNull().defaultNow(),
     observaciones: varchar('observaciones', { length: 255 }),
+    total: doublePrecision('total').notNull().default(0),
     estado: estadoPedidoEnum('estado').notNull().default('CREADO')
 });
 export const detallePedidoTable = pgTable('DETALLE_PEDIDO', {
     id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
     pedido_id: bigint('pedido_id', { mode: 'number' }).references(() => pedidoTable.id),
     producto_id: integer('producto_id').notNull().references(() => productoTable.id),
+    precio_unitario: doublePrecision('precio_unitario').notNull().default(0),
     cantidad: doublePrecision('cantidad').notNull()
+});
+// ---- Solicitud de insumos (RF-003) ----
+export const solicitudInsumoTable = pgTable('SOLICITUD_INSUMO', {
+    id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    sucursal_id: integer('sucursal_id').references(() => sucursalTable.id),
+    solicitado_por: integer('solicitado_por').references(() => usuarioTable.id),
+    estado: estadoSolicitudInsumoEnum('estado').notNull().default('PENDIENTE'),
+    fecha_solicitud: timestamp('fecha_solicitud', { mode: 'string' }).notNull().defaultNow()
+});
+export const detalleSolicitudInsumoTable = pgTable('DETALLE_SOLICITUD_INSUMO', {
+    id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    solicitud_id: bigint('solicitud_id', { mode: 'number' }).notNull().references(() => solicitudInsumoTable.id),
+    materia_prima_id: integer('materia_prima_id').notNull().references(() => materiaPrimaTable.id),
+    cantidad_solicitada: doublePrecision('cantidad_solicitada').notNull(),
+    cantidad_recibida: doublePrecision('cantidad_recibida')
 });
 export const facturaVentaTable = pgTable('FACTURA_VENTA', {
     id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),

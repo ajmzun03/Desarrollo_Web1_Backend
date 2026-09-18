@@ -1,4 +1,5 @@
 import { SucursalModel } from '../model/supabase/sucursal.model.js';
+import logger from '../config/logger.js';
 
 export const SucursalesController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const SucursalesController = {
       const sucursales = await SucursalModel.getAll();
       return { data: sucursales, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get sucursales:', error);
+      logger.error({ error }, 'Error get sucursales:');
       return { data: null, error: 'Error al obtener sucursales', status: 500 };
     }
   },
@@ -19,7 +20,7 @@ export const SucursalesController = {
       }
       return { data: sucursal, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get sucursal:', error);
+      logger.error({ error }, 'Error get sucursal:');
       return { data: null, error: 'Error al obtener sucursal', status: 500 };
     }
   },
@@ -32,7 +33,7 @@ export const SucursalesController = {
       const nuevaSucursal = await SucursalModel.create(data);
       return { data: nuevaSucursal, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create sucursal:', error);
+      logger.error({ error }, 'Error create sucursal:');
       return { data: null, error: 'Error al crear sucursal', status: 500 };
     }
   },
@@ -45,7 +46,7 @@ export const SucursalesController = {
       }
       return { data: sucursal, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update sucursal:', error);
+      logger.error({ error }, 'Error update sucursal:');
       return { data: null, error: 'Error al actualizar sucursal', status: 500 };
     }
   }

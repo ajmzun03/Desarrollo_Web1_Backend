@@ -1,4 +1,5 @@
 import { StockAlacenaModel } from '../model/supabase/stockAlacena.model.js';
+import logger from '../config/logger.js';
 
 export const StockAlacenaController = {
   async getAll(alacenaId?: number) {
@@ -8,7 +9,7 @@ export const StockAlacenaController = {
         : await StockAlacenaModel.getAll();
       return { data: stocks, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get stock-alacena:', error);
+      logger.error({ error }, 'Error get stock-alacena:');
       return { data: null, error: 'Error al obtener stock de alacena', status: 500 };
     }
   }

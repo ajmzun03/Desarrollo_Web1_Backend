@@ -1,108 +1,217 @@
 import { Router } from 'express';
-import { TurnoDespachadorModel } from '../model/supabase/turnoDespachador.model.js';
+import { TurnosController } from '../controllers/turnos.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaTurnoApertura, schemaTurnoCierre, schemaTurnoValidar } from '../schemas/turno.schema.js';
 const router = Router();
-// GET /turnos
-router.get('/', async (_req, res) => {
-    try {
-        const turnos = await TurnoDespachadorModel.getAll();
-        res.json({ data: turnos, error: null });
-    }
-    catch (error) {
-        console.error('Error get turnos:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener turnos' });
-    }
+// GET /turnos — autenticado
+/**
+ * @openapi
+ * /turnos:
+ *   get:
+ *     summary: Listar todos los turnos
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de turnos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/', authenticate, async (_req, res) => {
+    const result = await TurnosController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /turnos/pendientes-validacion?sucursal_id=
-router.get('/pendientes-validacion', async (_req, res) => {
-    try {
-        // Turnos cerrados que no han sido validados
-        const turnos = await TurnoDespachadorModel.getAll();
-        const pendientes = turnos.filter(t => t.cerrado_en && !t.monto_cierre_sistema);
-        res.json({ data: pendientes, error: null });
-    }
-    catch (error) {
-        console.error('Error get turnos pendientes:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener turnos pendientes' });
-    }
+// GET /turnos/pendientes-validacion — ADMIN
+/**
+ * @openapi
+ * /turnos/pendientes-validacion:
+ *   get:
+ *     summary: Listar turnos cerrados pendientes de validación (solo ADMIN)
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de turnos pendientes de validación
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/pendientes-validacion', authenticate, requireRole('ADMIN'), async (_req, res) => {
+    const result = await TurnosController.getPendientesValidacion();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /turnos/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const turno = await TurnoDespachadorModel.getById(id);
-        if (!turno) {
-            res.status(404).json({ data: null, error: 'Turno no encontrado' });
-            return;
-        }
-        res.json({ data: turno, error: null });
-    }
-    catch (error) {
-        console.error('Error get turno:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener turno' });
-    }
+// GET /turnos/:id — autenticado
+/**
+ * @openapi
+ * /turnos/{id}:
+ *   get:
+ *     summary: Obtener un turno por ID
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno
+ *     responses:
+ *       200:
+ *         description: Turno encontrado
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       404:
+ *         description: Turno no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', authenticate, async (req, res) => {
+    const result = await TurnosController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /turnos/apertura
-router.post('/apertura', async (_req, res) => {
-    try {
-        const { caja_id, usuario_id, administrador_id, monto_apertura } = _req.body;
-        if (!caja_id || !usuario_id || !monto_apertura) {
-            res.status(400).json({ data: null, error: 'caja_id, usuario_id y monto_apertura son requeridos' });
-            return;
-        }
-        const nuevoTurno = await TurnoDespachadorModel.create({
-            caja_id,
-            usuario_id,
-            administrador_id,
-            monto_apertura,
-            abierto_en: new Date().toISOString()
-        });
-        res.status(201).json({ data: nuevoTurno, error: null });
-    }
-    catch (error) {
-        console.error('Error create apertura turno:', error);
-        res.status(500).json({ data: null, error: 'Error al abrir turno' });
-    }
+// POST /turnos/apertura — DESPACHADOR o ADMIN
+/**
+ * @openapi
+ * /turnos/apertura:
+ *   post:
+ *     summary: Abrir un turno de despachador (DESPACHADOR o ADMIN)
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [caja_id, usuario_id, monto_apertura]
+ *             properties:
+ *               caja_id:
+ *                 type: integer
+ *                 example: 1
+ *               usuario_id:
+ *                 type: integer
+ *                 example: 4
+ *               administrador_id:
+ *                 type: integer
+ *                 example: 1
+ *               monto_apertura:
+ *                 type: number
+ *                 example: 500
+ *     responses:
+ *       201:
+ *         description: Turno abierto
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (DESPACHADOR o ADMIN)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/apertura', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaTurnoApertura), async (req, res) => {
+    const result = await TurnosController.apertura(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /turnos/:id/cierre
-router.patch('/:id/cierre', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const { monto_cierre_declarado } = _req.body;
-        // Por ahora, el monto_cierre_sistema sería calculado
-        // En un sistema real, se calcularía basado en las ventas del turno
-        const turno = await TurnoDespachadorModel.update(id, {
-            monto_cierre_declarado,
-            cerrado_en: new Date().toISOString()
-        });
-        if (!turno) {
-            res.status(404).json({ data: null, error: 'Turno no encontrado' });
-            return;
-        }
-        res.json({ data: turno, error: null });
-    }
-    catch (error) {
-        console.error('Error cierre turno:', error);
-        res.status(500).json({ data: null, error: 'Error al cerrar turno' });
-    }
+// PATCH /turnos/:id/cierre — DESPACHADOR o ADMIN
+/**
+ * @openapi
+ * /turnos/{id}/cierre:
+ *   patch:
+ *     summary: Cerrar un turno con el monto declarado (DESPACHADOR o ADMIN)
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno a cerrar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [monto_cierre_declarado]
+ *             properties:
+ *               monto_cierre_declarado:
+ *                 type: number
+ *                 example: 1200
+ *     responses:
+ *       200:
+ *         description: Turno cerrado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (DESPACHADOR o ADMIN)
+ *       404:
+ *         description: Turno no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id/cierre', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaTurnoCierre), async (req, res) => {
+    const result = await TurnosController.cierre(Number(req.params.id), req.body.monto_cierre_declarado);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /turnos/:id/validar
-router.patch('/:id/validar', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const { monto_cierre_sistema, diferencia } = _req.body;
-        const turno = await TurnoDespachadorModel.update(id, {
-            monto_cierre_sistema
-        });
-        if (!turno) {
-            res.status(404).json({ data: null, error: 'Turno no encontrado' });
-            return;
-        }
-        res.json({ data: { ...turno, diferencia }, error: null });
-    }
-    catch (error) {
-        console.error('Error validar turno:', error);
-        res.status(500).json({ data: null, error: 'Error al validar turno' });
-    }
+// PATCH /turnos/:id/validar — solo ADMIN
+/**
+ * @openapi
+ * /turnos/{id}/validar:
+ *   patch:
+ *     summary: Validar el cierre de un turno con el monto del sistema (solo ADMIN)
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno a validar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [monto_cierre_sistema]
+ *             properties:
+ *               monto_cierre_sistema:
+ *                 type: number
+ *                 example: 1150
+ *     responses:
+ *       200:
+ *         description: Turno validado, devuelve la diferencia
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Turno no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id/validar', authenticate, requireRole('ADMIN'), validate(schemaTurnoValidar), async (req, res) => {
+    const result = await TurnosController.validar(Number(req.params.id), req.body.monto_cierre_sistema);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=turnos.routes.js.map

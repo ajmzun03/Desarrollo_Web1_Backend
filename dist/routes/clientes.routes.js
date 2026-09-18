@@ -1,82 +1,163 @@
 import { Router } from 'express';
-import { ClienteModel } from '../model/supabase/cliente.model.js';
+import { ClientesController } from '../controllers/clientes.controller.js';
+import { authenticate } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaCliente } from '../schemas/cliente.schema.js';
 const router = Router();
-// GET /clientes?telefono=
-router.get('/', async (_req, res) => {
-    try {
-        const { telefono } = _req.query;
-        if (telefono) {
-            const cliente = await ClienteModel.getByTelefono(telefono);
-            res.json({ data: cliente ? [cliente] : [], error: null });
-            return;
-        }
-        const clientes = await ClienteModel.getAll();
-        res.json({ data: clientes, error: null });
-    }
-    catch (error) {
-        console.error('Error get clientes:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener clientes' });
-    }
+// GET /clientes?telefono= — requiere auth
+/**
+ * @openapi
+ * /clientes:
+ *   get:
+ *     summary: Listar clientes (filtrable por teléfono)
+ *     tags: [Ventas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: telefono
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Filtrar por teléfono del cliente (8 dígitos)
+ *     responses:
+ *       200:
+ *         description: Lista de clientes
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/', authenticate, async (req, res) => {
+    const telefono = req.query.telefono;
+    const result = await ClientesController.getAll(telefono);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 // GET /clientes/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const cliente = await ClienteModel.getById(id);
-        if (!cliente) {
-            res.status(404).json({ data: null, error: 'Cliente no encontrado' });
-            return;
-        }
-        res.json({ data: cliente, error: null });
-    }
-    catch (error) {
-        console.error('Error get cliente:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener cliente' });
-    }
+/**
+ * @openapi
+ * /clientes/{id}:
+ *   get:
+ *     summary: Obtener un cliente por ID
+ *     tags: [Ventas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del cliente
+ *     responses:
+ *       200:
+ *         description: Cliente encontrado
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       404:
+ *         description: Cliente no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', authenticate, async (req, res) => {
+    const result = await ClientesController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /clientes
-router.post('/', async (_req, res) => {
-    try {
-        const { nombre, apellido, telefono, telefono_ref } = _req.body;
-        if (!nombre || !apellido || !telefono || !telefono_ref) {
-            res.status(400).json({ data: null, error: 'nombre, apellido, telefono y telefono_ref son requeridos' });
-            return;
-        }
-        // Verificar si el teléfono ya existe
-        const existingClient = await ClienteModel.getByTelefono(telefono);
-        if (existingClient) {
-            res.status(400).json({ data: null, error: 'El teléfono ya está registrado' });
-            return;
-        }
-        const nuevoCliente = await ClienteModel.create({
-            nombre,
-            apellido,
-            telefono,
-            telefono_ref
-        });
-        res.status(201).json({ data: nuevoCliente, error: null });
-    }
-    catch (error) {
-        console.error('Error create cliente:', error);
-        res.status(500).json({ data: null, error: 'Error al crear cliente' });
-    }
+// POST /clientes — requiere auth + validación
+/**
+ * @openapi
+ * /clientes:
+ *   post:
+ *     summary: Crear un nuevo cliente
+ *     tags: [Ventas]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nombre, apellido, telefono, telefono_ref]
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 example: Juan
+ *               apellido:
+ *                 type: string
+ *                 example: Pérez
+ *               telefono:
+ *                 type: string
+ *                 description: Exactamente 8 dígitos
+ *                 example: "12345678"
+ *               telefono_ref:
+ *                 type: string
+ *                 description: Exactamente 8 dígitos, diferente al teléfono principal
+ *                 example: "87654321"
+ *     responses:
+ *       201:
+ *         description: Cliente creado
+ *       400:
+ *         description: Datos inválidos o teléfono ya registrado
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/', authenticate, validate(schemaCliente), async (req, res) => {
+    const result = await ClientesController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 // PATCH /clientes/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const data = _req.body;
-        const cliente = await ClienteModel.update(id, data);
-        if (!cliente) {
-            res.status(404).json({ data: null, error: 'Cliente no encontrado' });
-            return;
-        }
-        res.json({ data: cliente, error: null });
-    }
-    catch (error) {
-        console.error('Error update cliente:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar cliente' });
-    }
+/**
+ * @openapi
+ * /clientes/{id}:
+ *   patch:
+ *     summary: Actualizar un cliente existente
+ *     tags: [Ventas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del cliente a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 example: Juan Carlos
+ *               apellido:
+ *                 type: string
+ *                 example: Pérez
+ *               telefono:
+ *                 type: string
+ *                 example: "12345678"
+ *               telefono_ref:
+ *                 type: string
+ *                 example: "87654321"
+ *     responses:
+ *       200:
+ *         description: Cliente actualizado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       404:
+ *         description: Cliente no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id', authenticate, async (req, res) => {
+    const result = await ClientesController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=clientes.routes.js.map

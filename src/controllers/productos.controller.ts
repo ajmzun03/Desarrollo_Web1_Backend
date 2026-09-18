@@ -1,4 +1,5 @@
 import { ProductoModel } from '../model/supabase/producto.model.js';
+import logger from '../config/logger.js';
 
 export const ProductosController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const ProductosController = {
       const productos = await ProductoModel.getAll();
       return { data: productos, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get productos:', error);
+      logger.error({ error }, 'Error get productos:');
       return { data: null, error: 'Error al obtener productos', status: 500 };
     }
   },
@@ -19,7 +20,7 @@ export const ProductosController = {
       }
       return { data: producto, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get producto:', error);
+      logger.error({ error }, 'Error get producto:');
       return { data: null, error: 'Error al obtener producto', status: 500 };
     }
   },
@@ -29,7 +30,7 @@ export const ProductosController = {
       const productos = await ProductoModel.getAll();
       return { data: productos, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get disponibilidad:', error);
+      logger.error({ error }, 'Error get disponibilidad:');
       return { data: null, error: 'Error al obtener disponibilidad', status: 500 };
     }
   },
@@ -42,7 +43,7 @@ export const ProductosController = {
       const nuevoProducto = await ProductoModel.create(data);
       return { data: nuevoProducto, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create producto:', error);
+      logger.error({ error }, 'Error create producto:');
       return { data: null, error: 'Error al crear producto', status: 500 };
     }
   },
@@ -55,7 +56,7 @@ export const ProductosController = {
       }
       return { data: producto, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update producto:', error);
+      logger.error({ error }, 'Error update producto:');
       return { data: null, error: 'Error al actualizar producto', status: 500 };
     }
   },
@@ -68,7 +69,7 @@ export const ProductosController = {
       }
       return { data: { ...producto, stock_minimo: stockMinimo }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update stock-minimo:', error);
+      logger.error({ error }, 'Error update stock-minimo:');
       return { data: null, error: 'Error al actualizar stock mínimo', status: 500 };
     }
   }

@@ -1,0 +1,83 @@
+{
+  "_titulo": "RESUMEN: TODOS LOS JSON DE PRUEBAS",
+  "_ubicacion": "C:\\Users\\carlo\\Downloads\\Desarrollo_Web1_Backend-main (1)\\Desarrollo_Web1_Backend-main\\pruebas\\",
+
+  "archivos": [
+    {
+      "archivo": "00_POSTMAN_COLLECTION.json",
+      "descripcion": "Collection base de Postman con login y obtención de token",
+      "pruebas": 4
+    },
+    {
+      "archivo": "01_USUARIOS.json",
+      "descripcion": "Pruebas de CRUD de usuarios (200, 201, 400, 401, 403, 404)",
+      "pruebas": 15
+    },
+    {
+      "archivo": "02_CLIENTES.json",
+      "descripcion": "Pruebas de CRUD de clientes con validación de teléfono y refine",
+      "pruebas": 14
+    },
+    {
+      "archivo": "03_PRODUCTOS.json",
+      "descripcion": "Pruebas de productos con strict mode, stock mínimo, tipos",
+      "pruebas": 22
+    },
+    {
+      "archivo": "04_CATEGORIAS.json",
+      "descripcion": "Pruebas de categorías",
+      "pruebas": 9
+    },
+    {
+      "archivo": "05_PROVEEDORES.json",
+      "descripcion": "Pruebas de proveedores con regex NIT",
+      "pruebas": 10
+    },
+    {
+      "archivo": "06_PEDIDOS.json",
+      "descripcion": "Pruebas de pedidos con items array y observaciones",
+      "pruebas": 13
+    },
+    {
+      "archivo": "07_CATALOGOS.json",
+      "descripcion": "Pruebas de sucursales, bodegas, alacenas, cajas, unidades, materias primas",
+      "pruebas": 30
+    },
+    {
+      "archivo": "08_RECETAS_Y_ORDENES.json",
+      "descripcion": "Pruebas de recetas, órdenes de trabajo y órdenes de compra",
+      "pruebas": 18
+    },
+    {
+      "archivo": "09_FACTURAS_Y_DESPACHO.json",
+      "descripcion": "Pruebas de direcciones, facturas, hojas de despacho/recepción, gastos, liquidaciones",
+      "pruebas": 20
+    },
+    {
+      "archivo": "10_CASOS_ESPECIALES.json",
+      "descripcion": "Fechas pasadas, enums inválidos, tipos incorrectos, rate limiting, CORS, seguridad",
+      "pruebas": 20
+    }
+  ],
+
+  "total_pruebas": 175,
+
+  "resumen_por_codigo_http": {
+    "200_OK": "25 pruebas - GET con datos válidos, actualizaciones exitosas",
+    "201_CREATED": "23 pruebas - POST con body completo y válido",
+    "400_BAD_REQUEST": "50 pruebas - Campos faltantes, tipos incorrectos, regex fallida, refine fallido, strict mode",
+    "401_UNAUTHORIZED": "10 pruebas - Sin token, token inválido, credenciales incorrectas",
+    "403_FORBIDDEN": "5 pruebas - Token de rol no permitido",
+    "404_NOT_FOUND": "15 pruebas - IDs inexistentes en GET y PATCH",
+    "500_ERROR": "Causado por BD caída (no reproducible con JSON)"
+  },
+
+  "como_usar": {
+    "paso_1": "Abrir Postman",
+    "paso_2": "Importar 00_POSTMAN_COLLECTION.json",
+    "paso_3": "Ejecutar request de login para obtener token",
+    "paso_4": "Copiar token a la variable 'token' de la collection",
+    "paso_5": "Importar cada archivo de prueba individualmente",
+    "paso_6": "Ejecutar requests y verificar status code + body de respuesta"
+  }
+}

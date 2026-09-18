@@ -29,6 +29,20 @@ export const UsuarioModel = {
         logger.info(`Usuario con id ${id} encontrado`);
         return usuario[0];
     },
+    async getByUsuario(usuario) {
+        const usuarios = await db.select().from(usuarioTable).where(eq(usuarioTable.usuario, usuario)).limit(1);
+        if (!usuarios[0]) {
+            logger.warn(`Usuario con nombre ${usuario} no encontrado`);
+            return null;
+        }
+        logger.info(`Usuario con nombre ${usuario} encontrado`);
+        return usuarios[0];
+    },
+    async getByRol(rol) {
+        const usuarios = await db.select(columnasSeguras).from(usuarioTable).where(eq(usuarioTable.rol, rol));
+        logger.info(`Se encontraron ${usuarios.length} usuarios con rol ${rol}`);
+        return usuarios;
+    },
     async create(data) {
         const [result] = await db.insert(usuarioTable).values({ ...data }).returning();
         if (result) {

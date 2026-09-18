@@ -1,103 +1,211 @@
 import { Router } from 'express';
-import { ProductoModel } from '../model/supabase/producto.model.js';
+import { ProductosController } from '../controllers/productos.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaProducto, schemaProductoUpdate, schemaProductoStockMinimo } from '../schemas/producto.schema.js';
 const router = Router();
-// GET /productos
+// GET — público
+/**
+ * @openapi
+ * /productos:
+ *   get:
+ *     summary: Listar todos los productos (público)
+ *     tags: [Productos]
+ *     responses:
+ *       200:
+ *         description: Lista de productos
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.get('/', async (_req, res) => {
-    try {
-        const productos = await ProductoModel.getAll();
-        res.json({ data: productos, error: null });
-    }
-    catch (error) {
-        console.error('Error get productos:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener productos' });
-    }
+    const result = await ProductosController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /productos/disponibilidad?sucursal_id=
-router.get('/disponibilidad', async (_req, res) => {
-    try {
-        const { sucursal_id } = _req.query;
-        // Por ahora retornamos todos los productos
-        // En un sistema completo, filtraríamos por stock en la sucursal
-        const productos = await ProductoModel.getAll();
-        res.json({ data: productos, error: null });
-    }
-    catch (error) {
-        console.error('Error get disponibilidad:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener disponibilidad' });
-    }
+/**
+ * @openapi
+ * /productos/disponibilidad:
+ *   get:
+ *     summary: Obtener la disponibilidad de productos (público)
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: query
+ *         name: sucursal_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filtrar disponibilidad por ID de sucursal
+ *     responses:
+ *       200:
+ *         description: Disponibilidad de productos
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/disponibilidad', async (req, res) => {
+    const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
+    const result = await ProductosController.getDisponibilidad(sucursalId);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /productos/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const producto = await ProductoModel.getById(id);
-        if (!producto) {
-            res.status(404).json({ data: null, error: 'Producto no encontrado' });
-            return;
-        }
-        res.json({ data: producto, error: null });
-    }
-    catch (error) {
-        console.error('Error get producto:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener producto' });
-    }
+/**
+ * @openapi
+ * /productos/{id}:
+ *   get:
+ *     summary: Obtener un producto por ID (público)
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del producto
+ *     responses:
+ *       200:
+ *         description: Producto encontrado
+ *       404:
+ *         description: Producto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', async (req, res) => {
+    const result = await ProductosController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /productos
-router.post('/', async (_req, res) => {
-    try {
-        const { categoria_id, unidad_medida_id, producto, precio } = _req.body;
-        if (!categoria_id || !unidad_medida_id || !producto || !precio) {
-            res.status(400).json({ data: null, error: 'categoria_id, unidad_medida_id, producto y precio son requeridos' });
-            return;
-        }
-        const nuevoProducto = await ProductoModel.create({
-            categoria_id,
-            unidad_medida_id,
-            producto,
-            precio
-        });
-        res.status(201).json({ data: nuevoProducto, error: null });
-    }
-    catch (error) {
-        console.error('Error create producto:', error);
-        res.status(500).json({ data: null, error: 'Error al crear producto' });
-    }
+// POST/PATCH — ADMIN o BODEGUERO
+/**
+ * @openapi
+ * /productos:
+ *   post:
+ *     summary: Crear un nuevo producto (ADMIN o BODEGUERO)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [categoria_id, unidad_medida_id, producto, precio]
+ *             properties:
+ *               categoria_id:
+ *                 type: integer
+ *                 example: 1
+ *               unidad_medida_id:
+ *                 type: integer
+ *                 example: 2
+ *               producto:
+ *                 type: string
+ *                 example: Tortilla de maíz
+ *               precio:
+ *                 type: number
+ *                 example: 15.5
+ *     responses:
+ *       201:
+ *         description: Producto creado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o BODEGUERO)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaProducto), async (req, res) => {
+    const result = await ProductosController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /productos/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const data = _req.body;
-        const producto = await ProductoModel.update(id, data);
-        if (!producto) {
-            res.status(404).json({ data: null, error: 'Producto no encontrado' });
-            return;
-        }
-        res.json({ data: producto, error: null });
-    }
-    catch (error) {
-        console.error('Error update producto:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar producto' });
-    }
+/**
+ * @openapi
+ * /productos/{id}:
+ *   patch:
+ *     summary: Actualizar un producto existente (ADMIN o BODEGUERO)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del producto a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               categoria_id:
+ *                 type: integer
+ *               unidad_medida_id:
+ *                 type: integer
+ *               producto:
+ *                 type: string
+ *               precio:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Producto actualizado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o BODEGUERO)
+ *       404:
+ *         description: Producto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaProductoUpdate), async (req, res) => {
+    const result = await ProductosController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /productos/:id/stock-minimo
-router.patch('/:id/stock-minimo', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const { stock_minimo } = _req.body;
-        // Por ahora solo actualizamos el producto
-        // En un sistema completo, tendrías una tabla de configuración de stock mínimo por sucursal
-        const producto = await ProductoModel.update(id, {});
-        if (!producto) {
-            res.status(404).json({ data: null, error: 'Producto no encontrado' });
-            return;
-        }
-        res.json({ data: { ...producto, stock_minimo }, error: null });
-    }
-    catch (error) {
-        console.error('Error update stock-minimo:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar stock mínimo' });
-    }
+/**
+ * @openapi
+ * /productos/{id}/stock-minimo:
+ *   patch:
+ *     summary: Actualizar el stock mínimo de un producto (solo ADMIN)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del producto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [stock_minimo]
+ *             properties:
+ *               stock_minimo:
+ *                 type: integer
+ *                 example: 10
+ *     responses:
+ *       200:
+ *         description: Stock mínimo actualizado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Producto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id/stock-minimo', authenticate, requireRole('ADMIN'), validate(schemaProductoStockMinimo), async (req, res) => {
+    const result = await ProductosController.updateStockMinimo(Number(req.params.id), req.body.stock_minimo);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=productos.routes.js.map

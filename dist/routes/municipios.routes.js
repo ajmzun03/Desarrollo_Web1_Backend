@@ -1,36 +1,47 @@
 import { Router } from 'express';
-import { db } from '../model/supabase/db.model.js';
-import { municipioTable, departamentoTable } from '../schemas/db.schema.js';
-import { eq } from 'drizzle-orm';
+import { MunicipiosController } from '../controllers/municipios.controller.js';
 const router = Router();
-// GET /municipios
-router.get('/', async (_req, res) => {
-    try {
-        const { departamento_id } = _req.query;
-        let municipios;
-        if (departamento_id) {
-            municipios = await db.select().from(municipioTable).where(eq(municipioTable.departamento_id, Number(departamento_id)));
-        }
-        else {
-            municipios = await db.select().from(municipioTable).limit(100).offset(0);
-        }
-        res.json({ data: municipios, error: null });
-    }
-    catch (error) {
-        console.error('Error get municipios:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener municipios' });
-    }
+/**
+ * @openapi
+ * /municipios:
+ *   get:
+ *     summary: Listar municipios, opcionalmente filtrados por departamento
+ *     tags: [Municipios]
+ *     parameters:
+ *       - in: query
+ *         name: departamento_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: ID del departamento para filtrar los municipios
+ *     responses:
+ *       200:
+ *         description: Lista de municipios
+ *       500:
+ *         description: Error al obtener municipios
+ */
+// GET /municipios?departamento_id= — público (dato semilla)
+router.get('/', async (req, res) => {
+    const departamentoId = req.query.departamento_id ? Number(req.query.departamento_id) : undefined;
+    const result = await MunicipiosController.getAll(departamentoId);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /departamentos
+/**
+ * @openapi
+ * /municipios/departamentos:
+ *   get:
+ *     summary: Listar todos los departamentos
+ *     tags: [Municipios]
+ *     responses:
+ *       200:
+ *         description: Lista de departamentos
+ *       500:
+ *         description: Error al obtener departamentos
+ */
+// GET /departamentos — público (dato semilla)
 router.get('/departamentos', async (_req, res) => {
-    try {
-        const departamentos = await db.select().from(departamentoTable).limit(100).offset(0);
-        res.json({ data: departamentos, error: null });
-    }
-    catch (error) {
-        console.error('Error get departamentos:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener departamentos' });
-    }
+    const result = await MunicipiosController.getDepartamentos();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=municipios.routes.js.map

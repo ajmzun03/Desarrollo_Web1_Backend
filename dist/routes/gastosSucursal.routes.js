@@ -1,64 +1,118 @@
 import { Router } from 'express';
-import { GastosSucursalModel } from '../model/supabase/gastosSucursal.model.js';
+import { GastosSucursalController } from '../controllers/gastosSucursal.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaGastoSucursal } from '../schemas/gastoSucursal.schema.js';
 const router = Router();
-// GET /gastos-sucursal
-router.get('/', async (_req, res) => {
-    try {
-        const { sucursal_id } = _req.query;
-        let gastos;
-        if (sucursal_id) {
-            gastos = await GastosSucursalModel.getBySucursalId(Number(sucursal_id));
-        }
-        else {
-            gastos = await GastosSucursalModel.getAll();
-        }
-        res.json({ data: gastos, error: null });
-    }
-    catch (error) {
-        console.error('Error get gastos-sucursal:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener gastos de sucursal' });
-    }
+// GET /gastos-sucursal?sucursal_id= — autenticado
+/**
+ * @openapi
+ * /gastos-sucursal:
+ *   get:
+ *     summary: Listar gastos de sucursal con filtro opcional de sucursal
+ *     tags: [GastosSucursal]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sucursal_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filtra por sucursal
+ *     responses:
+ *       200:
+ *         description: Lista de gastos de sucursal
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/', authenticate, async (req, res) => {
+    const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
+    const result = await GastosSucursalController.getAll(sucursalId);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /gastos-sucursal/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const gasto = await GastosSucursalModel.getById(id);
-        if (!gasto) {
-            res.status(404).json({ data: null, error: 'Gasto de sucursal no encontrado' });
-            return;
-        }
-        res.json({ data: gasto, error: null });
-    }
-    catch (error) {
-        console.error('Error get gasto-sucursal:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener gasto de sucursal' });
-    }
+// GET /gastos-sucursal/:id — autenticado
+/**
+ * @openapi
+ * /gastos-sucursal/{id}:
+ *   get:
+ *     summary: Obtener un gasto de sucursal por ID
+ *     tags: [GastosSucursal]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del gasto de sucursal
+ *     responses:
+ *       200:
+ *         description: Gasto de sucursal encontrado
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       404:
+ *         description: Gasto de sucursal no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', authenticate, async (req, res) => {
+    const result = await GastosSucursalController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /gastos-sucursal
-router.post('/', async (_req, res) => {
-    try {
-        const { caja_id, usuario_id, sucursal_id, monto_apertura, monto_cierre_declarado, monto_cierre_sistema } = _req.body;
-        if (!sucursal_id) {
-            res.status(400).json({ data: null, error: 'sucursal_id es requerido' });
-            return;
-        }
-        const nuevoGasto = await GastosSucursalModel.create({
-            caja_id,
-            usuario_id,
-            sucursal_id,
-            monto_apertura,
-            monto_cierre_declarado,
-            monto_cierre_sistema,
-            abierto_en: monto_apertura ? new Date().toISOString() : undefined,
-            cerrado_en: monto_cierre_declarado ? new Date().toISOString() : undefined
-        });
-        res.status(201).json({ data: nuevoGasto, error: null });
-    }
-    catch (error) {
-        console.error('Error create gasto-sucursal:', error);
-        res.status(500).json({ data: null, error: 'Error al crear gasto de sucursal' });
-    }
+// POST /gastos-sucursal — solo ADMIN
+/**
+ * @openapi
+ * /gastos-sucursal:
+ *   post:
+ *     summary: Crear un gasto de sucursal (solo ADMIN)
+ *     tags: [GastosSucursal]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [sucursal_id]
+ *             properties:
+ *               sucursal_id:
+ *                 type: integer
+ *                 example: 1
+ *               caja_id:
+ *                 type: integer
+ *                 example: 2
+ *               usuario_id:
+ *                 type: integer
+ *                 example: 3
+ *               monto_apertura:
+ *                 type: number
+ *                 example: 200
+ *               monto_cierre_declarado:
+ *                 type: number
+ *                 example: 180
+ *               monto_cierre_sistema:
+ *                 type: number
+ *                 example: 185
+ *     responses:
+ *       201:
+ *         description: Gasto de sucursal creado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaGastoSucursal), async (req, res) => {
+    const result = await GastosSucursalController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=gastosSucursal.routes.js.map

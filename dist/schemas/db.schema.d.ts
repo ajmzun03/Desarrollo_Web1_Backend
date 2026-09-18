@@ -7,6 +7,7 @@ export declare const estadoRecepcionEnum: import("drizzle-orm/pg-core").PgEnum<[
 export declare const estadoOrdenTrabajoEnum: import("drizzle-orm/pg-core").PgEnum<["GENERADA", "EN_PROCESO", "ANULADA", "FINALIZADA"]>;
 export declare const tipoCajaEnum: import("drizzle-orm/pg-core").PgEnum<["CAJA_CHICA", "GASTOS_REPRESENTACION", "TRANSITO"]>;
 export declare const rolUsuarioEnum: import("drizzle-orm/pg-core").PgEnum<["ADMIN", "BODEGUERO", "DESPACHADOR", "REPARTIDOR", "CAJERO"]>;
+export declare const estadoSolicitudInsumoEnum: import("drizzle-orm/pg-core").PgEnum<["PENDIENTE", "ENVIADA", "RECIBIDA", "CANCELADA"]>;
 export declare const sucursalTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "SUCURSAL";
     schema: undefined;
@@ -1263,6 +1264,21 @@ export declare const pedidoTable: import("drizzle-orm/pg-core").PgTableWithColum
             identity: undefined;
             generated: undefined;
         }>;
+        total: import("drizzle-orm/pg-core").PgBuildColumn<"PEDIDO", import("drizzle-orm/pg-core").SetHasDefault<import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgDoublePrecisionBuilder>>, {
+            name: string;
+            tableName: "PEDIDO";
+            dataType: "number double";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
         estado: import("drizzle-orm/pg-core").PgBuildColumn<"PEDIDO", import("drizzle-orm/pg-core").SetHasDefault<import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgEnumColumnBuilder<["CREADO", "LISTO", "ANULADO", "EN_RUTA", "ENTREGADO"]>>>, {
             name: string;
             tableName: "PEDIDO";
@@ -1330,6 +1346,21 @@ export declare const detallePedidoTable: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }>;
+        precio_unitario: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_PEDIDO", import("drizzle-orm/pg-core").SetHasDefault<import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgDoublePrecisionBuilder>>, {
+            name: string;
+            tableName: "DETALLE_PEDIDO";
+            dataType: "number double";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
         cantidad: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_PEDIDO", import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgDoublePrecisionBuilder>, {
             name: string;
             tableName: "DETALLE_PEDIDO";
@@ -1337,6 +1368,170 @@ export declare const detallePedidoTable: import("drizzle-orm/pg-core").PgTableWi
             data: number;
             driverParam: string | number;
             notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+    };
+    dialect: 'pg';
+}>;
+export declare const solicitudInsumoTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "SOLICITUD_INSUMO";
+    schema: undefined;
+    columns: {
+        id: import("drizzle-orm/pg-core").PgBuildColumn<"SOLICITUD_INSUMO", import("drizzle-orm/pg-core").HasIdentity<import("drizzle-orm/pg-core").SetIsPrimaryKey<import("drizzle-orm/pg-core").PgBigInt53Builder>, "byDefault">, {
+            name: string;
+            tableName: "SOLICITUD_INSUMO";
+            dataType: "number int53";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: "byDefault";
+            generated: undefined;
+        }>;
+        sucursal_id: import("drizzle-orm/pg-core").PgBuildColumn<"SOLICITUD_INSUMO", import("drizzle-orm/pg-core").PgIntegerBuilder, {
+            name: string;
+            tableName: "SOLICITUD_INSUMO";
+            dataType: "number int32";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+        solicitado_por: import("drizzle-orm/pg-core").PgBuildColumn<"SOLICITUD_INSUMO", import("drizzle-orm/pg-core").PgIntegerBuilder, {
+            name: string;
+            tableName: "SOLICITUD_INSUMO";
+            dataType: "number int32";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+        estado: import("drizzle-orm/pg-core").PgBuildColumn<"SOLICITUD_INSUMO", import("drizzle-orm/pg-core").SetHasDefault<import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgEnumColumnBuilder<["PENDIENTE", "ENVIADA", "RECIBIDA", "CANCELADA"]>>>, {
+            name: string;
+            tableName: "SOLICITUD_INSUMO";
+            dataType: "string enum";
+            data: "CANCELADA" | "ENVIADA" | "PENDIENTE" | "RECIBIDA";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["PENDIENTE", "ENVIADA", "RECIBIDA", "CANCELADA"];
+            identity: undefined;
+            generated: undefined;
+        }>;
+        fecha_solicitud: import("drizzle-orm/pg-core").PgBuildColumn<"SOLICITUD_INSUMO", import("drizzle-orm/pg-core").SetHasDefault<import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgTimestampStringBuilder>>, {
+            name: string;
+            tableName: "SOLICITUD_INSUMO";
+            dataType: "string timestamp";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+    };
+    dialect: 'pg';
+}>;
+export declare const detalleSolicitudInsumoTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "DETALLE_SOLICITUD_INSUMO";
+    schema: undefined;
+    columns: {
+        id: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_SOLICITUD_INSUMO", import("drizzle-orm/pg-core").HasIdentity<import("drizzle-orm/pg-core").SetIsPrimaryKey<import("drizzle-orm/pg-core").PgBigInt53Builder>, "byDefault">, {
+            name: string;
+            tableName: "DETALLE_SOLICITUD_INSUMO";
+            dataType: "number int53";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: "byDefault";
+            generated: undefined;
+        }>;
+        solicitud_id: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_SOLICITUD_INSUMO", import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgBigInt53Builder>, {
+            name: string;
+            tableName: "DETALLE_SOLICITUD_INSUMO";
+            dataType: "number int53";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+        materia_prima_id: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_SOLICITUD_INSUMO", import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgIntegerBuilder>, {
+            name: string;
+            tableName: "DETALLE_SOLICITUD_INSUMO";
+            dataType: "number int32";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+        cantidad_solicitada: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_SOLICITUD_INSUMO", import("drizzle-orm/pg-core").SetNotNull<import("drizzle-orm/pg-core").PgDoublePrecisionBuilder>, {
+            name: string;
+            tableName: "DETALLE_SOLICITUD_INSUMO";
+            dataType: "number double";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            identity: undefined;
+            generated: undefined;
+        }>;
+        cantidad_recibida: import("drizzle-orm/pg-core").PgBuildColumn<"DETALLE_SOLICITUD_INSUMO", import("drizzle-orm/pg-core").PgDoublePrecisionBuilder, {
+            name: string;
+            tableName: "DETALLE_SOLICITUD_INSUMO";
+            dataType: "number double";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
@@ -3137,4 +3332,8 @@ export type SelectLiquidacionRepartidor = typeof liquidacionRepartidorTable.$inf
 export type InsertLiquidacionRepartidor = typeof liquidacionRepartidorTable.$inferInsert;
 export type SelectDetallePedido = typeof detallePedidoTable.$inferSelect;
 export type InsertDetallePedido = typeof detallePedidoTable.$inferInsert;
+export type SelectSolicitudInsumo = typeof solicitudInsumoTable.$inferSelect;
+export type InsertSolicitudInsumo = typeof solicitudInsumoTable.$inferInsert;
+export type SelectDetalleSolicitudInsumo = typeof detalleSolicitudInsumoTable.$inferSelect;
+export type InsertDetalleSolicitudInsumo = typeof detalleSolicitudInsumoTable.$inferInsert;
 //# sourceMappingURL=db.schema.d.ts.map

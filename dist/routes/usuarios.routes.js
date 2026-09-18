@@ -1,79 +1,133 @@
 import { Router } from 'express';
-import { UsuarioModel } from '../model/supabase/usuario.model.js';
-import { hassPassword } from '../utils/hashPassword.js';
+import { UsuariosController } from '../controllers/usuarios.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaUsuario } from '../schemas/usuario.schema.js';
 const router = Router();
-// GET /usuarios
+// Todas las rutas requieren ADMIN
+router.use(authenticate, requireRole('ADMIN'));
+/**
+ * @openapi
+ * /usuarios:
+ *   get:
+ *     summary: Listar todos los usuarios (solo ADMIN)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ */
 router.get('/', async (_req, res) => {
-    try {
-        const usuarios = await UsuarioModel.getAll();
-        res.json({ data: usuarios, error: null });
-    }
-    catch (error) {
-        console.error('Error get usuarios:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener usuarios' });
-    }
+    const result = await UsuariosController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /usuarios/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const usuario = await UsuarioModel.getById(id);
-        if (!usuario) {
-            res.status(404).json({ data: null, error: 'Usuario no encontrado' });
-            return;
-        }
-        res.json({ data: usuario, error: null });
-    }
-    catch (error) {
-        console.error('Error get usuario:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener usuario' });
-    }
+/**
+ * @openapi
+ * /usuarios/{id}:
+ *   get:
+ *     summary: Obtener un usuario por ID (solo ADMIN)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *       404:
+ *         description: Usuario no encontrado
+ */
+router.get('/:id', async (req, res) => {
+    const result = await UsuariosController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /usuarios
-router.post('/', async (_req, res) => {
-    try {
-        const { usuario, correo_electronico, contrasenia, rol } = _req.body;
-        if (!usuario || !contrasenia || !rol) {
-            res.status(400).json({ data: null, error: 'usuario, contrasenia y rol son requeridos' });
-            return;
-        }
-        // Encriptar contraseña
-        const hashedPassword = await hassPassword(contrasenia);
-        const nuevoUsuario = await UsuarioModel.create({
-            usuario,
-            correo_electronico,
-            contrasenia: hashedPassword,
-            rol
-        });
-        const { contrasenia: _, ...userWithoutPassword } = nuevoUsuario;
-        res.status(201).json({ data: userWithoutPassword, error: null });
-    }
-    catch (error) {
-        console.error('Error create usuario:', error);
-        res.status(500).json({ data: null, error: 'Error al crear usuario' });
-    }
+/**
+ * @openapi
+ * /usuarios:
+ *   post:
+ *     summary: Crear un nuevo usuario (solo ADMIN)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [usuario, correo_electronico, contrasenia, rol]
+ *             properties:
+ *               usuario:
+ *                 type: string
+ *                 example: carlos123
+ *               correo_electronico:
+ *                 type: string
+ *                 format: email
+ *                 example: carlos@correo.com
+ *               contrasenia:
+ *                 type: string
+ *                 format: password
+ *                 example: claveSegura123
+ *               rol:
+ *                 type: string
+ *                 description: Debe coincidir con un valor del enum de roles definido en db.schema.ts
+ *                 example: ADMIN
+ *     responses:
+ *       201:
+ *         description: Usuario creado
+ *       400:
+ *         description: Datos inválidos
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ */
+router.post('/', validate(schemaUsuario), async (req, res) => {
+    const result = await UsuariosController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /usuarios/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const { contrasenia, ...data } = _req.body;
-        // Si se proporciona contraseña, encriptarla
-        if (contrasenia) {
-            data.contrasenia = await hassPassword(contrasenia);
-        }
-        const usuario = await UsuarioModel.update(id, data);
-        if (!usuario) {
-            res.status(404).json({ data: null, error: 'Usuario no encontrado' });
-            return;
-        }
-        const { contrasenia: _, ...userWithoutPassword } = usuario;
-        res.json({ data: userWithoutPassword, error: null });
-    }
-    catch (error) {
-        console.error('Error update usuario:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar usuario' });
-    }
+/**
+ * @openapi
+ * /usuarios/{id}:
+ *   patch:
+ *     summary: Actualizar un usuario existente (solo ADMIN)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               correo_electronico:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Usuario no encontrado
+ */
+router.patch('/:id', async (req, res) => {
+    const result = await UsuariosController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=usuarios.routes.js.map

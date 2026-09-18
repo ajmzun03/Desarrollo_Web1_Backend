@@ -1,4 +1,5 @@
 import { StockBodegaModel } from '../model/supabase/stockBodega.model.js';
+import logger from '../config/logger.js';
 
 export const StockBodegaController = {
   async getAll(bodegaId?: number) {
@@ -8,7 +9,7 @@ export const StockBodegaController = {
         : await StockBodegaModel.getAll();
       return { data: stocks, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get stock-bodega:', error);
+      logger.error({ error }, 'Error get stock-bodega:');
       return { data: null, error: 'Error al obtener stock de bodega', status: 500 };
     }
   }

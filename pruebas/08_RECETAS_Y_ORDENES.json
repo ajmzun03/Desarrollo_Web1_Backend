@@ -1,0 +1,153 @@
+{
+  "_instrucciones": "PRUEBAS DE RECETAS, ÓRDENES DE TRABAJO, ÓRDENES DE COMPRA",
+  "pruebas": {
+
+    "RECETAS": {
+      "200_OK": [
+        { "nombre": "Listar recetas", "metodo": "GET", "ruta": "/recetas", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/recetas/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear receta válida",
+          "metodo": "POST",
+          "ruta": "/recetas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "producto_id": 1,
+            "nombre": "Receta Hamburguesa",
+            "cantidad_lote": 10,
+            "items": [
+              { "materia_prima_id": 1, "cantidad_necesaria": 5.5 }
+            ]
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "nombre muy corto (min 2)",
+          "metodo": "POST",
+          "ruta": "/recetas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "producto_id": 1, "nombre": "X", "cantidad_lote": 10 },
+          "error_esperado": "El nombre debe tener al menos 2 caracteres"
+        },
+        {
+          "nombre": "cantidad_lote negativa",
+          "metodo": "POST",
+          "ruta": "/recetas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "producto_id": 1, "nombre": "Receta", "cantidad_lote": -5 },
+          "error_esperado": "La cantidad del lote debe ser un número positivo"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/recetas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "nombre": "Solo nombre" },
+          "error_esperado": "producto_id, nombre y cantidad_lote son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Receta inexistente", "metodo": "GET", "ruta": "/recetas/99999", "headers": {} }
+      ]
+    },
+
+    "ORDENES_TRABAJO": {
+      "200_OK": [
+        { "nombre": "Listar órdenes de trabajo", "metodo": "GET", "ruta": "/ordenes-trabajo", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/ordenes-trabajo/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear orden de trabajo válida",
+          "metodo": "POST",
+          "ruta": "/ordenes-trabajo",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "sucursal_id": 1,
+            "receta_id": 1,
+            "cantidad_produccion": 20
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "cantidad_produccion negativa",
+          "metodo": "POST",
+          "ruta": "/ordenes-trabajo",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1, "receta_id": 1, "cantidad_produccion": -10 },
+          "error_esperado": "La cantidad de producción debe ser un número positivo"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/ordenes-trabajo",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1 },
+          "error_esperado": "sucursal_id, receta_id y cantidad_produccion son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Orden inexistente", "metodo": "GET", "ruta": "/ordenes-trabajo/99999", "headers": {} }
+      ]
+    },
+
+    "ORDENES_COMPRA": {
+      "200_OK": [
+        { "nombre": "Listar órdenes de compra", "metodo": "GET", "ruta": "/ordenes-compra", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/ordenes-compra/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear orden de compra válida",
+          "metodo": "POST",
+          "ruta": "/ordenes-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "proveedor_id": 1,
+            "sucursal_destino": 1,
+            "items": [
+              { "materia_prima_id": 1, "cantidad_solicitada": 50, "precio_unitario": 12.50 }
+            ]
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "items vacío (min 1)",
+          "metodo": "POST",
+          "ruta": "/ordenes-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "proveedor_id": 1, "sucursal_destino": 1, "items": [] },
+          "error_esperado": "Debe incluir al menos un item"
+        },
+        {
+          "nombre": "precio_unitario negativo en item",
+          "metodo": "POST",
+          "ruta": "/ordenes-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "proveedor_id": 1,
+            "sucursal_destino": 1,
+            "items": [{ "materia_prima_id": 1, "cantidad_solicitada": 10, "precio_unitario": -5 }]
+          },
+          "error_esperado": "El precio unitario debe ser un número positivo"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/ordenes-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "proveedor_id": 1 },
+          "error_esperado": "proveedor_id, sucursal_destino y items son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Orden inexistente", "metodo": "GET", "ruta": "/ordenes-compra/99999", "headers": {} }
+      ]
+    }
+  }
+}

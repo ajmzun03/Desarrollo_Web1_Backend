@@ -1,4 +1,5 @@
 import { HojaDespachoModel, HojaDespachoDetalleModel } from '../model/supabase/hojaDespacho.model.js';
+import logger from '../config/logger.js';
 
 export const HojasDespachoController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const HojasDespachoController = {
       const hojas = await HojaDespachoModel.getAll();
       return { data: hojas, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get hojas-despacho:', error);
+      logger.error({ error }, 'Error get hojas-despacho:');
       return { data: null, error: 'Error al obtener hojas de despacho', status: 500 };
     }
   },
@@ -20,7 +21,7 @@ export const HojasDespachoController = {
       const detalles = await HojaDespachoDetalleModel.getByHojaDespachoId(id);
       return { data: { ...hoja, detalles }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get hoja-despacho:', error);
+      logger.error({ error }, 'Error get hoja-despacho:');
       return { data: null, error: 'Error al obtener hoja de despacho', status: 500 };
     }
   },
@@ -47,7 +48,7 @@ export const HojasDespachoController = {
       const detalles = await HojaDespachoDetalleModel.getByHojaDespachoId(Number(nuevaHoja.id));
       return { data: { ...nuevaHoja, detalles }, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create hoja-despacho:', error);
+      logger.error({ error }, 'Error create hoja-despacho:');
       return { data: null, error: 'Error al crear hoja de despacho', status: 500 };
     }
   }

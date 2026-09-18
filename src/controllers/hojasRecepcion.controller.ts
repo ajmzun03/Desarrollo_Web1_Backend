@@ -1,4 +1,5 @@
 import { HojaRecepcionModel, HojaRecepcionDetalleModel } from '../model/supabase/hojaRecepcion.model.js';
+import logger from '../config/logger.js';
 import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
 import { KardexBodegaModel } from '../model/supabase/kardexBodega.model.js';
 
@@ -13,7 +14,7 @@ export const HojasRecepcionController = {
       }
       return { data: hojas, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get hojas-recepcion:', error);
+      logger.error({ error }, 'Error get hojas-recepcion:');
       return { data: null, error: 'Error al obtener hojas de recepción', status: 500 };
     }
   },
@@ -27,7 +28,7 @@ export const HojasRecepcionController = {
       const detalles = await HojaRecepcionDetalleModel.getByHojaRecepcionId(id);
       return { data: { ...hoja, detalles }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get hoja-recepcion:', error);
+      logger.error({ error }, 'Error get hoja-recepcion:');
       return { data: null, error: 'Error al obtener hoja de recepción', status: 500 };
     }
   },
@@ -70,7 +71,7 @@ export const HojasRecepcionController = {
       const detalles = await HojaRecepcionDetalleModel.getByHojaRecepcionId(Number(nuevaHoja.id));
       return { data: { ...nuevaHoja, detalles }, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create hoja-recepcion:', error);
+      logger.error({ error }, 'Error create hoja-recepcion:');
       return { data: null, error: 'Error al crear hoja de recepción', status: 500 };
     }
   }

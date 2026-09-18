@@ -1,4 +1,5 @@
 import { UsuarioModel } from '../model/supabase/usuario.model.js';
+import logger from '../config/logger.js';
 import { hassPassword } from '../utils/hashPassword.js';
 
 export const UsuariosController = {
@@ -7,7 +8,7 @@ export const UsuariosController = {
       const usuarios = await UsuarioModel.getAll();
       return { data: usuarios, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get usuarios:', error);
+      logger.error({ error }, 'Error get usuarios:');
       return { data: null, error: 'Error al obtener usuarios', status: 500 };
     }
   },
@@ -20,7 +21,7 @@ export const UsuariosController = {
       }
       return { data: usuario, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get usuario:', error);
+      logger.error({ error }, 'Error get usuario:');
       return { data: null, error: 'Error al obtener usuario', status: 500 };
     }
   },
@@ -38,7 +39,7 @@ export const UsuariosController = {
       const { contrasenia: _, ...userWithoutPassword } = nuevoUsuario;
       return { data: userWithoutPassword, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create usuario:', error);
+      logger.error({ error }, 'Error create usuario:');
       return { data: null, error: 'Error al crear usuario', status: 500 };
     }
   },
@@ -55,7 +56,7 @@ export const UsuariosController = {
       const { contrasenia: _, ...userWithoutPassword } = usuario;
       return { data: userWithoutPassword, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update usuario:', error);
+      logger.error({ error }, 'Error update usuario:');
       return { data: null, error: 'Error al actualizar usuario', status: 500 };
     }
   }

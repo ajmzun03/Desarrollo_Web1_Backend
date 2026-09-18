@@ -1,4 +1,5 @@
 import { ClienteModel } from '../model/supabase/cliente.model.js';
+import logger from '../config/logger.js';
 
 export const ClientesController = {
   async getAll(telefono?: string) {
@@ -10,7 +11,7 @@ export const ClientesController = {
       const clientes = await ClienteModel.getAll();
       return { data: clientes, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get clientes:', error);
+      logger.error({ error }, 'Error get clientes:');
       return { data: null, error: 'Error al obtener clientes', status: 500 };
     }
   },
@@ -23,7 +24,7 @@ export const ClientesController = {
       }
       return { data: cliente, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get cliente:', error);
+      logger.error({ error }, 'Error get cliente:');
       return { data: null, error: 'Error al obtener cliente', status: 500 };
     }
   },
@@ -40,7 +41,7 @@ export const ClientesController = {
       const nuevoCliente = await ClienteModel.create(data);
       return { data: nuevoCliente, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create cliente:', error);
+      logger.error({ error }, 'Error create cliente:');
       return { data: null, error: 'Error al crear cliente', status: 500 };
     }
   },
@@ -53,7 +54,7 @@ export const ClientesController = {
       }
       return { data: cliente, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update cliente:', error);
+      logger.error({ error }, 'Error update cliente:');
       return { data: null, error: 'Error al actualizar cliente', status: 500 };
     }
   }

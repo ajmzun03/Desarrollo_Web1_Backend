@@ -1,114 +1,242 @@
 import { Router } from 'express';
-import { PedidoModel } from '../model/supabase/pedido.model.js';
-import { DetallePedidoModel } from '../model/supabase/detallePedido.model.js';
+import { PedidosController } from '../controllers/pedidos.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaPedidoCreate, schemaPedidoEstado } from '../schemas/pedido.schema.js';
 const router = Router();
-// GET /pedidos
-router.get('/', async (_req, res) => {
-    try {
-        const { sucursal_id, estado } = _req.query;
-        // Por ahora retornamos todos los pedidos
-        // En un sistema completo, filtraríamos por sucursal y estado
-        const pedidos = await PedidoModel.getAll();
-        res.json({ data: pedidos, error: null });
-    }
-    catch (error) {
-        console.error('Error get pedidos:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener pedidos' });
-    }
+// GET /pedidos — autenticado
+/**
+ * @openapi
+ * /pedidos:
+ *   get:
+ *     summary: Listar todos los pedidos
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de pedidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/', authenticate, async (_req, res) => {
+    const result = await PedidosController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /pedidos/listos?sucursal_id= - Para despachador
-router.get('/listos', async (_req, res) => {
-    try {
-        const { sucursal_id } = _req.query;
-        // Retornar pedidos en estado LISTO
-        const pedidos = await PedidoModel.getByEstado('LISTO');
-        res.json({ data: pedidos, error: null });
-    }
-    catch (error) {
-        console.error('Error get pedidos listos:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener pedidos listos' });
-    }
+// GET /pedidos/listos — DESPACHADOR o ADMIN
+/**
+ * @openapi
+ * /pedidos/listos:
+ *   get:
+ *     summary: Listar pedidos en estado LISTO (DESPACHADOR o ADMIN)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de pedidos listos para despacho
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (DESPACHADOR o ADMIN)
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/listos', authenticate, requireRole('DESPACHADOR', 'ADMIN'), async (_req, res) => {
+    const result = await PedidosController.getListos();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /pedidos/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const pedido = await PedidoModel.getPedidoId(id);
-        if (!pedido) {
-            res.status(404).json({ data: null, error: 'Pedido no encontrado' });
-            return;
-        }
-        // Obtener detalles del pedido
-        const detalles = await DetallePedidoModel.getByPedidoId(id);
-        res.json({ data: { ...pedido, detalles }, error: null });
-    }
-    catch (error) {
-        console.error('Error get pedido:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener pedido' });
-    }
+// GET /pedidos/:id — autenticado
+/**
+ * @openapi
+ * /pedidos/{id}:
+ *   get:
+ *     summary: Obtener un pedido por ID con sus detalles
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del pedido
+ *     responses:
+ *       200:
+ *         description: Pedido encontrado con sus detalles
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/:id', authenticate, async (req, res) => {
+    const result = await PedidosController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /pedidos
-router.post('/', async (_req, res) => {
-    try {
-        const { cliente_id, sucursal_id, observaciones, items } = _req.body;
-        if (!cliente_id || !items || !Array.isArray(items) || items.length === 0) {
-            res.status(400).json({ data: null, error: 'cliente_id y items son requeridos' });
-            return;
-        }
-        // Crear el pedido
-        const nuevoPedido = await PedidoModel.createPedido({
-            cliente_id,
-            observaciones,
-            estado: 'CREADO'
-        });
-        // Crear los detalles del pedido
-        for (const item of items) {
-            await DetallePedidoModel.create({
-                pedido_id: Number(nuevoPedido.id),
-                producto_id: item.producto_id,
-                cantidad: item.cantidad
-            });
-        }
-        // Obtener el pedido con sus detalles
-        const detalles = await DetallePedidoModel.getByPedidoId(Number(nuevoPedido.id));
-        res.status(201).json({ data: { ...nuevoPedido, detalles }, error: null });
-    }
-    catch (error) {
-        console.error('Error create pedido:', error);
-        res.status(500).json({ data: null, error: 'Error al crear pedido' });
-    }
+// POST /pedidos — autenticado
+/**
+ * @openapi
+ * /pedidos:
+ *   post:
+ *     summary: Crear un nuevo pedido
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [cliente_id, items]
+ *             properties:
+ *               cliente_id:
+ *                 type: integer
+ *                 example: 1
+ *               observaciones:
+ *                 type: string
+ *                 example: Sin sal
+ *               items:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: object
+ *                   required: [producto_id, cantidad]
+ *                   properties:
+ *                     producto_id:
+ *                       type: integer
+ *                       example: 3
+ *                     cantidad:
+ *                       type: number
+ *                       example: 2
+ *     responses:
+ *       201:
+ *         description: Pedido creado con sus detalles
+ *       400:
+ *         description: Datos inválidos (cliente_id e items son requeridos)
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/', authenticate, validate(schemaPedidoCreate), async (req, res) => {
+    const result = await PedidosController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /pedidos/:id/confirmar
-router.patch('/:id/confirmar', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const pedido = await PedidoModel.updatePedido(id, { estado: 'LISTO' });
-        if (!pedido) {
-            res.status(404).json({ data: null, error: 'Pedido no encontrado' });
-            return;
-        }
-        res.json({ data: pedido, error: null });
-    }
-    catch (error) {
-        console.error('Error confirmar pedido:', error);
-        res.status(500).json({ data: null, error: 'Error al confirmar pedido' });
-    }
+// PATCH /pedidos/:id/estado — solo ADMIN (cambio genérico de estado)
+/**
+ * @openapi
+ * /pedidos/{id}/estado:
+ *   patch:
+ *     summary: Cambiar el estado de un pedido (solo ADMIN)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del pedido
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [estado]
+ *             properties:
+ *               estado:
+ *                 type: string
+ *                 enum: [CREADO, LISTO, ANULADO, EN_RUTA, ENTREGADO]
+ *                 example: EN_RUTA
+ *     responses:
+ *       200:
+ *         description: Estado del pedido actualizado
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaPedidoEstado), async (req, res) => {
+    const result = await PedidosController.updateEstado(Number(req.params.id), req.body.estado);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /pedidos/:id/entregado - Para repartidor
-router.patch('/:id/entregado', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const pedido = await PedidoModel.updatePedido(id, { estado: 'ENTREGADO' });
-        if (!pedido) {
-            res.status(404).json({ data: null, error: 'Pedido no encontrado' });
-            return;
-        }
-        res.json({ data: pedido, error: null });
-    }
-    catch (error) {
-        console.error('Error entregado pedido:', error);
-        res.status(500).json({ data: null, error: 'Error al marcar pedido como entregado' });
-    }
+// PATCH /pedidos/:id/confirmar — ADMIN o CAJERO
+/**
+ * @openapi
+ * /pedidos/{id}/confirmar:
+ *   patch:
+ *     summary: Confirmar un pedido, lo pasa a estado LISTO (ADMIN o CAJERO)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del pedido a confirmar
+ *     responses:
+ *       200:
+ *         description: Pedido confirmado
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN o CAJERO)
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id/confirmar', authenticate, requireRole('ADMIN', 'CAJERO'), async (req, res) => {
+    const result = await PedidosController.confirmar(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
+});
+// PATCH /pedidos/:id/entregado — DESPACHADOR o REPARTIDOR
+/**
+ * @openapi
+ * /pedidos/{id}/entregado:
+ *   patch:
+ *     summary: Marcar un pedido como ENTREGADO (DESPACHADOR o REPARTIDOR)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del pedido a entregar
+ *     responses:
+ *       200:
+ *         description: Pedido marcado como entregado
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (DESPACHADOR o REPARTIDOR)
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.patch('/:id/entregado', authenticate, requireRole('DESPACHADOR', 'REPARTIDOR'), async (req, res) => {
+    const result = await PedidosController.marcarEntregado(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=pedidos.routes.js.map

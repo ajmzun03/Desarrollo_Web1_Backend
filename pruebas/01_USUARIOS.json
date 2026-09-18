@@ -1,0 +1,202 @@
+{
+  "_instrucciones": "PRUEBAS DE USUARIOS - Pegar en Postman. Headers: Authorization: Bearer <token>",
+  "endpoints": {
+    "GET /usuarios": { "auth": "ADMIN", "status_200": "Listar todos" },
+    "GET /usuarios/:id": { "auth": "ADMIN", "status_200": "Por ID", "status_404": "ID inexistente" },
+    "POST /usuarios": { "auth": "ADMIN", "status_201": "Crear", "status_400": "Validación fallida" },
+    "PATCH /usuarios/:id": { "auth": "ADMIN", "status_200": "Actualizar", "status_404": "ID inexistente" }
+  },
+
+  "pruebas": {
+
+    "200_OK": [
+      {
+        "nombre": "Listar usuarios",
+        "metodo": "GET",
+        "ruta": "/usuarios",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      },
+      {
+        "nombre": "Obtener usuario por ID",
+        "metodo": "GET",
+        "ruta": "/usuarios/1",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      }
+    ],
+
+    "201_CREATED": [
+      {
+        "nombre": "Crear usuario válido",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "usuario": "testuser01",
+          "correo_electronico": "test01@correo.com",
+          "contrasenia": "claveSegura123",
+          "rol": "CAJERO"
+        },
+        "respuesta_esperada": {
+          "data": { "id": "number", "usuario": "testuser01", "rol": "CAJERO" },
+          "error": null
+        }
+      }
+    ],
+
+    "400_BAD_REQUEST": [
+      {
+        "nombre": "Usuario muy corto (min 3 caracteres)",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "usuario": "ab",
+          "correo_electronico": "test@correo.com",
+          "contrasenia": "clave1234",
+          "rol": "CAJERO"
+        },
+        "error_esperado": "El nombre de usuario debe tener al menos 3 caracteres"
+      },
+      {
+        "nombre": "Correo electrónico inválido",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "usuario": "testuser02",
+          "correo_electronico": "no-es-email",
+          "contrasenia": "clave1234",
+          "rol": "CAJERO"
+        },
+        "error_esperado": "El correo electrónico no es válido"
+      },
+      {
+        "nombre": "Contraseña muy corta (min 8 caracteres)",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "usuario": "testuser03",
+          "correo_electronico": "test03@correo.com",
+          "contrasenia": "1234567",
+          "rol": "CAJERO"
+        },
+        "error_esperado": "La contraseña debe tener al menos 8 caracteres"
+      },
+      {
+        "nombre": "Rol inválido (no está en enum)",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "usuario": "testuser04",
+          "correo_electronico": "test04@correo.com",
+          "contrasenia": "clave1234",
+          "rol": "INVALIDO"
+        },
+        "error_esperado": "El rol debe ser uno de los siguientes: ADMIN, BODEGUERO, DESPACHADOR, REPARTIDOR, CAJERO"
+      },
+      {
+        "nombre": "Campos requeridos faltantes (solo usuario)",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "usuario": "testuser05"
+        },
+        "error_esperado": "usuario, contrasenia y rol son requeridos"
+      },
+      {
+        "nombre": "Body vacío",
+        "metodo": "POST",
+        "ruta": "/usuarios",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {},
+        "error_esperado": "usuario, contrasenia y rol son requeridos"
+      }
+    ],
+
+    "401_UNAUTHORIZED": [
+      {
+        "nombre": "Sin header Authorization",
+        "metodo": "GET",
+        "ruta": "/usuarios",
+        "headers": {},
+        "body": null,
+        "error_esperado": "Token no proporcionado"
+      },
+      {
+        "nombre": "Token inválido",
+        "metodo": "GET",
+        "ruta": "/usuarios",
+        "headers": { "Authorization": "Bearer tokenInvalido123" },
+        "body": null,
+        "error_esperado": "Token inválido"
+      },
+      {
+        "nombre": "Token vacío después de Bearer",
+        "metodo": "GET",
+        "ruta": "/usuarios",
+        "headers": { "Authorization": "Bearer " },
+        "body": null,
+        "error_esperado": "Token no proporcionado"
+      }
+    ],
+
+    "403_FORBIDDEN": [
+      {
+        "nombre": "Token de CAJERO intentando acceder a ruta solo ADMIN",
+        "metodo": "GET",
+        "ruta": "/usuarios",
+        "headers": { "Authorization": "Bearer {{token_de_cajero}}" },
+        "body": null,
+        "error_esperado": "Acceso denegado. Roles permitidos: ADMIN"
+      }
+    ],
+
+    "404_NOT_FOUND": [
+      {
+        "nombre": "Usuario con ID inexistente",
+        "metodo": "GET",
+        "ruta": "/usuarios/99999",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null,
+        "error_esperado": "Usuario no encontrado"
+      },
+      {
+        "nombre": "Actualizar usuario inexistente",
+        "metodo": "PATCH",
+        "ruta": "/usuarios/99999",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "correo_electronico": "nuevo@correo.com" },
+        "error_esperado": "Usuario no encontrado"
+      }
+    ]
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "_instrucciones": "PRUEBAS DE DIRECCIONES, FACTURAS, HOJAS DE DESPACHO/RECEPCIÓN",
+  "pruebas": {
+
+    "DIRECCIONES": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear dirección válida",
+          "metodo": "POST",
+          "ruta": "/direcciones",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "cliente_id": 1,
+            "municipio_id": 1,
+            "direccion1": "Av. Principal 123",
+            "direccion2": "Casa color azul"
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "direccion1 muy corta (min 3)",
+          "metodo": "POST",
+          "ruta": "/direcciones",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "cliente_id": 1, "municipio_id": 1, "direccion1": "AB", "direccion2": "Casa" },
+          "error_esperado": "La dirección debe tener al menos 3 caracteres"
+        },
+        {
+          "nombre": "direccion2 muy corta (min 1)",
+          "metodo": "POST",
+          "ruta": "/direcciones",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "cliente_id": 1, "municipio_id": 1, "direccion1": "Av. Principal", "direccion2": "" },
+          "error_esperado": "La dirección secundaria debe tener al menos 1 caracteres"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/direcciones",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "cliente_id": 1 },
+          "error_esperado": "cliente_id, municipio_id, direccion1 y direccion2 son requeridos"
+        }
+      ]
+    },
+
+    "FACTURAS_VENTA": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear factura de venta válida",
+          "metodo": "POST",
+          "ruta": "/facturas-venta",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "pedido_id": 1,
+            "serie": "A",
+            "numero": "001",
+            "total": 150.00
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "serie vacía",
+          "metodo": "POST",
+          "ruta": "/facturas-venta",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "pedido_id": 1, "serie": "", "numero": "001", "total": 150 },
+          "error_esperado": "La serie debe tener al menos 1 caracteres"
+        },
+        {
+          "nombre": "total negativo",
+          "metodo": "POST",
+          "ruta": "/facturas-venta",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "pedido_id": 1, "serie": "A", "numero": "001", "total": -50 },
+          "error_esperado": "El total debe ser un número positivo"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/facturas-venta",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "pedido_id": 1 },
+          "error_esperado": "pedido_id, serie, numero y total son requeridos"
+        }
+      ]
+    },
+
+    "FACTURAS_COMPRA": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear factura de compra válida",
+          "metodo": "POST",
+          "ruta": "/facturas-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "hoja_recepcion_id": 1,
+            "serie": "B",
+            "numero": "001",
+            "fecha_emision": "2026-09-17",
+            "total": 500.00
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "fecha_emision vacía",
+          "metodo": "POST",
+          "ruta": "/facturas-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "hoja_recepcion_id": 1, "serie": "B", "numero": "001", "fecha_emision": "", "total": 500 },
+          "error_esperado": "La fecha de emisión es requerida"
+        },
+        {
+          "nombre": "total cero (debe ser positivo)",
+          "metodo": "POST",
+          "ruta": "/facturas-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "hoja_recepcion_id": 1, "serie": "B", "numero": "001", "fecha_emision": "2026-09-17", "total": 0 },
+          "error_esperado": "El total debe ser un número positivo"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/facturas-compra",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "hoja_recepcion_id": 1 },
+          "error_esperado": "hoja_recepcion_id, serie, numero, fecha_emision y total son requeridos"
+        }
+      ]
+    },
+
+    "HOJAS_DESPACHO": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear hoja de despacho válida",
+          "metodo": "POST",
+          "ruta": "/hojas-despacho",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "pedido_id": 1,
+            "sucursal_despacho": 1
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/hojas-despacho",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "pedido_id": 1 },
+          "error_esperado": "pedido_id y sucursal_despacho son requeridos"
+        }
+      ]
+    },
+
+    "HOJAS_RECEPCION": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear hoja de recepción válida",
+          "metodo": "POST",
+          "ruta": "/hojas-recepcion",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "sucursal_receptora": 1,
+            "tipo_recepcion": "TOTAL",
+            "items": [
+              { "materia_prima_id": 1, "cantidad_recibida": 50, "fecha_vencimiento": "2026-12-31" }
+            ]
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "items vacío (min 1)",
+          "metodo": "POST",
+          "ruta": "/hojas-recepcion",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_receptora": 1, "items": [] },
+          "error_esperado": "Debe incluir al menos un item"
+        },
+        {
+          "nombre": "tipo_recepcion inválido",
+          "metodo": "POST",
+          "ruta": "/hojas-recepcion",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_receptora": 1, "tipo_recepcion": "INVALIDO", "items": [{ "materia_prima_id": 1, "cantidad_recibida": 10, "fecha_vencimiento": "2026-12-31" }] },
+          "error_esperado": "El tipo de recepción debe ser uno de los siguientes: TOTAL, PARCIAL"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/hojas-recepcion",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {},
+          "error_esperado": "sucursal_receptora y items son requeridos"
+        }
+      ]
+    },
+
+    "GASTOS_SUCURSAL": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear gasto válido",
+          "metodo": "POST",
+          "ruta": "/gastos-sucursal",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1, "monto_apertura": 100.00 }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "sucursal_id faltante",
+          "metodo": "POST",
+          "ruta": "/gastos-sucursal",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {},
+          "error_esperado": "sucursal_id es requerido"
+        }
+      ]
+    },
+
+    "LIQUIDACIONES": {
+      "201_CREATED": [
+        {
+          "nombre": "Crear liquidación válida",
+          "metodo": "POST",
+          "ruta": "/liquidaciones",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "turno_id": 1,
+            "repartidor_id": 1,
+            "monto_entregado_repartidor": 500.00,
+            "monto_recaudado_efectivo": 300.00,
+            "monto_recaudado_voucher": 200.00
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/liquidaciones",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {},
+          "error_esperado": "turno_id y repartidor_id son requeridos"
+        }
+      ]
+    }
+  }
+}

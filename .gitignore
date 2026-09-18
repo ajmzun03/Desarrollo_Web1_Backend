@@ -1,8 +1,21 @@
-**/node_modules
-**/package-lock.json
+# Dependencias
+node_modules
+
+# Build
+dist
+
+# Entorno y secretos (¡nunca subir!)
 .env
-.vscode
-.sql
-*.http
-**/.supabaselogs/
-logs/
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+
+# Cobertura de tests
+coverage
+
+# Sistema
+.DS_Store
+Thumbs.db

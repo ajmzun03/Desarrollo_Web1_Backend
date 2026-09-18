@@ -1,4 +1,5 @@
 import { FacturaVentaModel } from '../model/supabase/facturaVenta.model.js';
+import logger from '../config/logger.js';
 
 export const FacturasVentaController = {
   async getAll(pedidoId?: number) {
@@ -11,7 +12,7 @@ export const FacturasVentaController = {
       if (error instanceof Error && error.message === 'No se encontraron facturas de venta') {
         return { data: [], error: null, status: 200 };
       }
-      console.error('Error get facturas-venta:', error);
+      logger.error({ error }, 'Error get facturas-venta:');
       return { data: null, error: 'Error al obtener facturas de venta', status: 500 };
     }
   },
@@ -24,7 +25,7 @@ export const FacturasVentaController = {
       if (error instanceof Error && error.message === 'Factura de venta no encontrada') {
         return { data: null, error: 'Factura de venta no encontrada', status: 404 };
       }
-      console.error('Error get factura-venta:', error);
+      logger.error({ error }, 'Error get factura-venta:');
       return { data: null, error: 'Error al obtener factura de venta', status: 500 };
     }
   },
@@ -43,7 +44,7 @@ export const FacturasVentaController = {
       });
       return { data: nuevaFactura, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create factura-venta:', error);
+      logger.error({ error }, 'Error create factura-venta:');
       return { data: null, error: 'Error al crear factura de venta', status: 500 };
     }
   }

@@ -1,0 +1,249 @@
+{
+  "_instrucciones": "PRUEBAS DE SUCURSALES, BODEGAS, ALACENAS, CAJAS, UNIDADES DE MEDIDA",
+  "pruebas": {
+
+    "SUCURSALES": {
+      "200_OK": [
+        { "nombre": "Listar sucursales", "metodo": "GET", "ruta": "/sucursales", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/sucursales/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear sucursal válida",
+          "metodo": "POST",
+          "ruta": "/sucursales",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "municipio_id": 1, "sucursal": "Sucursal Test Nueva" }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "sucursal muy corta (min 3)",
+          "metodo": "POST",
+          "ruta": "/sucursales",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "municipio_id": 1, "sucursal": "AB" },
+          "error_esperado": "La sucursal debe tener al menos 3 caracteres"
+        },
+        {
+          "nombre": "municipio_id faltante",
+          "metodo": "POST",
+          "ruta": "/sucursales",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal": "Solo nombre" },
+          "error_esperado": "municipio_id y sucursal son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Sucursal inexistente", "metodo": "GET", "ruta": "/sucursales/99999", "headers": {} }
+      ]
+    },
+
+    "BODEGAS": {
+      "200_OK": [
+        { "nombre": "Listar bodegas", "metodo": "GET", "ruta": "/bodegas", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/bodegas/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear bodega válida",
+          "metodo": "POST",
+          "ruta": "/bodegas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1, "bodega": "Bodega Test" }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "bodega muy corta (min 2)",
+          "metodo": "POST",
+          "ruta": "/bodegas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1, "bodega": "X" },
+          "error_esperado": "El nombre de la bodega debe tener al menos 2 caracteres"
+        },
+        {
+          "nombre": "sucursal_id faltante",
+          "metodo": "POST",
+          "ruta": "/bodegas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "bodega": "Solo nombre" },
+          "error_esperado": "sucursal_id y bodega son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Bodega inexistente", "metodo": "GET", "ruta": "/bodegas/99999", "headers": {} }
+      ]
+    },
+
+    "ALACENAS": {
+      "200_OK": [
+        { "nombre": "Listar alacenas", "metodo": "GET", "ruta": "/alacenas", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/alacenas/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear alacena válida",
+          "metodo": "POST",
+          "ruta": "/alacenas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "bodega_id": 1, "alacena": "Alacena Test" }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "alacena muy corta (min 3)",
+          "metodo": "POST",
+          "ruta": "/alacenas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "bodega_id": 1, "alacena": "AB" },
+          "error_esperado": "El nombre de la alacena debe tener al menos 3 caracteres"
+        },
+        {
+          "nombre": "bodega_id faltante",
+          "metodo": "POST",
+          "ruta": "/alacenas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "alacena": "Solo nombre" },
+          "error_esperado": "bodega_id es requerido"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Alacena inexistente", "metodo": "GET", "ruta": "/alacenas/99999", "headers": {} }
+      ]
+    },
+
+    "CAJAS": {
+      "200_OK": [
+        { "nombre": "Listar cajas", "metodo": "GET", "ruta": "/cajas", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/cajas/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear caja válida",
+          "metodo": "POST",
+          "ruta": "/cajas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1, "nombre": "Caja Test", "tipo": "CAJA_CHICA" }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "Tipo de caja inválido",
+          "metodo": "POST",
+          "ruta": "/cajas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "sucursal_id": 1, "nombre": "Caja", "tipo": "INVALIDO" },
+          "error_esperado": "El tipo de caja debe ser uno de los siguientes"
+        },
+        {
+          "nombre": "sucursal_id faltante",
+          "metodo": "POST",
+          "ruta": "/cajas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "nombre": "Solo nombre" },
+          "error_esperado": "sucursal_id y nombre son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Caja inexistente", "metodo": "GET", "ruta": "/cajas/99999", "headers": {} }
+      ]
+    },
+
+    "UNIDADES_MEDIDA": {
+      "200_OK": [
+        { "nombre": "Listar unidades", "metodo": "GET", "ruta": "/unidades-medida", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/unidades-medida/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear unidad válida",
+          "metodo": "POST",
+          "ruta": "/unidades-medida",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "unidad": "Kilogramo", "abreviatura": "KG" }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "Unidad muy corta (min 2)",
+          "metodo": "POST",
+          "ruta": "/unidades-medida",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "unidad": "K", "abreviatura": "KG" },
+          "error_esperado": "La unidad debe tener al menos 2 caracteres"
+        },
+        {
+          "nombre": "Abreviatura muy larga (max 5)",
+          "metodo": "POST",
+          "ruta": "/unidades-medida",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "unidad": "Kilogramo", "abreviatura": "KILOGRAMO" },
+          "error_esperado": "La abreviatura no puede tener más de 5 caracteres"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/unidades-medida",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "unidad": "Solo unidad" },
+          "error_esperado": "unidad y abreviatura son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Unidad inexistente", "metodo": "GET", "ruta": "/unidades-medida/99999", "headers": {} }
+      ]
+    },
+
+    "MATERIAS_PRIMAS": {
+      "200_OK": [
+        { "nombre": "Listar materias primas", "metodo": "GET", "ruta": "/materias-primas", "headers": {} },
+        { "nombre": "Obtener por ID", "metodo": "GET", "ruta": "/materias-primas/1", "headers": {} }
+      ],
+      "201_CREATED": [
+        {
+          "nombre": "Crear materia prima válida",
+          "metodo": "POST",
+          "ruta": "/materias-primas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": {
+            "categoria_id": 1,
+            "unidad_medida_id": 1,
+            "materia_prima": "Harina de Trigo",
+            "es_perecedera": false,
+            "maneja_merma": false
+          }
+        }
+      ],
+      "400_BAD_REQUEST": [
+        {
+          "nombre": "materia_prima muy corta (min 3)",
+          "metodo": "POST",
+          "ruta": "/materias-primas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "categoria_id": 1, "unidad_medida_id": 1, "materia_prima": "AB", "es_perecedera": false, "maneja_merma": false },
+          "error_esperado": "El nombre de la materia prima debe tener al menos 3 caracteres"
+        },
+        {
+          "nombre": "es_perecedera no booleano",
+          "metodo": "POST",
+          "ruta": "/materias-primas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "categoria_id": 1, "unidad_medida_id": 1, "materia_prima": "Test", "es_perecedera": "si", "maneja_merma": false },
+          "error_esperado": "Expected boolean, received string"
+        },
+        {
+          "nombre": "Campos requeridos faltantes",
+          "metodo": "POST",
+          "ruta": "/materias-primas",
+          "headers": { "Authorization": "Bearer {{token}}", "Content-Type": "application/json" },
+          "body": { "materia_prima": "Solo nombre" },
+          "error_esperado": "categoria_id, unidad_medida_id y materia_prima son requeridos"
+        }
+      ],
+      "404_NOT_FOUND": [
+        { "nombre": "Materia prima inexistente", "metodo": "GET", "ruta": "/materias-primas/99999", "headers": {} }
+      ]
+    }
+  }
+}

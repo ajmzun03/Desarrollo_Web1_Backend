@@ -1,0 +1,194 @@
+{
+  "_instrucciones": "PRUEBAS DE CLIENTES - Headers: Authorization: Bearer <token>",
+  "pruebas": {
+
+    "200_OK": [
+      {
+        "nombre": "Listar todos los clientes",
+        "metodo": "GET",
+        "ruta": "/clientes",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      },
+      {
+        "nombre": "Buscar cliente por teléfono",
+        "metodo": "GET",
+        "ruta": "/clientes?telefono=12345678",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      },
+      {
+        "nombre": "Obtener cliente por ID",
+        "metodo": "GET",
+        "ruta": "/clientes/1",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null
+      }
+    ],
+
+    "201_CREATED": [
+      {
+        "nombre": "Crear cliente válido",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "Juan",
+          "apellido": "Perez",
+          "telefono": "55551234",
+          "telefono_ref": "55554321"
+        },
+        "respuesta_esperada": {
+          "data": { "id": "number", "nombre": "Juan", "telefono": "55551234" },
+          "error": null
+        }
+      }
+    ],
+
+    "400_BAD_REQUEST": [
+      {
+        "nombre": "Nombre muy corto (min 3 caracteres)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "J",
+          "apellido": "Perez",
+          "telefono": "55551234",
+          "telefono_ref": "55554321"
+        },
+        "error_esperado": "El nombre del cliente debe tener al menos 3 caracteres"
+      },
+      {
+        "nombre": "Apellido muy corto (min 3 caracteres)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "Juan",
+          "apellido": "P",
+          "telefono": "55551234",
+          "telefono_ref": "55554321"
+        },
+        "error_esperado": "El apellido del cliente debe tener al menos 3 caracteres"
+      },
+      {
+        "nombre": "Teléfono con letras (debe ser 8 dígitos)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "Juan",
+          "apellido": "Perez",
+          "telefono": "abc12345",
+          "telefono_ref": "55554321"
+        },
+        "error_esperado": "El teléfono del cliente debe tener exactamente 8 dígitos"
+      },
+      {
+        "nombre": "Teléfono muy corto (menos de 8 dígitos)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "Juan",
+          "apellido": "Perez",
+          "telefono": "123",
+          "telefono_ref": "55554321"
+        },
+        "error_esperado": "El teléfono del cliente debe tener exactamente 8 dígitos"
+      },
+      {
+        "nombre": "Teléfono de referencia igual al principal (refine)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "Juan",
+          "apellido": "Perez",
+          "telefono": "55551234",
+          "telefono_ref": "55551234"
+        },
+        "error_esperado": "El teléfono de referencia no puede ser igual al teléfono principal"
+      },
+      {
+        "nombre": "Campos requeridos faltantes (solo nombre)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": { "nombre": "Juan" },
+        "error_esperado": "nombre, apellido, telefono y telefono_ref son requeridos"
+      },
+      {
+        "nombre": "Body vacío",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {},
+        "error_esperado": "nombre, apellido, telefono y telefono_ref son requeridos"
+      },
+      {
+        "nombre": "Teléfono ya registrado (duplicado)",
+        "metodo": "POST",
+        "ruta": "/clientes",
+        "headers": {
+          "Authorization": "Bearer {{token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "nombre": "Otro",
+          "apellido": "Cliente",
+          "telefono": "12345678",
+          "telefono_ref": "87654321"
+        },
+        "error_esperado": "El teléfono ya está registrado"
+      }
+    ],
+
+    "401_UNAUTHORIZED": [
+      {
+        "nombre": "Listar clientes sin token",
+        "metodo": "GET",
+        "ruta": "/clientes",
+        "headers": {},
+        "body": null,
+        "error_esperado": "Token no proporcionado"
+      }
+    ],
+
+    "404_NOT_FOUND": [
+      {
+        "nombre": "Cliente con ID inexistente",
+        "metodo": "GET",
+        "ruta": "/clientes/99999",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": null,
+        "error_esperado": "Cliente no encontrado"
+      }
+    ]
+  }
+}

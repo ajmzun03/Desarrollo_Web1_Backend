@@ -1,69 +1,139 @@
 import { Router } from 'express';
-import { SucursalModel } from '../model/supabase/sucursal.model.js';
+import { SucursalesController } from '../controllers/sucursales.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { schemaSucursal } from '../schemas/sucursal.schema.js';
 const router = Router();
-// GET /sucursales
+/**
+ * @openapi
+ * /sucursales:
+ *   get:
+ *     summary: Listar todas las sucursales
+ *     tags: [Sucursales]
+ *     responses:
+ *       200:
+ *         description: Lista de sucursales
+ *       500:
+ *         description: Error al obtener sucursales
+ */
+// GET — público
 router.get('/', async (_req, res) => {
-    try {
-        const sucursales = await SucursalModel.getAll();
-        res.json({ data: sucursales, error: null });
-    }
-    catch (error) {
-        console.error('Error get sucursales:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener sucursales' });
-    }
+    const result = await SucursalesController.getAll();
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// GET /sucursales/:id
-router.get('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const sucursal = await SucursalModel.getById(id);
-        if (!sucursal) {
-            res.status(404).json({ data: null, error: 'Sucursal no encontrada' });
-            return;
-        }
-        res.json({ data: sucursal, error: null });
-    }
-    catch (error) {
-        console.error('Error get sucursal:', error);
-        res.status(500).json({ data: null, error: 'Error al obtener sucursal' });
-    }
+/**
+ * @openapi
+ * /sucursales/{id}:
+ *   get:
+ *     summary: Obtener una sucursal por ID
+ *     tags: [Sucursales]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la sucursal
+ *     responses:
+ *       200:
+ *         description: Sucursal encontrada
+ *       404:
+ *         description: Sucursal no encontrada
+ *       500:
+ *         description: Error al obtener sucursal
+ */
+router.get('/:id', async (req, res) => {
+    const result = await SucursalesController.getById(Number(req.params.id));
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// POST /sucursales
-router.post('/', async (_req, res) => {
-    try {
-        const { municipio_id, sucursal, direccion } = _req.body;
-        if (!municipio_id || !sucursal) {
-            res.status(400).json({ data: null, error: 'municipio_id y sucursal son requeridos' });
-            return;
-        }
-        const nuevaSucursal = await SucursalModel.create({
-            municipio_id,
-            sucursal,
-            direccion
-        });
-        res.status(201).json({ data: nuevaSucursal, error: null });
-    }
-    catch (error) {
-        console.error('Error create sucursal:', error);
-        res.status(500).json({ data: null, error: 'Error al crear sucursal' });
-    }
+/**
+ * @openapi
+ * /sucursales:
+ *   post:
+ *     summary: Crear una nueva sucursal (solo ADMIN)
+ *     tags: [Sucursales]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [municipio_id, sucursal, direccion]
+ *             properties:
+ *               municipio_id:
+ *                 type: integer
+ *                 example: 1
+ *               sucursal:
+ *                 type: string
+ *                 example: Sucursal Centro
+ *               direccion:
+ *                 type: string
+ *                 example: 5a Avenida 10-20
+ *     responses:
+ *       201:
+ *         description: Sucursal creada
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       500:
+ *         description: Error al crear sucursal
+ */
+// POST/PATCH — solo ADMIN
+router.post('/', authenticate, requireRole('ADMIN'), validate(schemaSucursal), async (req, res) => {
+    const result = await SucursalesController.create(req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
-// PATCH /sucursales/:id
-router.patch('/:id', async (_req, res) => {
-    try {
-        const id = Number(_req.params.id);
-        const data = _req.body;
-        const sucursal = await SucursalModel.update(id, data);
-        if (!sucursal) {
-            res.status(404).json({ data: null, error: 'Sucursal no encontrada' });
-            return;
-        }
-        res.json({ data: sucursal, error: null });
-    }
-    catch (error) {
-        console.error('Error update sucursal:', error);
-        res.status(500).json({ data: null, error: 'Error al actualizar sucursal' });
-    }
+/**
+ * @openapi
+ * /sucursales/{id}:
+ *   patch:
+ *     summary: Actualizar una sucursal existente (solo ADMIN)
+ *     tags: [Sucursales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la sucursal a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               municipio_id:
+ *                 type: integer
+ *                 example: 1
+ *               sucursal:
+ *                 type: string
+ *                 example: Sucursal Centro
+ *               direccion:
+ *                 type: string
+ *                 example: 5a Avenida 10-20
+ *     responses:
+ *       200:
+ *         description: Sucursal actualizada
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Sucursal no encontrada
+ *       500:
+ *         description: Error al actualizar sucursal
+ */
+router.patch('/:id', authenticate, requireRole('ADMIN'), async (req, res) => {
+    const result = await SucursalesController.update(Number(req.params.id), req.body);
+    res.status(result.status).json({ data: result.data, error: result.error });
 });
 export default router;
 //# sourceMappingURL=sucursales.routes.js.map

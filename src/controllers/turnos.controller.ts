@@ -1,4 +1,5 @@
 import { TurnoDespachadorModel } from '../model/supabase/turnoDespachador.model.js';
+import logger from '../config/logger.js';
 
 export const TurnosController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const TurnosController = {
       const turnos = await TurnoDespachadorModel.getAll();
       return { data: turnos, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get turnos:', error);
+      logger.error({ error }, 'Error get turnos:');
       return { data: null, error: 'Error al obtener turnos', status: 500 };
     }
   },
@@ -17,7 +18,7 @@ export const TurnosController = {
       const pendientes = turnos.filter(t => t.cerrado_en && !t.monto_cierre_sistema);
       return { data: pendientes, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get turnos pendientes:', error);
+      logger.error({ error }, 'Error get turnos pendientes:');
       return { data: null, error: 'Error al obtener turnos pendientes', status: 500 };
     }
   },
@@ -30,7 +31,7 @@ export const TurnosController = {
       }
       return { data: turno, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get turno:', error);
+      logger.error({ error }, 'Error get turno:');
       return { data: null, error: 'Error al obtener turno', status: 500 };
     }
   },
@@ -49,7 +50,7 @@ export const TurnosController = {
       });
       return { data: nuevoTurno, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create apertura turno:', error);
+      logger.error({ error }, 'Error apertura turno:');
       return { data: null, error: 'Error al abrir turno', status: 500 };
     }
   },
@@ -65,7 +66,7 @@ export const TurnosController = {
       }
       return { data: turno, error: null, status: 200 };
     } catch (error) {
-      console.error('Error cierre turno:', error);
+      logger.error({ error }, 'Error cierre turno:');
       return { data: null, error: 'Error al cerrar turno', status: 500 };
     }
   },
@@ -79,7 +80,7 @@ export const TurnosController = {
       const diferencia = (turno.monto_cierre_declarado || 0) - montoCierreSistema;
       return { data: { ...turno, diferencia }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error validar turno:', error);
+      logger.error({ error }, 'Error validar turno:');
       return { data: null, error: 'Error al validar turno', status: 500 };
     }
   }

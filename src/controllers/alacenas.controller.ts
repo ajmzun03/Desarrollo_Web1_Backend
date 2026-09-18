@@ -1,4 +1,5 @@
 import { AlacenaModel } from '../model/supabase/alacena.model.js';
+import logger from '../config/logger.js';
 
 export const AlacenasController = {
   async getAll(bodegaId?: number) {
@@ -11,7 +12,7 @@ export const AlacenasController = {
       }
       return { data: alacenas, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get alacenas:', error);
+      logger.error({ error }, 'Error get alacenas:');
       return { data: null, error: 'Error al obtener alacenas', status: 500 };
     }
   },
@@ -24,7 +25,7 @@ export const AlacenasController = {
       }
       return { data: alacena, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get alacena:', error);
+      logger.error({ error }, 'Error get alacena:');
       return { data: null, error: 'Error al obtener alacena', status: 500 };
     }
   },
@@ -37,7 +38,7 @@ export const AlacenasController = {
       const nuevaAlacena = await AlacenaModel.create(data);
       return { data: nuevaAlacena, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create alacena:', error);
+      logger.error({ error }, 'Error create alacena:');
       return { data: null, error: 'Error al crear alacena', status: 500 };
     }
   },
@@ -50,7 +51,7 @@ export const AlacenasController = {
       }
       return { data: alacena, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update alacena:', error);
+      logger.error({ error }, 'Error update alacena:');
       return { data: null, error: 'Error al actualizar alacena', status: 500 };
     }
   }

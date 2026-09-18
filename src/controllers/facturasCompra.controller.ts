@@ -1,4 +1,5 @@
 import { FacturaCompraModel } from '../model/supabase/facturaCompra.model.js';
+import logger from '../config/logger.js';
 
 export const FacturasCompraController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const FacturasCompraController = {
       const facturas = await FacturaCompraModel.getAll();
       return { data: facturas, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get facturas-compra:', error);
+      logger.error({ error }, 'Error get facturas-compra:');
       return { data: null, error: 'Error al obtener facturas de compra', status: 500 };
     }
   },
@@ -19,7 +20,7 @@ export const FacturasCompraController = {
       }
       return { data: factura, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get factura-compra:', error);
+      logger.error({ error }, 'Error get factura-compra:');
       return { data: null, error: 'Error al obtener factura de compra', status: 500 };
     }
   },
@@ -32,7 +33,7 @@ export const FacturasCompraController = {
       const nuevaFactura = await FacturaCompraModel.create(data);
       return { data: nuevaFactura, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create factura-compra:', error);
+      logger.error({ error }, 'Error create factura-compra:');
       return { data: null, error: 'Error al crear factura de compra', status: 500 };
     }
   }

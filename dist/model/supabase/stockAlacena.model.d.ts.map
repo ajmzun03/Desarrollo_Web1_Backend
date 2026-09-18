@@ -1,1 +1,1 @@
-{"version":3,"file":"stockAlacena.model.d.ts","sourceRoot":"","sources":["../../../src/model/supabase/stockAlacena.model.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,gBAAgB,CAAC;AAMzD,eAAO,MAAM,iBAAiB,EAAE,kBAU/B,CAAA"}
+{"version":3,"file":"stockAlacena.model.d.ts","sourceRoot":"","sources":["../../../src/model/supabase/stockAlacena.model.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,gBAAgB,CAAC;AAMzD,eAAO,MAAM,iBAAiB,EAAE,kBAgC/B,CAAA"}

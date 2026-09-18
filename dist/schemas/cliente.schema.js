@@ -1,5 +1,5 @@
 import { z } from 'zod';
-const schemaCliente = z.object({
+export const schemaCliente = z.object({
     nombre: z.string()
         .trim()
         .min(3, "El nombre del cliente debe tener al menos 3 caracteres")

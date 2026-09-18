@@ -1,4 +1,5 @@
 import { MateriaPrimaModel } from '../model/supabase/materiaPrima.model.js';
+import logger from '../config/logger.js';
 
 export const MateriasPrimasController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const MateriasPrimasController = {
       const materias = await MateriaPrimaModel.getAll();
       return { data: materias, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get materias-primas:', error);
+      logger.error({ error }, 'Error get materias-primas:');
       return { data: null, error: 'Error al obtener materias primas', status: 500 };
     }
   },
@@ -19,7 +20,7 @@ export const MateriasPrimasController = {
       }
       return { data: materia, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get materia:', error);
+      logger.error({ error }, 'Error get materia:');
       return { data: null, error: 'Error al obtener materia prima', status: 500 };
     }
   },
@@ -36,7 +37,7 @@ export const MateriasPrimasController = {
       });
       return { data: nuevaMateria, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create materia:', error);
+      logger.error({ error }, 'Error create materia:');
       return { data: null, error: 'Error al crear materia prima', status: 500 };
     }
   },
@@ -49,7 +50,7 @@ export const MateriasPrimasController = {
       }
       return { data: materia, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update materia:', error);
+      logger.error({ error }, 'Error update materia:');
       return { data: null, error: 'Error al actualizar materia prima', status: 500 };
     }
   }

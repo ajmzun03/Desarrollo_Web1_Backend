@@ -1,4 +1,5 @@
 import { PedidoModel } from '../model/supabase/pedido.model.js';
+import logger from '../config/logger.js';
 import { GastosSucursalModel } from '../model/supabase/gastosSucursal.model.js';
 import { KardexBodegaModel } from '../model/supabase/kardexBodega.model.js';
 import { KardexAlacenaModel } from '../model/supabase/kardexAlacena.model.js';
@@ -46,7 +47,7 @@ export const ReportesController = {
         status: 200
       };
     } catch (error) {
-      console.error('Error get utilidad-diaria:', error);
+      logger.error({ error }, 'Error get utilidad-diaria:');
       return { data: null, error: 'Error al obtener reporte de utilidad diaria', status: 500 };
     }
   },
@@ -67,7 +68,7 @@ export const ReportesController = {
         status: 200
       };
     } catch (error) {
-      console.error('Error get gastos-operativos:', error);
+      logger.error({ error }, 'Error get gastos-operativos:');
       return { data: null, error: 'Error al obtener reporte de gastos operativos', status: 500 };
     }
   },
@@ -82,7 +83,7 @@ export const ReportesController = {
         status: 200
       };
     } catch (error) {
-      console.error('Error get anulaciones:', error);
+      logger.error({ error }, 'Error get anulaciones:');
       return { data: null, error: 'Error al obtener reporte de anulaciones', status: 500 };
     }
   },
@@ -111,7 +112,7 @@ export const ReportesController = {
 
       return { data: { tipo, desde, hasta, movimientos: todos }, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get auditoria:', error);
+      logger.error({ error }, 'Error get auditoria:');
       return { data: null, error: 'Error al obtener auditoría de movimientos', status: 500 };
     }
   },
@@ -121,7 +122,7 @@ export const ReportesController = {
       const repartidores = await UsuarioModel.getByRol('REPARTIDOR');
       return { data: repartidores, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get repartidores:', error);
+      logger.error({ error }, 'Error get repartidores:');
       return { data: null, error: 'Error al obtener repartidores disponibles', status: 500 };
     }
   }

@@ -1,1 +1,1 @@
-{"version":3,"file":"kardexAlacena.model.d.ts","sourceRoot":"","sources":["../../../src/model/supabase/kardexAlacena.model.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,gBAAgB,CAAC;AAM1D,eAAO,MAAM,kBAAkB,EAAE,mBAUhC,CAAA"}
+{"version":3,"file":"kardexAlacena.model.d.ts","sourceRoot":"","sources":["../../../src/model/supabase/kardexAlacena.model.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,gBAAgB,CAAC;AAM1D,eAAO,MAAM,kBAAkB,EAAE,mBAgChC,CAAA"}

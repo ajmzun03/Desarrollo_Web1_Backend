@@ -1,4 +1,5 @@
 import { LiquidacionRepartidorModel } from '../model/supabase/liquidacionRepartidor.model.js';
+import logger from '../config/logger.js';
 
 export const LiquidacionesController = {
   async getAll(turnoId?: number) {
@@ -11,7 +12,7 @@ export const LiquidacionesController = {
       if (error instanceof Error && error.message === 'No se encontraron liquidaciones de repartidor') {
         return { data: [], error: null, status: 200 };
       }
-      console.error('Error get liquidaciones:', error);
+      logger.error({ error }, 'Error get liquidaciones:');
       return { data: null, error: 'Error al obtener liquidaciones', status: 500 };
     }
   },
@@ -24,7 +25,7 @@ export const LiquidacionesController = {
       if (error instanceof Error && error.message === 'Liquidación de repartidor no encontrada') {
         return { data: null, error: 'Liquidación de repartidor no encontrada', status: 404 };
       }
-      console.error('Error get liquidacion:', error);
+      logger.error({ error }, 'Error get liquidacion:');
       return { data: null, error: 'Error al obtener liquidación', status: 500 };
     }
   },
@@ -37,7 +38,7 @@ export const LiquidacionesController = {
       const nuevaLiquidacion = await LiquidacionRepartidorModel.create(data);
       return { data: nuevaLiquidacion, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create liquidacion:', error);
+      logger.error({ error }, 'Error create liquidacion:');
       return { data: null, error: 'Error al crear liquidación', status: 500 };
     }
   }

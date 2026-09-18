@@ -1,4 +1,5 @@
 import { ProveedorModel } from '../model/supabase/proveedor.model.js';
+import logger from '../config/logger.js';
 
 export const ProveedoresController = {
   async getAll() {
@@ -6,7 +7,7 @@ export const ProveedoresController = {
       const proveedores = await ProveedorModel.getAll();
       return { data: proveedores, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get proveedores:', error);
+      logger.error({ error }, 'Error get proveedores:');
       return { data: null, error: 'Error al obtener proveedores', status: 500 };
     }
   },
@@ -19,7 +20,7 @@ export const ProveedoresController = {
       }
       return { data: proveedor, error: null, status: 200 };
     } catch (error) {
-      console.error('Error get proveedor:', error);
+      logger.error({ error }, 'Error get proveedor:');
       return { data: null, error: 'Error al obtener proveedor', status: 500 };
     }
   },
@@ -32,7 +33,7 @@ export const ProveedoresController = {
       const nuevoProveedor = await ProveedorModel.create(data);
       return { data: nuevoProveedor, error: null, status: 201 };
     } catch (error) {
-      console.error('Error create proveedor:', error);
+      logger.error({ error }, 'Error create proveedor:');
       return { data: null, error: 'Error al crear proveedor', status: 500 };
     }
   },
@@ -45,7 +46,7 @@ export const ProveedoresController = {
       }
       return { data: proveedor, error: null, status: 200 };
     } catch (error) {
-      console.error('Error update proveedor:', error);
+      logger.error({ error }, 'Error update proveedor:');
       return { data: null, error: 'Error al actualizar proveedor', status: 500 };
     }
   }

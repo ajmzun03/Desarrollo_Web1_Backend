@@ -1,7 +1,7 @@
 import z from 'zod';
 import { rolUsuarioEnum } from './db.schema.js';
 const estadoRolEnum = rolUsuarioEnum.enumValues;
-const schemaUsuario = z.object({
+export const schemaUsuario = z.object({
     usuario: z.string()
         .trim()
         .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
