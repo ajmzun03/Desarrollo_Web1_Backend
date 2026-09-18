@@ -17,13 +17,13 @@
     "drizzle-zod": "0.8.3",
     "express": "5.2.1",
     "express-rate-limit": "8.7.0",
-    "helmet": "^8.3.0",
+    "helmet": "8.3.0",
     "jsonwebtoken": "9.0.3",
     "pino": "10.3.1",
     "postgres": "3.4.9",
-    "stripe": "^22.6.2",
-    "swagger-jsdoc": "^6.3.0",
-    "swagger-ui-express": "^5.0.1",
+    "stripe": "22.6.2",
+    "swagger-jsdoc": "6.3.0",
+    "swagger-ui-express": "5.0.1",
     "zod": "4.5.4"
   },
   "devDependencies": {
@@ -31,14 +31,14 @@
     "@types/cookie-parser": "1.4.10",
     "@types/cors": "2.8.19",
     "@types/express": "5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
+    "@types/jsonwebtoken": "9.0.10",
     "@types/node": "26.4.0",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.8",
+    "@types/swagger-jsdoc": "6.0.4",
+    "@types/swagger-ui-express": "4.1.8",
     "drizzle-kit": "1.0.0-rc.4",
     "tsx": "4.23.13",
     "typescript": "7.0.2",
-    "vite": "^8.3.0",
-    "vitest": "^5.0.1"
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
   }
 }

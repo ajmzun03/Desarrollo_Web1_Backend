@@ -1,4 +1,4 @@
-# Plan de métodos y Zod por tabla
+# COPAC — Plan de métodos y Zod por tabla
 
 Basado únicamente en el schema oficial (`db.ts`). Donde el ERD todavía no tiene una columna que necesitas, se marca como ⚠️ en vez de asumirla.
 

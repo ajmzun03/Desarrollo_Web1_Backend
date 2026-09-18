@@ -1,4 +1,4 @@
-# Recomendaciones de validación Zod por campo
+# COPAC — Recomendaciones de validación Zod por campo
 
 Estas son sugerencias sobre el schema oficial (`db.ts`). Ninguna es obligatoria — decide cuáles aplicar en cada `schemaX.ts`. Donde el campo es FK o generado (`id`, timestamps con `defaultNow()`), normalmente ya no necesitas regla extra porque `createInsertSchema` los omite/hace opcionales solo si tú lo indicas explícitamente con `.omit()`.
 
