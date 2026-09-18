@@ -1,4 +1,4 @@
-# Listado de Endpoints API
+# COPAC — Listado de Endpoints API
 
 Backend: Express + Drizzle ORM + Supabase/PostgreSQL. Organizado por **módulo/rol**, no por tabla — las tablas de detalle van dentro de la transacción de su tabla padre, y las tablas de kardex/stock **nunca** se exponen para escritura directa.
 
