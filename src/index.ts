@@ -48,7 +48,7 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 100,
   legacyHeaders: false,
-  message: {message: 'Demasiadas request, Por favor intenta más tarde.'}
+  message: { message: 'Demasiadas request, Por favor intenta más tarde.' }
 })
 
 const PORT = process.env.PORT ?? 3000;
@@ -60,7 +60,11 @@ app.disable('x-powered-by')
 
 // Rutas públicas
 app.get("/", (_req: Request, res: Response) => {
-  res.json({ status: "ok" });
+  res.json({
+    status: "ok",
+    message: "API de gestión de inventario y ventas",
+    docs: "/docs"
+  });
 });
 // Documentación interactiva (Swagger UI)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -119,4 +123,5 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   logger.info({ port: PORT }, 'Servidor corriendo');
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
