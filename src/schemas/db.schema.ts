@@ -105,7 +105,6 @@ export const direccionTable = pgTable('DIRECCION', { //5 - Angel
 
 export const categoriaTable = pgTable('CATEGORIA', { //6 - Angel
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
-  categoria_id: integer('categoria_id').notNull().unique(),
   descripcion: varchar('descripcion', { length: 100 }).notNull(), //aquí le cambié el nombre del campo a "descripcion" porque se llamaba categoría
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
@@ -185,7 +184,10 @@ export const productoTable = pgTable('PRODUCTO', { //16 - Adrian
   categoria_id: integer('categoria_id').notNull().references(() => categoriaTable.id),
   unidad_medida_id: integer('unidad_medida_id').notNull().references(() => unidadMedidaTable.id),
   producto: varchar('producto', { length: 150 }).notNull(),
-  precio: doublePrecision('precio').notNull()
+  precio: doublePrecision('precio').notNull(),
+  imagen_url: varchar('imagen_url', { length: 255 }),
+  descripcion: varchar('descripcion', { length: 255 }),
+  activo: boolean('activo').notNull().default(true)
 })
 
 export const pedidoTable = pgTable('PEDIDO', { //17 - Adrían
@@ -194,7 +196,11 @@ export const pedidoTable = pgTable('PEDIDO', { //17 - Adrían
   fecha_pedido: timestamp('fecha_pedido', { mode: 'string' }).notNull().defaultNow(),
   observaciones: varchar('observaciones', { length: 255 }),
   total: doublePrecision('total').notNull().default(0),
-  estado: estadoPedidoEnum('estado').notNull().default('CREADO')
+  estado: estadoPedidoEnum('estado').notNull().default('CREADO'),
+  direccion_id: integer('direccion_id').references(() => direccionTable.id),
+  sucursal_id: integer('sucursal_id').references(() => sucursalTable.id),
+  metodo_pago: varchar('metodo_pago', { length: 50 }).notNull().default('EFECTIVO'),
+  tipo_entrega: varchar('tipo_entrega', { length: 50 }).notNull().default('DOMICILIO')
 })
 
 export const detallePedidoTable = pgTable('DETALLE_PEDIDO', { //18 - Adrian
