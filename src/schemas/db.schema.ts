@@ -104,7 +104,7 @@ export const clienteTable = pgTable('CLIENTE', { //2 - Angel
 export const UsuarioClienteTable = pgTable('USUARIO_CLIENTE', {
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   cliente_id: integer('cliente_id').notNull().references(() => clienteTable.id),
-  password_hash: varchar('password_hash', { length: 255 }).notNull(),
+  contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
   activo: boolean('activo').notNull().default(true),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
@@ -450,8 +450,8 @@ export const gastosSucursalTable = pgTable('GASTOS_SUCURSAL', { //35 Carlos
 export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   usuario: varchar('usuario', { length: 50 }),
-  correo_electronico: varchar('correo_electronico', { length: 255 }), // encriptado con sha256 a nivel de aplicación
-  contrasenia: varchar('contrasenia', { length: 50 }), // encriptado con sha256 a nivel de aplicación
+  correo_electronico: varchar('correo_electronico', { length: 255 }),
+  contrasenia: varchar('contrasenia', { length: 255 }),
   rol: rolUsuarioEnum('rol_usuario').notNull(),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
