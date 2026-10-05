@@ -103,7 +103,7 @@ export const clienteTable = pgTable('CLIENTE', { //2 - Angel
 
 export const UsuarioClienteTable = pgTable('USUARIO_CLIENTE', {
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
-  cliente_id: integer('cliente_id').notNull().references(() => clienteTable.id),
+  cliente_id: bigint('cliente_id', { mode: 'number' }).notNull().references(() => clienteTable.id),
   contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
   activo: boolean('activo').notNull().default(true),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
@@ -449,10 +449,12 @@ export const gastosSucursalTable = pgTable('GASTOS_SUCURSAL', { //35 Carlos
 // ---- Usuarios del sistema ----
 export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
-  usuario: varchar('usuario', { length: 50 }),
-  correo_electronico: varchar('correo_electronico', { length: 255 }),
-  contrasenia: varchar('contrasenia', { length: 255 }),
+  usuario: varchar('usuario', { length: 50 }).unique().notNull(),
+  correo_electronico: varchar('correo_electronico', { length: 255 }).unique().notNull(),
+  telefono: varchar('telefono', { length: 50 }).unique().notNull(),
+  contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
   rol: rolUsuarioEnum('rol_usuario').notNull(),
+  activo: boolean('activo').notNull().default(true),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
