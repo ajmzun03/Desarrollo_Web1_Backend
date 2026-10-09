@@ -39,9 +39,14 @@ import stockBodegaRoutes from './routes/stockBodega.routes.js';
 import stockAlacenaRoutes from './routes/stockAlacena.routes.js';
 import kardexBodegaRoutes from './routes/kardexBodega.routes.js';
 import kardexAlacenaRoutes from './routes/kardexAlacena.routes.js';
+import { sessionMiddleware } from "./middleware/session.js";
+import { NODE_ENV } from "./config.js";
 
 
 const app = express();
+
+if (NODE_ENV === 'prod') app.set('trust proxy', 1) // trust first proxy
+
 app.use(helmet());
 
 const limiter = rateLimit({
@@ -56,15 +61,29 @@ app.use(limiter)
 app.use(cookieParser())
 app.use(corsMiddleware())
 app.use(express.json());
+app.use(sessionMiddleware)
 app.disable('x-powered-by')
 
 // Rutas públicas
-app.get("/", (_req: Request, res: Response) => {
-  res.json({
-    status: "ok",
-    message: "API de gestión de inventario y ventas",
-    docs: "/docs"
-  });
+app.get("/health", (_req: Request, res: Response) => {
+  try {
+    res
+      .status(200)
+      .json({
+        status: "ok",
+        message: "API de gestión de inventario y ventas",
+        redis: 'ok',
+        docs: "/docs"
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        status: "error",
+        message: "Error al verificar la salud de la API",
+        redis: 'error'
+      });
+  }
 });
 // Documentación interactiva (Swagger UI)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
