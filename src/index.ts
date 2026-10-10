@@ -41,6 +41,7 @@ import kardexBodegaRoutes from './routes/kardexBodega.routes.js';
 import kardexAlacenaRoutes from './routes/kardexAlacena.routes.js';
 import { sessionMiddleware } from "./middleware/session.js";
 import { NODE_ENV } from "./config.js";
+import { connectRedis } from "./services/redis.js";
 
 
 const app = express();
@@ -85,6 +86,13 @@ app.get("/health", (_req: Request, res: Response) => {
       });
   }
 });
+
+app.get('/test-session', (req: Request, res: Response) => {
+  req.session.user ??= { tipo: 'empleado', id: 0 }
+  const visitas = ((req.session as any).visitas ?? 0) + 1;
+  (req.session as any).visitas = visitas
+  res.json({ sessionID: req.sessionID, visitas })
+})
 // Documentación interactiva (Swagger UI)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -140,7 +148,15 @@ app.use('/pagos', pagosRoutes);
 // Handler global de errores (debe ir después de todas las rutas)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  logger.info({ port: PORT }, 'Servidor corriendo');
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+async function main() {
+  await connectRedis()
+  app.listen(PORT, () => {
+    logger.info({ port: PORT }, 'Servidor corriendo');
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+}
+
+main().catch((err) => {
+  console.error('Error al iniciar el servidor:', err);
+  process.exit(1);
+})
