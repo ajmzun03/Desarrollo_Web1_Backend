@@ -39,6 +39,11 @@ import stockBodegaRoutes from './routes/stockBodega.routes.js';
 import stockAlacenaRoutes from './routes/stockAlacena.routes.js';
 import kardexBodegaRoutes from './routes/kardexBodega.routes.js';
 import kardexAlacenaRoutes from './routes/kardexAlacena.routes.js';
+import combosRoutes from './routes/combos.routes.js';
+import productosExtraRoutes from './routes/productosExtra.routes.js';
+import solicitudesInsumoRoutes from './routes/solicitudesInsumo.routes.js';
+import archivosRoutes from './routes/archivos.routes.js';
+import usuarioClienteRoutes from './routes/usuarioCliente.routes.js';
 import { sessionMiddleware } from "./middleware/session.js";
 import { NODE_ENV } from "./config.js";
 import { connectRedis } from "./services/redis.js";
@@ -99,6 +104,12 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Auth (login/logout son públicos, /me se protege internamente)
 app.use('/auth', authRoutes);
 
+// Auth cliente final (app móvil/web del cliente)
+app.use('/cliente/auth', usuarioClienteRoutes);
+
+// Archivos (URLs prefirmadas S3)
+app.use('/archivos', archivosRoutes);
+
 // Catálogos (lectura pública, escritura protegida)
 app.use('/sucursales', sucursalesRoutes);
 app.use('/usuarios', usuariosRoutes);
@@ -114,10 +125,13 @@ app.use('/clientes', clientesRoutes);
 app.use('/pedidos', pedidosRoutes);
 app.use('/direcciones', direccionesRoutes);
 app.use('/facturas-venta', facturasVentaRoutes);
+app.use('/combos', combosRoutes);
+app.use('/productos-extra', productosExtraRoutes);
 
 // Cocina
 app.use('/recetas', recetasRoutes);
 app.use('/ordenes-trabajo', ordenesTrabajoRoutes);
+app.use('/solicitudes-insumo', solicitudesInsumoRoutes);
 
 // Compras
 app.use('/ordenes-compra', ordenesCompraRoutes);

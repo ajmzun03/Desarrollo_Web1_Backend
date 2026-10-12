@@ -501,8 +501,10 @@ export type InsertPedido = typeof pedidoTable.$inferInsert
 export type UpdatePedido = Partial<typeof pedidoTable.$inferInsert>
 
 export type SelectStockAlacena = typeof stockAlacenaTable.$inferSelect
+export type InsertStockAlacena = typeof stockAlacenaTable.$inferInsert
 
 export type SelectKardexAlacena = typeof kardexAlacenaTable.$inferSelect
+export type InsertKardexAlacena = typeof kardexAlacenaTable.$inferInsert
 
 // PRODUCTO
 export type SelectProducto = typeof productoTable.$inferSelect
