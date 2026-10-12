@@ -606,6 +606,28 @@ export type InsertDetallePedido = typeof detallePedidoTable.$inferInsert
 // SOLICITUD INSUMO
 export type SelectSolicitudInsumo = typeof solicitudInsumoTable.$inferSelect
 export type InsertSolicitudInsumo = typeof solicitudInsumoTable.$inferInsert
+export type UpdateSolicitudInsumo = Partial<typeof solicitudInsumoTable.$inferInsert>
 
 export type SelectDetalleSolicitudInsumo = typeof detalleSolicitudInsumoTable.$inferSelect
 export type InsertDetalleSolicitudInsumo = typeof detalleSolicitudInsumoTable.$inferInsert
+
+// COMBO
+export type SelectCombo = typeof comboTable.$inferSelect
+export type InsertCombo = typeof comboTable.$inferInsert
+export type UpdateCombo = Partial<typeof comboTable.$inferInsert>
+
+export type SelectComboDetalle = typeof comboDetalleTable.$inferSelect
+export type InsertComboDetalle = typeof comboDetalleTable.$inferInsert
+
+// PRODUCTO EXTRA
+export type SelectProductoExtra = typeof productoExtraTable.$inferSelect
+export type InsertProductoExtra = typeof productoExtraTable.$inferInsert
+export type UpdateProductoExtra = Partial<typeof productoExtraTable.$inferInsert>
+
+export type SelectDetalleProductoExtra = typeof detalleProductoExtraTable.$inferSelect
+export type InsertDetalleProductoExtra = typeof detalleProductoExtraTable.$inferInsert
+
+// USUARIO CLIENTE
+export type SelectUsuarioCliente = typeof UsuarioClienteTable.$inferSelect
+export type InsertUsuarioCliente = typeof UsuarioClienteTable.$inferInsert
+export type UpdateUsuarioCliente = Partial<typeof UsuarioClienteTable.$inferInsert>

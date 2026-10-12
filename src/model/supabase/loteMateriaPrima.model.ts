@@ -1,5 +1,5 @@
 import { db } from "./db.model.js"
-import { loteMateriaPrimaTable } from "../../schemas/db.schema.js";
+import { loteMateriaPrimaTable, stockBodegaTable } from "../../schemas/db.schema.js";
 import { eq, asc, and } from "drizzle-orm";
 import type { ILoteMateriaPrimaModel } from "../../types.js";
 import type { InsertLoteMateriaPrima, SelectLoteMateriaPrima, UpdateLoteMateriaPrima } from "../../schemas/db.schema.js";
@@ -33,9 +33,23 @@ export const LoteMateriaPrimaModel: ILoteMateriaPrimaModel = {
   },
 
   async getByBodegaId(bodegaId: number): Promise<SelectLoteMateriaPrima[]> {
-    // Esta consulta requiere join con stock_bodega - por ahora retornamos todos
-    const lotes = await db.select().from(loteMateriaPrimaTable).where(eq(loteMateriaPrimaTable.estado, 'VIGENTE' as any));
-    logger.info(`Se encontraron ${lotes.length} lotes vigentes`);
+    const lotes = await db
+      .select({
+        id: loteMateriaPrimaTable.id,
+        materia_prima_id: loteMateriaPrimaTable.materia_prima_id,
+        fecha_vencimiento: loteMateriaPrimaTable.fecha_vencimiento,
+        cantidad_inicial: loteMateriaPrimaTable.cantidad_inicial,
+        cantidad_actual: loteMateriaPrimaTable.cantidad_actual,
+        estado: loteMateriaPrimaTable.estado,
+        creado_en: loteMateriaPrimaTable.creado_en
+      })
+      .from(loteMateriaPrimaTable)
+      .innerJoin(stockBodegaTable, eq(stockBodegaTable.lote_id, loteMateriaPrimaTable.id))
+      .where(and(
+        eq(stockBodegaTable.bodega_id, bodegaId),
+        eq(loteMateriaPrimaTable.estado, 'VIGENTE' as any)
+      ));
+    logger.info(`Se encontraron ${lotes.length} lotes vigentes para la bodega ${bodegaId}`);
     return lotes;
   },
 
