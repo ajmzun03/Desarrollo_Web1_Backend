@@ -30,6 +30,7 @@ import type {
   InsertPedido,
   SelectStockAlacena,
   SelectKardexAlacena,
+  InsertKardexAlacena,
   SelectProducto,
   InsertProducto,
   UpdateProducto,
@@ -267,6 +268,7 @@ export interface IKardexAlacenaModel {
   getAll: () => Promise<SelectKardexAlacena[]>
   getKardexAlacenaById: (id: number, lote: number) => Promise<SelectKardexAlacena | null>
   getByAlacenaId: (alacenaId: number) => Promise<SelectKardexAlacena[]>
+  create: (data: InsertKardexAlacena) => Promise<SelectKardexAlacena>
 }
 
 // ========== PRODUCTO ==========
@@ -374,7 +376,9 @@ export interface IKardexBodegaModel {
 export interface IStockBodegaModel {
   getAll: () => Promise<SelectStockBodega[]>
   getByBodegaId: (bodegaId: number) => Promise<SelectStockBodega[]>
+  getByBodegaAndLote: (bodegaId: number, loteId: number) => Promise<SelectStockBodega | null>
   create: (data: InsertStockBodega) => Promise<SelectStockBodega>
+  remove: (id: number) => Promise<void>
 }
 
 // ========== HOJA RECEPCION ==========
@@ -412,6 +416,7 @@ export interface IHojaDespachoModel {
   getAll: () => Promise<SelectHojaDespacho[]>
   getById: (id: number) => Promise<SelectHojaDespacho | null>
   getByPedidoId: (pedidoId: number) => Promise<SelectHojaDespacho[]>
+  getByRepartidorId: (repartidorId: number) => Promise<SelectHojaDespacho[]>
   create: (data: InsertHojaDespacho) => Promise<SelectHojaDespacho>
 }
 

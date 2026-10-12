@@ -1,5 +1,5 @@
 import type { IKardexAlacenaModel } from "../../types.js";
-import { kardexAlacenaTable, type SelectKardexAlacena } from "../../schemas/index.schema.js";
+import { kardexAlacenaTable, type SelectKardexAlacena, type InsertKardexAlacena } from "../../schemas/index.schema.js";
 import { and, eq } from "drizzle-orm";
 import { db } from "./db.model.js";
 import logger from "../../config/logger.js";
@@ -35,5 +35,15 @@ export const KardexAlacenaModel: IKardexAlacenaModel = {
       logger.error(`Error al obtener el kardex de la alacena ${alacenaId}: ${error}`);
       return [];
     }
+  },
+
+  async create(data: InsertKardexAlacena): Promise<SelectKardexAlacena> {
+    const [result] = await db.insert(kardexAlacenaTable).values({ ...data }).returning();
+    if (result) {
+      logger.info("Movimiento de kardex alacena creado exitosamente");
+      return result;
+    }
+    logger.error("Error al crear el movimiento de kardex alacena");
+    throw new Error("Error al crear el movimiento de kardex alacena");
   }
 }

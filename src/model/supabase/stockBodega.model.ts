@@ -1,6 +1,6 @@
 import { db } from "./db.model.js"
 import { stockBodegaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { IStockBodegaModel } from "../../types.js";
 import type { InsertStockBodega, SelectStockBodega } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
@@ -18,6 +18,13 @@ export const StockBodegaModel: IStockBodegaModel = {
     return stocks;
   },
 
+  async getByBodegaAndLote(bodegaId: number, loteId: number): Promise<SelectStockBodega | null> {
+    const stock = await db.select().from(stockBodegaTable)
+      .where(and(eq(stockBodegaTable.bodega_id, bodegaId), eq(stockBodegaTable.lote_id, loteId)))
+      .limit(1);
+    return stock[0] || null;
+  },
+
   async create(data: InsertStockBodega): Promise<SelectStockBodega> {
     const [result] = await db.insert(stockBodegaTable).values({ ...data }).returning();
     if (result) {
@@ -26,5 +33,10 @@ export const StockBodegaModel: IStockBodegaModel = {
     }
     logger.error("Error al crear el stock bodega");
     throw new Error("Error al crear el stock bodega");
+  },
+
+  async remove(id: number): Promise<void> {
+    await db.delete(stockBodegaTable).where(eq(stockBodegaTable.id, id));
+    logger.info(`Stock bodega con id ${id} eliminado`);
   }
 }
