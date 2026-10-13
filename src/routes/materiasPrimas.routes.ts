@@ -26,6 +26,53 @@ router.get('/', async (_req: Request, res: Response) => {
 
 /**
  * @openapi
+ * /materias-primas/criticas:
+ *   get:
+ *     summary: Insumos bajo umbral o próximos a vencer (RF-002 Jefe de Cocina)
+ *     tags: [MateriasPrimas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sucursal_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la sucursal
+ *       - in: query
+ *         name: dias
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 7
+ *         description: Días de anticipación para considerar vencimiento próximo
+ *       - in: query
+ *         name: umbral
+ *         required: false
+ *         schema:
+ *           type: number
+ *           default: 0
+ *         description: Cantidad mínima para considerar insumo crítico
+ *     responses:
+ *       200:
+ *         description: Lista de lotes críticos
+ *       400:
+ *         description: sucursal_id es requerido
+ *       401:
+ *         description: No autenticado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/criticas', authenticate, async (req: Request, res: Response) => {
+  const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
+  const dias = req.query.dias ? Number(req.query.dias) : undefined;
+  const umbral = req.query.umbral ? Number(req.query.umbral) : undefined;
+  const result = await MateriasPrimasController.getCriticas(sucursalId, dias, umbral);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
  * /materias-primas/{id}:
  *   get:
  *     summary: Obtener una materia prima por ID

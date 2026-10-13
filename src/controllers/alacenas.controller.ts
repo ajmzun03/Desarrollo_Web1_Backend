@@ -1,4 +1,6 @@
 import { AlacenaModel } from '../model/supabase/alacena.model.js';
+import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
+import { KardexAlacenaModel } from '../model/supabase/kardexAlacena.model.js';
 import logger from '../config/logger.js';
 
 export const AlacenasController = {
@@ -53,6 +55,54 @@ export const AlacenasController = {
     } catch (error) {
       logger.error({ error }, 'Error update alacena:');
       return { data: null, error: 'Error al actualizar alacena', status: 500 };
+    }
+  },
+
+  async getVencimientos(alacenaId?: number, dias?: number) {
+    try {
+      if (!alacenaId) {
+        return { data: null, error: 'alacena_id es requerido', status: 400 };
+      }
+      const lotes = await LoteMateriaPrimaModel.getVencimientosPorAlacena(alacenaId, dias ?? 7);
+      return { data: lotes, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error get alacenas vencimientos:');
+      return { data: null, error: 'Error al obtener vencimientos del alacena', status: 500 };
+    }
+  },
+
+  async merma(data: { alacena_id: number; lote_id: number; cantidad: number; tipo?: string }) {
+    try {
+      const lote = await LoteMateriaPrimaModel.getById(data.lote_id);
+      if (!lote) {
+        return { data: null, error: 'Lote no encontrado', status: 404 };
+      }
+      const cantidadActual = Number(lote.cantidad_actual);
+      if (data.cantidad > cantidadActual) {
+        return { data: null, error: `Cantidad (${data.cantidad}) mayor al disponible (${cantidadActual})`, status: 400 };
+      }
+
+      const restante = cantidadActual - data.cantidad;
+      const tipo = data.tipo || 'MERMA';
+      let estado = lote.estado;
+      if (tipo === 'VENCIMIENTO') estado = 'VENCIDO' as any;
+      else if (restante === 0) estado = 'AGOTADO' as any;
+      await LoteMateriaPrimaModel.update(data.lote_id, {
+        cantidad_actual: String(restante),
+        estado
+      });
+
+      const movimiento = await KardexAlacenaModel.create({
+        alacena_id: data.alacena_id,
+        lote_id: data.lote_id,
+        tipo_movimiento: tipo as any,
+        cantidad: String(data.cantidad)
+      });
+
+      return { data: { movimiento, saldo_restante: restante }, error: null, status: 201 };
+    } catch (error) {
+      logger.error({ error }, 'Error alacena merma:');
+      return { data: null, error: 'Error al registrar la merma', status: 500 };
     }
   }
 };

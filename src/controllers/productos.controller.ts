@@ -1,4 +1,5 @@
 import { ProductoModel } from '../model/supabase/producto.model.js';
+import { ProductoLoteModel } from '../model/supabase/productoLote.model.js';
 import logger from '../config/logger.js';
 
 export const ProductosController = {
@@ -9,6 +10,19 @@ export const ProductosController = {
     } catch (error) {
       logger.error({ error }, 'Error get productos:');
       return { data: null, error: 'Error al obtener productos', status: 500 };
+    }
+  },
+
+  async getStock(sucursalId?: number) {
+    try {
+      if (!sucursalId) {
+        return { data: null, error: 'sucursal_id es requerido', status: 400 };
+      }
+      const lotes = await ProductoLoteModel.getBySucursalId(sucursalId);
+      return { data: lotes, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error get productos stock:');
+      return { data: null, error: 'Error al obtener stock de productos', status: 500 };
     }
   },
 

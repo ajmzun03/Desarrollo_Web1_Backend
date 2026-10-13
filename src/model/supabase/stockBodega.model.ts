@@ -33,10 +33,5 @@ export const StockBodegaModel: IStockBodegaModel = {
     }
     logger.error("Error al crear el stock bodega");
     throw new Error("Error al crear el stock bodega");
-  },
-
-  async remove(id: number): Promise<void> {
-    await db.delete(stockBodegaTable).where(eq(stockBodegaTable.id, id));
-    logger.info(`Stock bodega con id ${id} eliminado`);
   }
 }

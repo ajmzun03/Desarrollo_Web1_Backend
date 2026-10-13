@@ -44,6 +44,8 @@ import productosExtraRoutes from './routes/productosExtra.routes.js';
 import solicitudesInsumoRoutes from './routes/solicitudesInsumo.routes.js';
 import archivosRoutes from './routes/archivos.routes.js';
 import usuarioClienteRoutes from './routes/usuarioCliente.routes.js';
+import inventarioRoutes from './routes/inventario.routes.js';
+import repartidorRoutes from './routes/repartidor.routes.js';
 import { sessionMiddleware } from "./middleware/session.js";
 import { NODE_ENV } from "./config.js";
 import { connectRedis } from "./services/redis.js";
@@ -146,11 +148,17 @@ app.use('/stock-alacena', stockAlacenaRoutes);
 app.use('/kardex-bodega', kardexBodegaRoutes);
 app.use('/kardex-alacena', kardexAlacenaRoutes);
 
+// Inventario (traslados, ingreso por vale, cuadre, bajo mínimo)
+app.use('/', inventarioRoutes);
+
 // Despacho
 app.use('/turnos', turnosRoutes);
 app.use('/hojas-despacho', hojasDespachoRoutes);
 app.use('/cajas', cajasRoutes);
 app.use('/liquidaciones', liquidacionesRoutes);
+
+// Repartidor (app móvil)
+app.use('/repartidor', repartidorRoutes);
 
 // Admin y Gerencia
 app.use('/gastos-sucursal', gastosSucursalRoutes);
