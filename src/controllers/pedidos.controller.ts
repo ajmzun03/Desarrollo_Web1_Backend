@@ -2,6 +2,7 @@ import { PedidoModel } from '../model/supabase/pedido.model.js';
 import logger from '../config/logger.js';
 import { DetallePedidoModel } from '../model/supabase/detallePedido.model.js';
 import { ProductoModel } from '../model/supabase/producto.model.js';
+import { HojaDespachoModel } from '../model/supabase/hojaDespacho.model.js';
 
 export const PedidosController = {
   async getAll() {
@@ -118,6 +119,44 @@ export const PedidosController = {
     } catch (error) {
       logger.error({ error }, 'Error entregado pedido:');
       return { data: null, error: 'Error al marcar pedido como entregado', status: 500 };
+    }
+  },
+
+  async incidente(id: number, motivo: string, detalle?: string) {
+    try {
+      const pedido = await PedidoModel.getPedidoId(id);
+      if (!pedido) {
+        return { data: null, error: 'Pedido no encontrado', status: 404 };
+      }
+      const texto = `[INCIDENTE] ${motivo}${detalle ? ` — ${detalle}` : ''}`;
+      const observaciones = pedido.observaciones ? `${pedido.observaciones} | ${texto}` : texto;
+      const actualizado = await PedidoModel.updatePedido(id, { observaciones });
+      return { data: actualizado, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error incidente pedido:');
+      return { data: null, error: 'Error al registrar el incidente', status: 500 };
+    }
+  },
+
+  async getPedidosRepartidor(repartidorId?: number) {
+    try {
+      if (!repartidorId) {
+        return { data: null, error: 'repartidor_id es requerido', status: 400 };
+      }
+      const hojas = await HojaDespachoModel.getByRepartidorId(repartidorId);
+      const pedidos: Array<Record<string, any>> = [];
+      for (const hoja of hojas) {
+        if (hoja.pedido_id) {
+          const pedido = await PedidoModel.getPedidoId(Number(hoja.pedido_id));
+          if (pedido) {
+            pedidos.push({ ...pedido, hoja_despacho_id: Number(hoja.id) });
+          }
+        }
+      }
+      return { data: pedidos, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error get pedidos repartidor:');
+      return { data: null, error: 'Error al obtener pedidos del repartidor', status: 500 };
     }
   }
 };

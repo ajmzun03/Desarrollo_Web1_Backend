@@ -51,6 +51,37 @@ router.get('/disponibilidad', async (req: Request, res: Response) => {
 
 /**
  * @openapi
+ * /productos/stock:
+ *   get:
+ *     summary: Control de stock de producto terminado por sucursal (RF-004 Cocina)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sucursal_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la sucursal
+ *     responses:
+ *       200:
+ *         description: Lotes de producto terminado de la sucursal
+ *       400:
+ *         description: sucursal_id es requerido
+ *       401:
+ *         description: No autenticado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/stock', authenticate, async (req: Request, res: Response) => {
+  const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
+  const result = await ProductosController.getStock(sucursalId);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
  * /productos/{id}:
  *   get:
  *     summary: Obtener un producto por ID (público)

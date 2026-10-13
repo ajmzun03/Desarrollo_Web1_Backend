@@ -3,6 +3,7 @@ import { PedidosController } from '../controllers/pedidos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaPedidoCreate, schemaPedidoEstado } from '../schemas/pedido.schema.js';
+import { schemaIncidente } from '../schemas/inventario.schema.js';
 
 const router: Router = Router();
 
@@ -244,6 +245,55 @@ router.patch('/:id/confirmar', authenticate, requireRole('ADMIN', 'CAJERO'), asy
  */
 router.patch('/:id/entregado', authenticate, requireRole('DESPACHADOR', 'REPARTIDOR'), async (req: Request, res: Response) => {
   const result = await PedidosController.marcarEntregado(Number(req.params.id));
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
+ * /pedidos/{id}/incidente:
+ *   post:
+ *     summary: Reporte de incidente/devolución del repartidor (RF-002 Repartidor)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del pedido
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [motivo]
+ *             properties:
+ *               motivo:
+ *                 type: string
+ *                 example: Cliente no se encontraba
+ *               detalle:
+ *                 type: string
+ *                 example: Se reintentará mañana
+ *     responses:
+ *       200:
+ *         description: Incidente registrado en el pedido
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: No tiene el rol requerido (REPARTIDOR o ADMIN)
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/:id/incidente', authenticate, requireRole('REPARTIDOR', 'ADMIN'), validate(schemaIncidente), async (req: Request, res: Response) => {
+  const { motivo, detalle } = req.body;
+  const result = await PedidosController.incidente(Number(req.params.id), motivo, detalle);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

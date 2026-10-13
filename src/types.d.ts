@@ -349,6 +349,7 @@ export interface IProductoLoteModel {
   getAll: () => Promise<SelectProductoLote[]>
   getById: (id: number) => Promise<SelectProductoLote | null>
   getByOrdenId: (ordenId: number) => Promise<SelectProductoLote[]>
+  getBySucursalId: (sucursalId: number) => Promise<SelectProductoLote[]>
   create: (data: InsertProductoLote) => Promise<SelectProductoLote>
   update: (id: number, data: UpdateProductoLote) => Promise<SelectProductoLote | null>
 }
@@ -360,6 +361,9 @@ export interface ILoteMateriaPrimaModel {
   getByMateriaPrimaId: (materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
   getByBodegaId: (bodegaId: number) => Promise<SelectLoteMateriaPrima[]>
   getFEFO: (bodegaId: number, materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
+  getCriticosPorSucursal: (sucursalId: number, dias: number, umbral: number) => Promise<SelectLoteMateriaPrima[]>
+  getBajoMinimoPorSucursal: (sucursalId: number, umbral: number) => Promise<SelectLoteMateriaPrima[]>
+  getVencimientosPorAlacena: (alacenaId: number, dias: number) => Promise<SelectLoteMateriaPrima[]>
   create: (data: InsertLoteMateriaPrima) => Promise<SelectLoteMateriaPrima>
   update: (id: number, data: UpdateLoteMateriaPrima) => Promise<SelectLoteMateriaPrima | null>
 }
@@ -378,7 +382,6 @@ export interface IStockBodegaModel {
   getByBodegaId: (bodegaId: number) => Promise<SelectStockBodega[]>
   getByBodegaAndLote: (bodegaId: number, loteId: number) => Promise<SelectStockBodega | null>
   create: (data: InsertStockBodega) => Promise<SelectStockBodega>
-  remove: (id: number) => Promise<void>
 }
 
 // ========== HOJA RECEPCION ==========

@@ -83,5 +83,23 @@ export const TurnosController = {
       logger.error({ error }, 'Error validar turno:');
       return { data: null, error: 'Error al validar turno', status: 500 };
     }
+  },
+
+  async sencillo(id: number, monto: number) {
+    try {
+      const turnoActual = await TurnoDespachadorModel.getById(id);
+      if (!turnoActual) {
+        return { data: null, error: 'Turno no encontrado', status: 404 };
+      }
+      if (turnoActual.cerrado_en) {
+        return { data: null, error: 'No se puede asignar sencillo a un turno cerrado', status: 400 };
+      }
+      const acumulado = Number(turnoActual.monto_apertura) + monto;
+      const turno = await TurnoDespachadorModel.update(id, { monto_apertura: String(acumulado) });
+      return { data: turno, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error sencillo turno:');
+      return { data: null, error: 'Error al asignar sencillo', status: 500 };
+    }
   }
 };
