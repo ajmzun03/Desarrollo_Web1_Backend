@@ -1,8 +1,8 @@
 import { PedidoModel } from '../model/supabase/pedido.model.js';
 import logger from '../config/logger.js';
 import { DetallePedidoModel } from '../model/supabase/detallePedido.model.js';
-import { ProductoModel } from '../model/supabase/producto.model.js';
 import { HojaDespachoModel } from '../model/supabase/hojaDespacho.model.js';
+import { crearPedido } from '../services/pedidos.service.js';
 
 export const PedidosController = {
   async getAll() {
@@ -45,38 +45,8 @@ export const PedidosController = {
         return { data: null, error: 'cliente_id y items son requeridos', status: 400 };
       }
 
-      const itemsConPrecio: Array<{ producto_id: number; cantidad: number; precio_unitario: number }> = [];
-      let total = 0;
-
-      for (const item of data.items) {
-        try {
-          const producto = await ProductoModel.getById(item.producto_id);
-          const precio = producto?.precio ?? 0;
-          itemsConPrecio.push({ ...item, precio_unitario: precio });
-          total += precio * item.cantidad;
-        } catch {
-          itemsConPrecio.push({ ...item, precio_unitario: 0 });
-        }
-      }
-
-      const nuevoPedido = await PedidoModel.createPedido({
-        cliente_id: data.cliente_id,
-        observaciones: data.observaciones,
-        total,
-        estado: 'CREADO'
-      });
-
-      for (const item of itemsConPrecio) {
-        await DetallePedidoModel.create({
-          pedido_id: Number(nuevoPedido.id),
-          producto_id: item.producto_id,
-          precio_unitario: item.precio_unitario,
-          cantidad: item.cantidad
-        });
-      }
-
-      const detalles = await DetallePedidoModel.getByPedidoId(Number(nuevoPedido.id));
-      return { data: { ...nuevoPedido, detalles }, error: null, status: 201 };
+      const nuevoPedido = await crearPedido(data);
+      return { data: nuevoPedido, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create pedido:');
       return { data: null, error: 'Error al crear pedido', status: 500 };

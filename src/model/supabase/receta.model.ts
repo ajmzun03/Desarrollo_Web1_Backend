@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { recetaTable, recetaDetalleTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IRecetaModel, IRecetaDetalleModel } from "../../types.js";
@@ -26,8 +26,8 @@ export const RecetaModel: IRecetaModel = {
     return receta[0] || null;
   },
 
-  async create(data: InsertReceta): Promise<SelectReceta> {
-    const [result] = await db.insert(recetaTable).values({ ...data }).returning();
+  async create(data: InsertReceta, executor: Tx = db): Promise<SelectReceta> {
+    const [result] = await executor.insert(recetaTable).values({ ...data }).returning();
     if (result) {
       logger.info("Receta creada exitosamente");
       return result;
@@ -54,8 +54,8 @@ export const RecetaDetalleModel: IRecetaDetalleModel = {
     return detalles;
   },
 
-  async create(data: InsertRecetaDetalle): Promise<SelectRecetaDetalle> {
-    const [result] = await db.insert(recetaDetalleTable).values({ ...data }).returning();
+  async create(data: InsertRecetaDetalle, executor: Tx = db): Promise<SelectRecetaDetalle> {
+    const [result] = await executor.insert(recetaDetalleTable).values({ ...data }).returning();
     if (result) {
       logger.info("Detalle de receta creado exitosamente");
       return result;

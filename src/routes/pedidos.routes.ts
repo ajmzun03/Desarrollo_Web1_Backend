@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { PedidosController } from '../controllers/pedidos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaPedidoCreate, schemaPedidoEstado } from '../schemas/pedido.schema.js';
 import { schemaIncidente } from '../schemas/inventario.schema.js';
 
@@ -48,7 +49,7 @@ router.get('/', authenticate, async (_req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/listos', authenticate, requireRole('DESPACHADOR', 'ADMIN'), async (_req: Request, res: Response) => {
+router.get('/listos', authenticate, requireRole('DESPACHADOR', 'ADMIN'), cache('pedidos-listos', 5), async (_req: Request, res: Response) => {
   const result = await PedidosController.getListos();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -132,6 +133,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, validate(schemaPedidoCreate), async (req: Request, res: Response) => {
   const result = await PedidosController.create(req.body);
+  if (result.status < 300) await invalidateTags('pedidos-listos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -179,6 +181,7 @@ router.post('/', authenticate, validate(schemaPedidoCreate), async (req: Request
  */
 router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaPedidoEstado), async (req: Request, res: Response) => {
   const result = await PedidosController.updateEstado(Number(req.params.id), req.body.estado);
+  if (result.status < 300) await invalidateTags('pedidos-listos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -212,6 +215,7 @@ router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaP
  */
 router.patch('/:id/confirmar', authenticate, requireRole('ADMIN', 'CAJERO'), async (req: Request, res: Response) => {
   const result = await PedidosController.confirmar(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('pedidos-listos', 'ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -245,6 +249,7 @@ router.patch('/:id/confirmar', authenticate, requireRole('ADMIN', 'CAJERO'), asy
  */
 router.patch('/:id/entregado', authenticate, requireRole('DESPACHADOR', 'REPARTIDOR'), async (req: Request, res: Response) => {
   const result = await PedidosController.marcarEntregado(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('pedidos-listos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

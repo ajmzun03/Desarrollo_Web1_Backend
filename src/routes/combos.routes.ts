@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { CombosController } from '../controllers/combos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaComboCreate, schemaComboUpdate } from '../schemas/combo.schema.js';
 
 const router: Router = Router();
@@ -16,7 +17,7 @@ const router: Router = Router();
  *       200:
  *         description: Lista de combos
  */
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', cache('combos', 300), async (_req: Request, res: Response) => {
   const result = await CombosController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -39,7 +40,7 @@ router.get('/', async (_req: Request, res: Response) => {
  *       404:
  *         description: Combo no encontrado
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', cache('combos', 300), async (req: Request, res: Response) => {
   const result = await CombosController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -89,6 +90,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN'), validate(schemaComboCreate), async (req: Request, res: Response) => {
   const result = await CombosController.create(req.body);
+  if (result.status < 300) await invalidateTags('combos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -112,6 +114,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaComboCreate)
  */
 router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaComboUpdate), async (req: Request, res: Response) => {
   const result = await CombosController.update(Number(req.params.id), req.body);
+  if (result.status < 300) await invalidateTags('combos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -135,6 +138,7 @@ router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaComboUpd
  */
 router.delete('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
   const result = await CombosController.delete(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('combos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

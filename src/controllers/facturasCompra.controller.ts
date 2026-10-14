@@ -25,6 +25,16 @@ export const FacturasCompraController = {
     }
   },
 
+  async getByOrdenCompraId(ordenCompraId: number) {
+    try {
+      const facturas = await FacturaCompraModel.getByOrdenCompraId(ordenCompraId);
+      return { data: facturas, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error get facturas por orden de compra:');
+      return { data: null, error: 'Error al obtener facturas por orden de compra', status: 500 };
+    }
+  },
+
   async create(data: { hoja_recepcion_id: number; serie: string; numero: string; fecha_emision: string; total: number }) {
     try {
       if (!data.hoja_recepcion_id || !data.serie || !data.numero || !data.fecha_emision || !data.total) {

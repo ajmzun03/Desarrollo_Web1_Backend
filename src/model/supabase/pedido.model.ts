@@ -1,6 +1,6 @@
 import type { IPedidoModel } from "../../types.js";
 import { type SelectPedido, type InsertPedido, type UpdatePedido, pedidoTable } from "../../schemas/db.schema.js";
-import { db } from "./db.model.js";
+import { db, type Tx } from "./db.model.js";
 import { eq, like } from "drizzle-orm";
 import logger from "../../config/logger.js";
 
@@ -35,8 +35,8 @@ export const PedidoModel: IPedidoModel = {
     return pedido[0] || null
   },
 
-  async createPedido(data: InsertPedido): Promise<SelectPedido> {
-    const [result] = await db.insert(pedidoTable).values({ ...data }).returning()
+  async createPedido(data: InsertPedido, executor: Tx = db): Promise<SelectPedido> {
+    const [result] = await executor.insert(pedidoTable).values({ ...data }).returning()
     if (result) {
       logger.info('Pedido creado exitosamente')
       return result

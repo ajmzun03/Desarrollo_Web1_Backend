@@ -89,6 +89,7 @@ import type {
   SelectDetallePedido,
   InsertDetallePedido,
 } from "./schemas/db.schema.ts";
+import type { Tx } from "./model/supabase/db.model.js";
 
 //PROVEEDOR
 export interface IProveedorModel {
@@ -180,6 +181,7 @@ export interface IUsuarioModel {
   getAll: () => Promise<Omit<SelectUsuario, 'contrasenia'>[]>
   getById: (id: number) => Promise<Omit<SelectUsuario, 'contrasenia'> | null>
   getByUsuario: (usuario: string) => Promise<SelectUsuario | null>
+  getByUsuarioOrCorreo: (identificador: string) => Promise<SelectUsuario | null>
   getByRol: (rol: string) => Promise<Omit<SelectUsuario, 'contrasenia'>[]>
   create: (data: InsertUsuario) => Promise<SelectUsuario>
   update: (id: number, data: Partial<InsertUsuario>) => Promise<SelectUsuario | null>
@@ -254,7 +256,7 @@ export interface IPedidoModel {
   getByEstado: (estado: string) => Promise<SelectPedido[]>
   getPedidosCliente: (id: number) => Promise<SelectPedido[] | null>
   getPedidoId: (id: number) => Promise<SelectPedido | null>
-  createPedido: (data: InsertPedido) => Promise<SelectPedido>
+  createPedido: (data: InsertPedido, executor?: Tx) => Promise<SelectPedido>
   updatePedido: (id: number, data: UpdatePedido) => Promise<SelectPedido | null>
 }
 
@@ -283,13 +285,13 @@ export interface IProductoModel {
 export interface IRecetaModel {
   getAll: () => Promise<SelectReceta[]>
   getById: (id: number) => Promise<SelectReceta | null>
-  create: (data: InsertReceta) => Promise<SelectReceta>
+  create: (data: InsertReceta, executor?: Tx) => Promise<SelectReceta>
   update: (id: number, data: UpdateReceta) => Promise<SelectReceta | null>
 }
 
 export interface IRecetaDetalleModel {
   getByRecetaId: (recetaId: number) => Promise<SelectRecetaDetalle[]>
-  create: (data: InsertRecetaDetalle) => Promise<SelectRecetaDetalle>
+  create: (data: InsertRecetaDetalle, executor?: Tx) => Promise<SelectRecetaDetalle>
 }
 
 // ========== BODEGA ==========
@@ -325,13 +327,13 @@ export interface IOrdenCompraModel {
   getById: (id: number) => Promise<SelectOrdenCompra | null>
   getByEstado: (estado: string) => Promise<SelectOrdenCompra[]>
   getBySucursalId: (sucursalId: number) => Promise<SelectOrdenCompra[]>
-  create: (data: InsertOrdenCompra) => Promise<SelectOrdenCompra>
+  create: (data: InsertOrdenCompra, executor?: Tx) => Promise<SelectOrdenCompra>
   update: (id: number, data: UpdateOrdenCompra) => Promise<SelectOrdenCompra | null>
 }
 
 export interface IDetalleOrdenCompraModel {
   getByOrdenCompraId: (ordenCompraId: number) => Promise<SelectDetalleOrdenCompra[]>
-  create: (data: InsertDetalleOrdenCompra) => Promise<SelectDetalleOrdenCompra>
+  create: (data: InsertDetalleOrdenCompra, executor?: Tx) => Promise<SelectDetalleOrdenCompra>
 }
 
 // ========== ORDEN TRABAJO ==========
@@ -357,15 +359,15 @@ export interface IProductoLoteModel {
 // ========== LOTE MATERIA PRIMA ==========
 export interface ILoteMateriaPrimaModel {
   getAll: () => Promise<SelectLoteMateriaPrima[]>
-  getById: (id: number) => Promise<SelectLoteMateriaPrima | null>
+  getById: (id: number, executor?: Tx) => Promise<SelectLoteMateriaPrima | null>
   getByMateriaPrimaId: (materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
   getByBodegaId: (bodegaId: number) => Promise<SelectLoteMateriaPrima[]>
   getFEFO: (bodegaId: number, materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
   getCriticosPorSucursal: (sucursalId: number, dias: number, umbral: number) => Promise<SelectLoteMateriaPrima[]>
   getBajoMinimoPorSucursal: (sucursalId: number, umbral: number) => Promise<SelectLoteMateriaPrima[]>
   getVencimientosPorAlacena: (alacenaId: number, dias: number) => Promise<SelectLoteMateriaPrima[]>
-  create: (data: InsertLoteMateriaPrima) => Promise<SelectLoteMateriaPrima>
-  update: (id: number, data: UpdateLoteMateriaPrima) => Promise<SelectLoteMateriaPrima | null>
+  create: (data: InsertLoteMateriaPrima, executor?: Tx) => Promise<SelectLoteMateriaPrima>
+  update: (id: number, data: UpdateLoteMateriaPrima, executor?: Tx) => Promise<SelectLoteMateriaPrima | null>
 }
 
 // ========== KARDEX BODEGA ==========
@@ -373,15 +375,15 @@ export interface IKardexBodegaModel {
   getAll: () => Promise<SelectKardexBodega[]>
   getByBodegaId: (bodegaId: number) => Promise<SelectKardexBodega[]>
   getByLoteId: (loteId: number) => Promise<SelectKardexBodega[]>
-  create: (data: InsertKardexBodega) => Promise<SelectKardexBodega>
+  create: (data: InsertKardexBodega, executor?: Tx) => Promise<SelectKardexBodega>
 }
 
 // ========== STOCK BODEGA ==========
 export interface IStockBodegaModel {
   getAll: () => Promise<SelectStockBodega[]>
   getByBodegaId: (bodegaId: number) => Promise<SelectStockBodega[]>
-  getByBodegaAndLote: (bodegaId: number, loteId: number) => Promise<SelectStockBodega | null>
-  create: (data: InsertStockBodega) => Promise<SelectStockBodega>
+  getByBodegaAndLote: (bodegaId: number, loteId: number, executor?: Tx) => Promise<SelectStockBodega | null>
+  create: (data: InsertStockBodega, executor?: Tx) => Promise<SelectStockBodega>
 }
 
 // ========== HOJA RECEPCION ==========
@@ -389,13 +391,13 @@ export interface IHojaRecepcionModel {
   getAll: () => Promise<SelectHojaRecepcion[]>
   getById: (id: number) => Promise<SelectHojaRecepcion | null>
   getBySucursalId: (sucursalId: number) => Promise<SelectHojaRecepcion[]>
-  create: (data: InsertHojaRecepcion) => Promise<SelectHojaRecepcion>
+  create: (data: InsertHojaRecepcion, executor?: Tx) => Promise<SelectHojaRecepcion>
   update: (id: number, data: UpdateHojaRecepcion) => Promise<SelectHojaRecepcion | null>
 }
 
 export interface IHojaRecepcionDetalleModel {
   getByHojaRecepcionId: (hojaRecepcionId: number) => Promise<SelectHojaRecepcionDetalle[]>
-  create: (data: InsertHojaRecepcionDetalle) => Promise<SelectHojaRecepcionDetalle>
+  create: (data: InsertHojaRecepcionDetalle, executor?: Tx) => Promise<SelectHojaRecepcionDetalle>
 }
 
 // ========== FACTURA COMPRA ==========
@@ -403,6 +405,7 @@ export interface IFacturaCompraModel {
   getAll: () => Promise<SelectFacturaCompra[]>
   getById: (id: number) => Promise<SelectFacturaCompra | null>
   getByHojaRecepcionId: (hojaRecepcionId: number) => Promise<SelectFacturaCompra[]>
+  getByOrdenCompraId: (ordenCompraId: number) => Promise<SelectFacturaCompra[]>
   create: (data: InsertFacturaCompra) => Promise<SelectFacturaCompra>
 }
 
@@ -442,7 +445,7 @@ export interface IGastosSucursalModel {
   getAll: () => Promise<SelectGastosSucursal[]>
   getById: (id: number) => Promise<SelectGastosSucursal | null>
   getBySucursalId: (sucursalId: number) => Promise<SelectGastosSucursal[]>
-  create: (data: InsertGastosSucursal) => Promise<SelectGastosSucursal>
+  create: (data: InsertGastosSucursal, executor?: Tx) => Promise<SelectGastosSucursal>
 }
 
 // ========== LIQUIDACION REPARTIDOR ==========
@@ -456,5 +459,5 @@ export interface ILiquidacionRepartidorModel {
 // ========== DETALLE PEDIDO ==========
 export interface IDetallePedidoModel {
   getByPedidoId: (pedidoId: number) => Promise<SelectDetallePedido[]>
-  create: (data: InsertDetallePedido) => Promise<SelectDetallePedido>
+  create: (data: InsertDetallePedido, executor?: Tx) => Promise<SelectDetallePedido>
 }

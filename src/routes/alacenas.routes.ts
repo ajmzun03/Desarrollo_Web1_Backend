@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { AlacenasController } from '../controllers/alacenas.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { invalidateTags } from '../middleware/cache.js';
 import { schemaMerma } from '../schemas/inventario.schema.js';
 
 const alacenaRouter: Router = Router();
@@ -115,6 +116,7 @@ alacenaRouter.get('/vencimientos', authenticate, async (req: Request, res: Respo
  */
 alacenaRouter.post('/mermas', authenticate, validate(schemaMerma), async (req: Request, res: Response) => {
   const result = await AlacenasController.merma(req.body);
+  if (result.status < 300) await invalidateTags('stock-alacena', 'kardex-alacena', 'inventario-bajo-minimo', 'materias-primas-criticas');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

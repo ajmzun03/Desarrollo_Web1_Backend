@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { ProveedoresController } from '../controllers/proveedores.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaProveedor } from '../schemas/proveedor.schema.js';
 
 const router: Router = Router();
@@ -19,7 +20,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', cache('proveedores', 300), async (_req: Request, res: Response) => {
   const result = await ProveedoresController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -45,7 +46,7 @@ router.get('/', async (_req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', cache('proveedores', 300), async (req: Request, res: Response) => {
   const result = await ProveedoresController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -90,6 +91,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN'), validate(schemaProveedor), async (req: Request, res: Response) => {
   const result = await ProveedoresController.create(req.body);
+  if (result.status < 300) await invalidateTags('proveedores');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -135,6 +137,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaProveedor), 
  */
 router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
   const result = await ProveedoresController.update(Number(req.params.id), req.body);
+  if (result.status < 300) await invalidateTags('proveedores');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

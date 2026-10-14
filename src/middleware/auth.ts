@@ -29,6 +29,12 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
       return;
     }
 
+    // Los tokens temporales de 2FA (purpose) no autorizan rutas normales
+    if (decoded.purpose) {
+      res.status(401).json({ data: null, error: 'Token temporal no autorizado' });
+      return;
+    }
+
     req.user = decoded;
     next();
   } catch (error: any) {

@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { MateriasPrimasController } from '../controllers/materiasPrimas.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaMateriaPrima } from '../schemas/materiaPrima.schema.js';
 
 const router: Router = Router();
@@ -19,7 +20,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', cache('materias-primas', 300), async (_req: Request, res: Response) => {
   const result = await MateriasPrimasController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -63,7 +64,7 @@ router.get('/', async (_req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/criticas', authenticate, async (req: Request, res: Response) => {
+router.get('/criticas', authenticate, cache('materias-primas-criticas', 30), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const dias = req.query.dias ? Number(req.query.dias) : undefined;
   const umbral = req.query.umbral ? Number(req.query.umbral) : undefined;
@@ -92,7 +93,7 @@ router.get('/criticas', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', cache('materias-primas', 300), async (req: Request, res: Response) => {
   const result = await MateriasPrimasController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -143,6 +144,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaMateriaPrima), async (req: Request, res: Response) => {
   const result = await MateriasPrimasController.create(req.body);
+  if (result.status < 300) await invalidateTags('materias-primas', 'materias-primas-criticas');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -187,6 +189,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schem
  */
 router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
   const result = await MateriasPrimasController.update(Number(req.params.id), req.body);
+  if (result.status < 300) await invalidateTags('materias-primas', 'materias-primas-criticas');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

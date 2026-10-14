@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PagosController } from './pagos.controller.js';
 import { stripe } from '../config/stripe.js';
+import type { DecodedToken } from '../jwt.js';
 
 vi.mock('../config/stripe.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../config/stripe.js')>();
@@ -14,7 +15,16 @@ vi.mock('../config/stripe.js', async (importOriginal) => {
   };
 });
 
+vi.mock('../model/supabase/pedido.model.js', () => ({
+  PedidoModel: { getPedidoId: vi.fn() },
+}));
+
+import { PedidoModel } from '../model/supabase/pedido.model.js';
+
 const mockStripe = vi.mocked(stripe, true);
+const mockPedido = vi.mocked(PedidoModel, true);
+
+const userCliente: DecodedToken = { id: '10', rol: 'CLIENTE', tipo: 'cliente' } as DecodedToken;
 
 describe('PagosController.createPaymentIntent', () => {
   beforeEach(() => {
@@ -22,28 +32,56 @@ describe('PagosController.createPaymentIntent', () => {
   });
 
   it('devuelve 400 si no hay items', async () => {
-    const result = await PagosController.createPaymentIntent({ items: [] });
+    const result = await PagosController.createPaymentIntent({ items: [] }, userCliente);
     expect(result.status).toBe(400);
     expect(result.error).toContain('items');
+  });
+
+  it('devuelve 403 si el pedido no pertenece al usuario', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ id: 7, cliente_id: 99, total: '50' } as never);
+    const result = await PagosController.createPaymentIntent(
+      { items: [{ nombre: 'X', cantidad: 1, monto: 10 }], payment_method: 'pm_good', pedido_id: 7 },
+      userCliente
+    );
+    expect(result.status).toBe(403);
+    expect(mockStripe.paymentIntents.create).not.toHaveBeenCalled();
+  });
+
+  it('devuelve 404 si el pedido no existe', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce(null);
+    const result = await PagosController.createPaymentIntent(
+      { items: [{ nombre: 'X', cantidad: 1, monto: 10 }], payment_method: 'pm_good', pedido_id: 7 },
+      userCliente
+    );
+    expect(result.status).toBe(404);
+  });
+
+  it('permite pagar si el pedido pertenece al usuario', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ id: 7, cliente_id: 10, total: '50' } as never);
+    vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
+    vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({
+      id: 'pi_ok', status: 'succeeded', amount: 1000, currency: 'gtq', created: 1, metadata: { pedido_id: '7' },
+    } as any);
+
+    const result = await PagosController.createPaymentIntent(
+      { items: [{ nombre: 'X', cantidad: 1, monto: 10 }], payment_method: 'pm_good', pedido_id: 7 },
+      userCliente
+    );
+    expect(result.status).toBe(201);
   });
 
   it('cae a tarjeta cuando el payment_method no existe en Stripe', async () => {
     vi.mocked(mockStripe.paymentMethods.retrieve).mockRejectedValueOnce(new Error('No such PaymentMethod'));
     vi.mocked(mockStripe.paymentMethods.create).mockResolvedValueOnce({ id: 'pm_creado' } as any);
     vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({
-      id: 'pi_123',
-      status: 'succeeded',
-      amount: 8800,
-      currency: 'gtq',
-      created: 123,
-      metadata: {},
+      id: 'pi_123', status: 'succeeded', amount: 8800, currency: 'gtq', created: 123, metadata: {},
     } as any);
 
     const result = await PagosController.createPaymentIntent({
       items: [{ nombre: 'Hamburguesa', cantidad: 2, monto: 44 }],
       payment_method: 'pm_1...',
       tarjeta: { number: '4242424242424242', exp_month: 12, exp_year: 2027 },
-    });
+    }, userCliente);
 
     expect(result.status).toBe(201);
     expect((result.data as any).status).toBe('succeeded');
@@ -59,18 +97,13 @@ describe('PagosController.createPaymentIntent', () => {
   it('usa el payment_method si existe en Stripe', async () => {
     vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
     vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({
-      id: 'pi_999',
-      status: 'succeeded',
-      amount: 1000,
-      currency: 'gtq',
-      created: 1,
-      metadata: {},
+      id: 'pi_999', status: 'succeeded', amount: 1000, currency: 'gtq', created: 1, metadata: {},
     } as any);
 
     const result = await PagosController.createPaymentIntent({
       items: [{ nombre: 'Coca', cantidad: 1, monto: 10 }],
       payment_method: 'pm_good',
-    });
+    }, userCliente);
 
     expect(result.status).toBe(201);
     expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
@@ -79,21 +112,17 @@ describe('PagosController.createPaymentIntent', () => {
   });
 
   it('incluye pedido_id en metadata si se envía', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ id: 7, cliente_id: 10, total: '44' } as never);
     vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
     vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({
-      id: 'pi_888',
-      status: 'succeeded',
-      amount: 4400,
-      currency: 'gtq',
-      created: 1,
-      metadata: { pedido_id: '7' },
+      id: 'pi_888', status: 'succeeded', amount: 4400, currency: 'gtq', created: 1, metadata: { pedido_id: '7' },
     } as any);
 
     await PagosController.createPaymentIntent({
       items: [{ nombre: 'Hamburguesa', cantidad: 1, monto: 44 }],
       payment_method: 'pm_good',
       pedido_id: 7,
-    });
+    }, userCliente);
 
     expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
       expect.objectContaining({ metadata: { pedido_id: '7' } })
@@ -104,8 +133,39 @@ describe('PagosController.createPaymentIntent', () => {
     const result = await PagosController.createPaymentIntent({
       items: [{ nombre: 'Test', cantidad: 1, monto: 10 }],
       tarjeta: { number: '9999999999999999', exp_month: 12, exp_year: 2027 },
-    });
+    }, userCliente);
 
     expect(result.status).toBe(400);
+  });
+});
+
+describe('PagosController.createCheckout', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('devuelve 403 si el pedido no pertenece al usuario', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ id: 7, cliente_id: 99, total: '50' } as never);
+    const result = await PagosController.createCheckout(
+      { items: [{ nombre: 'X', cantidad: 1, monto: 10 }], pedido_id: 7 },
+      userCliente
+    );
+    expect(result.status).toBe(403);
+    expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it('crea sesión de checkout si el pedido pertenece al usuario', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ id: 7, cliente_id: 10, total: '50' } as never);
+    vi.mocked(mockStripe.checkout.sessions.create).mockResolvedValueOnce({
+      id: 'cs_1', url: 'https://stripe.com/pay',
+    } as any);
+
+    const result = await PagosController.createCheckout(
+      { items: [{ nombre: 'X', cantidad: 1, monto: 10 }], pedido_id: 7 },
+      userCliente
+    );
+    expect(result.status).toBe(201);
+    expect((result.data as any).total).toBe(50);
+    expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({ metadata: { pedido_id: '7' } })
+    );
   });
 });

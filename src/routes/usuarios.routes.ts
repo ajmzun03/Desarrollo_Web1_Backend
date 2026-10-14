@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { UsuariosController } from '../controllers/usuarios.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { schemaUsuario } from '../schemas/usuario.schema.js';
+import { schemaUsuario, schemaUsuarioUpdate } from '../schemas/usuario.schema.js';
 
 const router: Router = Router();
 
@@ -131,7 +131,7 @@ router.post('/', validate(schemaUsuario), async (req: Request, res: Response) =>
  *       404:
  *         description: Usuario no encontrado
  */
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', validate(schemaUsuarioUpdate), async (req: Request, res: Response) => {
   const result = await UsuariosController.update(Number(req.params.id), req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

@@ -21,6 +21,9 @@ export const schemaUsuario = z.object({
     }),
 })
 
+// PATCH: campos opcionales, pero se rechazan campos desconocidos (strict)
+export const schemaUsuarioUpdate = schemaUsuario.partial().strict()
+
 export function validateUsuario(object: any) {
     return schemaUsuario.safeParse(object)
 }

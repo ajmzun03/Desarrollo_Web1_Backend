@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { MunicipiosController } from '../controllers/municipios.controller.js';
+import { cache } from '../middleware/cache.js';
 
 const router: Router = Router();
 
@@ -23,7 +24,7 @@ const router: Router = Router();
  *         description: Error al obtener municipios
  */
 // GET /municipios?departamento_id= — público (dato semilla)
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', cache('municipios', 300), async (req: Request, res: Response) => {
   const departamentoId = req.query.departamento_id ? Number(req.query.departamento_id) : undefined;
   const result = await MunicipiosController.getAll(departamentoId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -42,7 +43,7 @@ router.get('/', async (req: Request, res: Response) => {
  *         description: Error al obtener departamentos
  */
 // GET /departamentos — público (dato semilla)
-router.get('/departamentos', async (_req: Request, res: Response) => {
+router.get('/departamentos', cache('municipios', 300), async (_req: Request, res: Response) => {
   const result = await MunicipiosController.getDepartamentos();
   res.status(result.status).json({ data: result.data, error: result.error });
 });

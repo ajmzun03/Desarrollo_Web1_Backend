@@ -53,5 +53,19 @@ export const UsuarioClienteModel = {
 
     logger.info(`Cliente registrado exitosamente con ID ${nuevoCliente.id}`);
     return { cliente: nuevoCliente, usuarioCliente: nuevoUsuario };
+  },
+
+  async updateContrasenia(clienteId: number, hashContrasenia: string): Promise<boolean> {
+    const result = await db
+      .update(UsuarioClienteTable)
+      .set({ contrasenia: hashContrasenia })
+      .where(eq(UsuarioClienteTable.cliente_id, clienteId))
+      .returning({ id: UsuarioClienteTable.id });
+    if (result.length === 0) {
+      logger.warn(`No se actualizó la contraseña del cliente ${clienteId}`);
+      return false;
+    }
+    logger.info(`Contraseña del cliente ${clienteId} actualizada`);
+    return true;
   }
 };

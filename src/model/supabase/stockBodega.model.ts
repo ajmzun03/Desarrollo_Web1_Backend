@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { stockBodegaTable } from "../../schemas/db.schema.js";
 import { and, eq } from "drizzle-orm";
 import type { IStockBodegaModel } from "../../types.js";
@@ -18,15 +18,15 @@ export const StockBodegaModel: IStockBodegaModel = {
     return stocks;
   },
 
-  async getByBodegaAndLote(bodegaId: number, loteId: number): Promise<SelectStockBodega | null> {
-    const stock = await db.select().from(stockBodegaTable)
+  async getByBodegaAndLote(bodegaId: number, loteId: number, executor: Tx = db): Promise<SelectStockBodega | null> {
+    const stock = await executor.select().from(stockBodegaTable)
       .where(and(eq(stockBodegaTable.bodega_id, bodegaId), eq(stockBodegaTable.lote_id, loteId)))
       .limit(1);
     return stock[0] || null;
   },
 
-  async create(data: InsertStockBodega): Promise<SelectStockBodega> {
-    const [result] = await db.insert(stockBodegaTable).values({ ...data }).returning();
+  async create(data: InsertStockBodega, executor: Tx = db): Promise<SelectStockBodega> {
+    const [result] = await executor.insert(stockBodegaTable).values({ ...data }).returning();
     if (result) {
       logger.info("Stock bodega creado exitosamente");
       return result;
