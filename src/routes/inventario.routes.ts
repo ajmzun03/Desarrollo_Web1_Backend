@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { InventarioController } from '../controllers/inventario.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaTraslado, schemaIngresoVale, schemaCuadre } from '../schemas/inventario.schema.js';
 
 const router: Router = Router();
@@ -46,6 +47,7 @@ const router: Router = Router();
  */
 router.post('/traslados', authenticate, requireRole('BODEGUERO', 'ADMIN'), validate(schemaTraslado), async (req: Request, res: Response) => {
   const result = await InventarioController.traslado(req.body);
+  if (result.status < 300) await invalidateTags('inventario-bajo-minimo', 'materias-primas-criticas', 'stock-bodega', 'kardex-bodega');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -101,6 +103,7 @@ router.post('/traslados', authenticate, requireRole('BODEGUERO', 'ADMIN'), valid
  */
 router.post('/bodega/ingreso-vale', authenticate, requireRole('BODEGUERO', 'ADMIN'), validate(schemaIngresoVale), async (req: Request, res: Response) => {
   const result = await InventarioController.ingresoVale(req.body);
+  if (result.status < 300) await invalidateTags('inventario-bajo-minimo', 'materias-primas-criticas', 'stock-bodega', 'kardex-bodega');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -148,6 +151,7 @@ router.post('/bodega/ingreso-vale', authenticate, requireRole('BODEGUERO', 'ADMI
  */
 router.post('/inventario/cuadre', authenticate, requireRole('BODEGUERO', 'ADMIN'), validate(schemaCuadre), async (req: Request, res: Response) => {
   const result = await InventarioController.cuadre(req.body);
+  if (result.status < 300) await invalidateTags('inventario-bajo-minimo', 'materias-primas-criticas', 'stock-bodega', 'kardex-bodega');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -185,7 +189,7 @@ router.post('/inventario/cuadre', authenticate, requireRole('BODEGUERO', 'ADMIN'
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/inventario/bajo-minimo', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req: Request, res: Response) => {
+router.get('/inventario/bajo-minimo', authenticate, requireRole('BODEGUERO', 'ADMIN'), cache('inventario-bajo-minimo', 5), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const umbral = req.query.umbral ? Number(req.query.umbral) : undefined;
   const result = await InventarioController.getBajoMinimo(sucursalId, umbral);

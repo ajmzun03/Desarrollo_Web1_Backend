@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { kardexBodegaTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IKardexBodegaModel } from "../../types.js";
@@ -24,8 +24,8 @@ export const KardexBodegaModel: IKardexBodegaModel = {
     return kardex;
   },
 
-  async create(data: InsertKardexBodega): Promise<SelectKardexBodega> {
-    const [result] = await db.insert(kardexBodegaTable).values({ ...data }).returning();
+  async create(data: InsertKardexBodega, executor: Tx = db): Promise<SelectKardexBodega> {
+    const [result] = await executor.insert(kardexBodegaTable).values({ ...data }).returning();
     if (result) {
       logger.info("Movimiento de kardex bodega creado exitosamente");
       return result;

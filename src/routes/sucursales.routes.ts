@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { SucursalesController } from '../controllers/sucursales.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaSucursal } from '../schemas/sucursal.schema.js';
 
 const router: Router = Router();
@@ -19,7 +20,7 @@ const router: Router = Router();
  *         description: Error al obtener sucursales
  */
 // GET — público
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', cache('sucursales', 300), async (_req: Request, res: Response) => {
   const result = await SucursalesController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -45,7 +46,7 @@ router.get('/', async (_req: Request, res: Response) => {
  *       500:
  *         description: Error al obtener sucursal
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', cache('sucursales', 300), async (req: Request, res: Response) => {
   const result = await SucursalesController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -90,6 +91,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST/PATCH — solo ADMIN
 router.post('/', authenticate, requireRole('ADMIN'), validate(schemaSucursal), async (req: Request, res: Response) => {
   const result = await SucursalesController.create(req.body);
+  if (result.status < 300) await invalidateTags('sucursales');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -138,6 +140,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaSucursal), a
  */
 router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
   const result = await SucursalesController.update(Number(req.params.id), req.body);
+  if (result.status < 300) await invalidateTags('sucursales');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

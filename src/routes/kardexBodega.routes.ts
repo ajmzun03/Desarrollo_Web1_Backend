@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { KardexBodegaController } from '../controllers/kardexBodega.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { cache } from '../middleware/cache.js';
 
 const router: Router = Router();
 
@@ -35,7 +36,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener kardex de bodega
  */
-router.get('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN'), cache('kardex-bodega', 30), async (req: Request, res: Response) => {
   const bodegaId = req.query.bodega_id ? Number(req.query.bodega_id) : undefined;
   const loteId = req.query.lote_id ? Number(req.query.lote_id) : undefined;
   const result = await KardexBodegaController.getAll(bodegaId, loteId);

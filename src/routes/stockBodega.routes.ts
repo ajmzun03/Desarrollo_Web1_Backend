@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { StockBodegaController } from '../controllers/stockBodega.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { cache } from '../middleware/cache.js';
 
 const router: Router = Router();
 
@@ -29,7 +30,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener stock de bodega
  */
-router.get('/', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('BODEGUERO', 'ADMIN'), cache('stock-bodega', 30), async (req: Request, res: Response) => {
   const bodegaId = req.query.bodega_id ? Number(req.query.bodega_id) : undefined;
   const result = await StockBodegaController.getAll(bodegaId);
   res.status(result.status).json({ data: result.data, error: result.error });

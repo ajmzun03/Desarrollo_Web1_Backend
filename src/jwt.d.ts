@@ -4,4 +4,8 @@ export interface DecodedToken extends JwtPayload {
     id: string
     usuario?: string
     rol?: string
+    correo_electronico?: string
+    tipo?: string
+    /** Presente solo en tokens temporales de 2FA; rechazados por authenticate */
+    purpose?: string
 }

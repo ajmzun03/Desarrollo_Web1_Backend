@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { HojasRecepcionController } from '../controllers/hojasRecepcion.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache } from '../middleware/cache.js';
 import { schemaHojaRecepcion } from '../schemas/hojaRecepcion.schema.js';
 
 const router: Router = Router();
@@ -32,7 +33,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('BODEGUERO', 'ADMIN'), cache('hojas-recepcion', 30), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await HojasRecepcionController.getAll(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });

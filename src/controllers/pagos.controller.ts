@@ -1,19 +1,49 @@
 import type Stripe from 'stripe';
 import { stripe, testTokenParaTarjeta } from '../config/stripe.js';
+import { PedidoModel } from '../model/supabase/pedido.model.js';
+import { STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL } from '../config.js';
+import type { DecodedToken } from '../jwt.js';
 import logger from '../config/logger.js';
 
+/**
+ * Verifica que el pedido exista y pertenezca al usuario autenticado (cliente).
+ * Devuelve el pedido o un error de respuesta.
+ */
+async function verificarPedidoPropio(pedidoId: number, user: DecodedToken) {
+  const pedido = await PedidoModel.getPedidoId(pedidoId);
+  if (!pedido) {
+    return { error: { data: null, error: 'Pedido no encontrado', status: 404 } as const };
+  }
+  // Solo el dueño del pedido (cliente) puede pagarlo
+  if (Number(pedido.cliente_id) !== Number(user.id)) {
+    return { error: { data: null, error: 'El pedido no pertenece al usuario', status: 403 } as const };
+  }
+  return { pedido };
+}
+
 export const PagosController = {
-  async createCheckout(data: { items: Array<{ nombre: string; cantidad: number; monto: number }> }) {
+  async createCheckout(
+    data: { items: Array<{ nombre: string; cantidad: number; monto: number }>; pedido_id?: number },
+    user: DecodedToken
+  ) {
     try {
       if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
         return { data: null, error: 'items es requerido', status: 400 };
       }
 
+      // Si se asocia un pedido, verificar ownership y usar el total del servidor
+      let totalServidor: number | null = null;
+      if (data.pedido_id) {
+        const { error, pedido } = await verificarPedidoPropio(data.pedido_id, user);
+        if (error) return { ...error };
+        totalServidor = Number(pedido!.total);
+      }
+
       const lineItems = data.items.map(item => ({
         price_data: {
-          currency: 'gtq', // cambia a 'usd' si tu moneda es dólares
+          currency: 'gtq',
           product_data: { name: item.nombre },
-          unit_amount: Math.round(item.monto * 100), // Stripe usa centavos
+          unit_amount: Math.round(item.monto * 100),
         },
         quantity: item.cantidad,
       }));
@@ -22,26 +52,40 @@ export const PagosController = {
         mode: 'payment',
         line_items: lineItems,
         payment_method_types: ['card'],
-        success_url: 'http://localhost:3000/pagos/success',
-        cancel_url: 'http://localhost:3000/pagos/cancel',
+        success_url: STRIPE_SUCCESS_URL || 'http://localhost:3000/pagos/success',
+        cancel_url: STRIPE_CANCEL_URL || 'http://localhost:3000/pagos/cancel',
+        ...(data.pedido_id ? { metadata: { pedido_id: String(data.pedido_id) } } : {}),
       });
 
-      return { data: { id: session.id, url: session.url }, error: null, status: 201 };
+      return {
+        data: { id: session.id, url: session.url, total: totalServidor },
+        error: null,
+        status: 201
+      };
     } catch (error: any) {
       logger.error({ error: error.message }, 'Error crear checkout');
       return { data: null, error: 'Error al crear el pago', status: 500 };
     }
   },
 
-  async createPaymentIntent(data: {
-    items: Array<{ nombre: string; cantidad: number; monto: number }>,
-    payment_method?: string,
-    tarjeta?: { number: string; exp_month: number; exp_year: number; cvc?: string },
-    pedido_id?: number
-  }) {
+  async createPaymentIntent(
+    data: {
+      items: Array<{ nombre: string; cantidad: number; monto: number }>,
+      payment_method?: string,
+      tarjeta?: { number: string; exp_month: number; exp_year: number; cvc?: string },
+      pedido_id?: number
+    },
+    user: DecodedToken
+  ) {
     try {
       if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
         return { data: null, error: 'items es requerido', status: 400 };
+      }
+
+      // Si se asocia un pedido, verificar ownership
+      if (data.pedido_id) {
+        const { error } = await verificarPedidoPropio(data.pedido_id, user);
+        if (error) return { ...error };
       }
 
       const totalCentavos = data.items.reduce(

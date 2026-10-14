@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { loteMateriaPrimaTable, stockBodegaTable, stockAlacenaTable, bodegaTable } from "../../schemas/db.schema.js";
 import { eq, asc, and, or, lte, sql } from "drizzle-orm";
 import type { ILoteMateriaPrimaModel } from "../../types.js";
@@ -16,8 +16,8 @@ export const LoteMateriaPrimaModel: ILoteMateriaPrimaModel = {
     return lotes;
   },
 
-  async getById(id: number): Promise<SelectLoteMateriaPrima | null> {
-    const lote = await db.select().from(loteMateriaPrimaTable).where(eq(loteMateriaPrimaTable.id, id)).limit(1);
+  async getById(id: number, executor: Tx = db): Promise<SelectLoteMateriaPrima | null> {
+    const lote = await executor.select().from(loteMateriaPrimaTable).where(eq(loteMateriaPrimaTable.id, id)).limit(1);
     if (lote.length === 0) {
       logger.warn(`Lote de materia prima con ID ${id} no encontrado`);
       throw new Error("Lote de materia prima no encontrado");
@@ -66,8 +66,8 @@ export const LoteMateriaPrimaModel: ILoteMateriaPrimaModel = {
     return lotes;
   },
 
-  async create(data: InsertLoteMateriaPrima): Promise<SelectLoteMateriaPrima> {
-    const [result] = await db.insert(loteMateriaPrimaTable).values({ ...data }).returning();
+  async create(data: InsertLoteMateriaPrima, executor: Tx = db): Promise<SelectLoteMateriaPrima> {
+    const [result] = await executor.insert(loteMateriaPrimaTable).values({ ...data }).returning();
     if (result) {
       logger.info("Lote de materia prima creado exitosamente");
       return result;
@@ -76,8 +76,8 @@ export const LoteMateriaPrimaModel: ILoteMateriaPrimaModel = {
     throw new Error("Error al crear el lote de materia prima");
   },
 
-  async update(id: number, data: UpdateLoteMateriaPrima): Promise<SelectLoteMateriaPrima | null> {
-    const [result] = await db.update(loteMateriaPrimaTable).set(data).where(eq(loteMateriaPrimaTable.id, id)).returning();
+  async update(id: number, data: UpdateLoteMateriaPrima, executor: Tx = db): Promise<SelectLoteMateriaPrima | null> {
+    const [result] = await executor.update(loteMateriaPrimaTable).set(data).where(eq(loteMateriaPrimaTable.id, id)).returning();
     if (result) {
       logger.info(`Lote de materia prima con id ${id} actualizado exitosamente`);
       return result;

@@ -2,7 +2,6 @@ import express from "express";
 import helmet from 'helmet'
 import logger from './config/logger.js'
 import pagosRoutes from './routes/pagos.routes.js';
-import cookieParser from 'cookie-parser'
 import type { Request, Response } from "express";
 import rateLimit from "express-rate-limit"
 import { corsMiddleware } from "./middleware/cors.js";
@@ -46,14 +45,13 @@ import archivosRoutes from './routes/archivos.routes.js';
 import usuarioClienteRoutes from './routes/usuarioCliente.routes.js';
 import inventarioRoutes from './routes/inventario.routes.js';
 import repartidorRoutes from './routes/repartidor.routes.js';
-import { sessionMiddleware } from "./middleware/session.js";
-import { NODE_ENV } from "./config.js";
-import { connectRedis } from "./services/redis.js";
+import { IS_PROD } from "./config.js";
+import { connectRedis, redisHealth } from "./services/redis.js";
 
 
 const app = express();
 
-if (NODE_ENV === 'prod') app.set('trust proxy', 1) // trust first proxy
+if (IS_PROD) app.set('trust proxy', 1) // trust first proxy
 
 app.use(helmet());
 
@@ -66,21 +64,20 @@ const limiter = rateLimit({
 
 const PORT = process.env.PORT ?? 3000;
 app.use(limiter)
-app.use(cookieParser())
 app.use(corsMiddleware())
 app.use(express.json());
-app.use(sessionMiddleware)
 app.disable('x-powered-by')
 
 // Rutas públicas
-app.get("/health", (_req: Request, res: Response) => {
+app.get("/health", async (_req: Request, res: Response) => {
   try {
+    const redisStatus = await redisHealth();
     res
       .status(200)
       .json({
-        status: "ok",
+        status: redisStatus === 'ok' ? "ok" : "degraded",
         message: "API de gestión de inventario y ventas",
-        redis: 'ok',
+        redis: redisStatus,
         docs: "/docs"
       });
   } catch (error) {
@@ -94,12 +91,6 @@ app.get("/health", (_req: Request, res: Response) => {
   }
 });
 
-app.get('/test-session', (req: Request, res: Response) => {
-  req.session.user ??= { tipo: 'empleado', id: 0 }
-  const visitas = ((req.session as any).visitas ?? 0) + 1;
-  (req.session as any).visitas = visitas
-  res.json({ sessionID: req.sessionID, visitas })
-})
 // Documentación interactiva (Swagger UI)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -171,7 +162,10 @@ app.use('/pagos', pagosRoutes);
 app.use(errorHandler);
 
 async function main() {
-  await connectRedis()
+  const redisOk = await connectRedis()
+  if (!redisOk) {
+    logger.warn('Servidor iniciado SIN Redis: sesiones en memoria y caché desactivada')
+  }
   app.listen(PORT, () => {
     logger.info({ port: PORT }, 'Servidor corriendo');
     console.log(`Servidor corriendo en http://localhost:${PORT}`);

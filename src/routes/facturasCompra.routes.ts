@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { FacturasCompraController } from '../controllers/facturasCompra.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaFacturaCompra } from '../schemas/facturaCompra.schema.js';
 
 const router: Router = Router();
@@ -11,10 +12,17 @@ const router: Router = Router();
  * @openapi
  * /facturas-compra:
  *   get:
- *     summary: Listar todas las facturas de compra
+ *     summary: Listar facturas de compra (todas o filtradas por orden de compra)
  *     tags: [FacturasCompra]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: orden_compra_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filtrar facturas cuya hoja de recepción pertenece a esta orden de compra
  *     responses:
  *       200:
  *         description: Lista de facturas de compra
@@ -23,8 +31,11 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (_req: Request, res: Response) => {
-  const result = await FacturasCompraController.getAll();
+router.get('/', authenticate, cache('facturas-compra', 30), async (req: Request, res: Response) => {
+  const ordenCompraId = req.query.orden_compra_id ? Number(req.query.orden_compra_id) : undefined;
+  const result = ordenCompraId
+    ? await FacturasCompraController.getByOrdenCompraId(ordenCompraId)
+    : await FacturasCompraController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -106,6 +117,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN'), validate(schemaFacturaCompra), async (req: Request, res: Response) => {
   const result = await FacturasCompraController.create(req.body);
+  if (result.status < 300) await invalidateTags('facturas-compra');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

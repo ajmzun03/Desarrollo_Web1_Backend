@@ -1,10 +1,26 @@
 import { Router, type Request, type Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { UsuarioClienteController } from '../controllers/usuarioCliente.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { schemaClienteRegistro, schemaClienteLogin } from '../schemas/usuarioCliente.schema.js';
+import {
+  schemaClienteRegistro,
+  schemaClienteLogin,
+  schemaClienteVerificar,
+  schemaClienteRecuperar,
+  schemaClienteRestablecer
+} from '../schemas/usuarioCliente.schema.js';
 
 const router: Router = Router();
+
+// Rate limit estricto para login/verificación: 5 intentos por 15 min por IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { data: null, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' }
+});
 
 /**
  * @openapi
@@ -49,7 +65,7 @@ router.post('/registro', validate(schemaClienteRegistro), async (req: Request, r
  * @openapi
  * /cliente/auth/login:
  *   post:
- *     summary: Login de cliente final
+ *     summary: Login de cliente final (paso 1: valida contraseña y envía código 2FA)
  *     tags: [Cliente Auth]
  *     requestBody:
  *       required: true
@@ -66,14 +82,104 @@ router.post('/registro', validate(schemaClienteRegistro), async (req: Request, r
  *                 type: string
  *                 format: password
  *     responses:
- *       200:
- *         description: Login exitoso, devuelve cliente + token
+ *       202:
+ *         description: Contraseña válida; se envió código 2FA. Devuelve tmpToken.
  *       401:
  *         description: Credenciales inválidas
  */
-router.post('/login', validate(schemaClienteLogin), async (req: Request, res: Response) => {
+router.post('/login', authLimiter, validate(schemaClienteLogin), async (req: Request, res: Response) => {
   const { correo_electronico, contrasenia } = req.body;
   const result = await UsuarioClienteController.login(correo_electronico, contrasenia);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
+ * /cliente/auth/verificar:
+ *   post:
+ *     summary: Verificar código 2FA y obtener token de sesión (paso 2)
+ *     tags: [Cliente Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [tmpToken, codigo]
+ *             properties:
+ *               tmpToken:
+ *                 type: string
+ *               codigo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Código correcto; devuelve cliente + token
+ *       401:
+ *         description: Código incorrecto, expirado o token temporal inválido
+ */
+router.post('/verificar', authLimiter, validate(schemaClienteVerificar), async (req: Request, res: Response) => {
+  const { tmpToken, codigo } = req.body;
+  const result = await UsuarioClienteController.verificarCodigo(tmpToken, codigo);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
+ * /cliente/auth/recuperar:
+ *   post:
+ *     summary: Solicitar código de recuperación de contraseña
+ *     tags: [Cliente Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [correo_electronico]
+ *             properties:
+ *               correo_electronico:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       202:
+ *         description: Si el correo existe, se envió un código (respuesta genérica)
+ */
+router.post('/recuperar', validate(schemaClienteRecuperar), async (req: Request, res: Response) => {
+  const { correo_electronico } = req.body;
+  const result = await UsuarioClienteController.recuperarContrasenia(correo_electronico);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
+ * /cliente/auth/restablecer:
+ *   post:
+ *     summary: Restablecer contraseña con código de recuperación
+ *     tags: [Cliente Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [correo_electronico, codigo, nuevaContrasenia]
+ *             properties:
+ *               correo_electronico:
+ *                 type: string
+ *                 format: email
+ *               codigo:
+ *                 type: string
+ *               nuevaContrasenia:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada
+ *       401:
+ *         description: Código incorrecto o expirado
+ */
+router.post('/restablecer', validate(schemaClienteRestablecer), async (req: Request, res: Response) => {
+  const result = await UsuarioClienteController.restablecerContrasenia(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

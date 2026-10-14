@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { ProductosExtraController } from '../controllers/productosExtra.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaProductoExtraCreate, schemaProductoExtraUpdate } from '../schemas/productoExtra.schema.js';
 
 const router: Router = Router();
@@ -16,7 +17,7 @@ const router: Router = Router();
  *       200:
  *         description: Lista de extras
  */
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', cache('productos-extra', 300), async (_req: Request, res: Response) => {
   const result = await ProductosExtraController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -37,7 +38,7 @@ router.get('/', async (_req: Request, res: Response) => {
  *       200:
  *         description: Lista de extras aplicables al producto
  */
-router.get('/producto/:productoId', async (req: Request, res: Response) => {
+router.get('/producto/:productoId', cache('productos-extra', 300), async (req: Request, res: Response) => {
   const result = await ProductosExtraController.getByProducto(Number(req.params.productoId));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -60,7 +61,7 @@ router.get('/producto/:productoId', async (req: Request, res: Response) => {
  *       404:
  *         description: Extra no encontrado
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', cache('productos-extra', 300), async (req: Request, res: Response) => {
   const result = await ProductosExtraController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -101,6 +102,7 @@ router.post(
   validate(schemaProductoExtraCreate),
   async (req: Request, res: Response) => {
     const result = await ProductosExtraController.create(req.body);
+    if (result.status < 300) await invalidateTags('productos-extra');
     res.status(result.status).json({ data: result.data, error: result.error });
   }
 );
@@ -130,6 +132,7 @@ router.patch(
   validate(schemaProductoExtraUpdate),
   async (req: Request, res: Response) => {
     const result = await ProductosExtraController.update(Number(req.params.id), req.body);
+    if (result.status < 300) await invalidateTags('productos-extra');
     res.status(result.status).json({ data: result.data, error: result.error });
   }
 );
@@ -154,6 +157,7 @@ router.patch(
  */
 router.delete('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
   const result = await ProductosExtraController.delete(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('productos-extra');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

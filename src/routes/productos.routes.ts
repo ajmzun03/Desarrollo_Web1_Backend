@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { ProductosController } from '../controllers/productos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaProducto, schemaProductoUpdate, schemaProductoStockMinimo } from '../schemas/producto.schema.js';
 
 const router: Router = Router();
@@ -19,7 +20,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', cache('productos', 300), async (_req: Request, res: Response) => {
   const result = await ProductosController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -43,7 +44,7 @@ router.get('/', async (_req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/disponibilidad', async (req: Request, res: Response) => {
+router.get('/disponibilidad', cache('productos-disponibilidad', 5), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await ProductosController.getDisponibilidad(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -74,7 +75,7 @@ router.get('/disponibilidad', async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/stock', authenticate, async (req: Request, res: Response) => {
+router.get('/stock', authenticate, cache('productos-stock', 5), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await ProductosController.getStock(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -101,7 +102,7 @@ router.get('/stock', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', cache('productos', 300), async (req: Request, res: Response) => {
   const result = await ProductosController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -149,6 +150,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaProducto), async (req: Request, res: Response) => {
   const result = await ProductosController.create(req.body);
+  if (result.status < 300) await invalidateTags('productos', 'productos-stock', 'productos-disponibilidad');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -198,6 +200,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schem
  */
 router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaProductoUpdate), async (req: Request, res: Response) => {
   const result = await ProductosController.update(Number(req.params.id), req.body);
+  if (result.status < 300) await invalidateTags('productos', 'productos-stock', 'productos-disponibilidad');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

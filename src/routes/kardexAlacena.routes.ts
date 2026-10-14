@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { KardexAlacenaController } from '../controllers/kardexAlacena.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { cache } from '../middleware/cache.js';
 
 const router: Router = Router();
 
@@ -29,7 +30,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener kardex de alacena
  */
-router.get('/', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN'), cache('kardex-alacena', 30), async (req: Request, res: Response) => {
   const alacenaId = req.query.alacena_id ? Number(req.query.alacena_id) : undefined;
   const result = await KardexAlacenaController.getAll(alacenaId);
   res.status(result.status).json({ data: result.data, error: result.error });

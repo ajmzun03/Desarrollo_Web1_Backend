@@ -1,6 +1,6 @@
 import { db } from "./db.model.js"
 import { usuarioTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import type { IUsuarioModel } from "../../types.js";
 import type { InsertUsuario, SelectUsuario, UpdateUsuario } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
@@ -28,7 +28,7 @@ export const UsuarioModel: IUsuarioModel = {
         const usuario = await db.select(columnasSeguras).from(usuarioTable).where(eq(usuarioTable.id, id));
         if (!usuario[0]) {
             logger.warn(`Usuario con id ${id} no encontrado`);
-            throw new Error("Usuario no encontrado");
+            return null;
         }
         logger.info(`Usuario con id ${id} encontrado`);
         return usuario[0];
@@ -40,6 +40,17 @@ export const UsuarioModel: IUsuarioModel = {
             return null;
         }
         logger.info(`Usuario con nombre ${usuario} encontrado`);
+        return usuarios[0];
+    },
+    async getByUsuarioOrCorreo(identificador: string): Promise<SelectUsuario | null> {
+        const usuarios = await db.select().from(usuarioTable)
+            .where(or(eq(usuarioTable.usuario, identificador), eq(usuarioTable.correo_electronico, identificador)))
+            .limit(1);
+        if (!usuarios[0]) {
+            logger.warn(`Usuario con identificador ${identificador} no encontrado`);
+            return null;
+        }
+        logger.info(`Usuario con identificador ${identificador} encontrado`);
         return usuarios[0];
     },
     async getByRol(rol: string): Promise<Omit<SelectUsuario, 'contrasenia'>[]> {
