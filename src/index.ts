@@ -49,6 +49,7 @@ import { IS_PROD } from "./config.js";
 import { connectRedis, redisHealth } from "./services/redis.js";
 
 
+
 const app = express();
 
 if (IS_PROD) app.set('trust proxy', 1) // trust first proxy
