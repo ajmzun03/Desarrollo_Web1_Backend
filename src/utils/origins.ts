@@ -10,11 +10,6 @@ const ORIGENES_DEV = [
   'https://desarrollo-web1-backend.onrender.com'
 ]
 
-/**
- * Orígenes aceptados por CORS. En producción DEBE definirse CORS_ORIGINS
- * (separado por coma). En dev se usa la lista local si la env var está vacía.
- * Nunca se usa '*' (inseguro con credentials).
- */
 function obtenerOrigenes(): string[] {
   if (CORS_ORIGINS.trim()) {
     return CORS_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
