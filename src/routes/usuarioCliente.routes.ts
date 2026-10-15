@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import { UsuarioClienteController } from '../controllers/usuarioCliente.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { crearAuthLimiter } from '../middleware/authRateLimit.js';
 import {
   schemaClienteRegistro,
   schemaClienteLogin,
@@ -13,14 +13,11 @@ import {
 
 const router: Router = Router();
 
-// Rate limit estricto para login/verificación: 5 intentos por 15 min por IP
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 5,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  message: { data: null, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' }
-});
+// Limitadores separados (aciertos no consumen intentos; clave IP + correo)
+const loginLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
+const verificarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 15 });
+const recuperarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 5, porIdentificador: true });
+const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
 
 /**
  * @openapi
@@ -87,7 +84,7 @@ router.post('/registro', validate(schemaClienteRegistro), async (req: Request, r
  *       401:
  *         description: Credenciales inválidas
  */
-router.post('/login', authLimiter, validate(schemaClienteLogin), async (req: Request, res: Response) => {
+router.post('/login', loginLimiter, validate(schemaClienteLogin), async (req: Request, res: Response) => {
   const { correo_electronico, contrasenia } = req.body;
   const result = await UsuarioClienteController.login(correo_electronico, contrasenia);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -117,7 +114,7 @@ router.post('/login', authLimiter, validate(schemaClienteLogin), async (req: Req
  *       401:
  *         description: Código incorrecto, expirado o token temporal inválido
  */
-router.post('/verificar', authLimiter, validate(schemaClienteVerificar), async (req: Request, res: Response) => {
+router.post('/verificar', verificarLimiter, validate(schemaClienteVerificar), async (req: Request, res: Response) => {
   const { tmpToken, codigo } = req.body;
   const result = await UsuarioClienteController.verificarCodigo(tmpToken, codigo);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -144,7 +141,7 @@ router.post('/verificar', authLimiter, validate(schemaClienteVerificar), async (
  *       202:
  *         description: Si el correo existe, se envió un código (respuesta genérica)
  */
-router.post('/recuperar', validate(schemaClienteRecuperar), async (req: Request, res: Response) => {
+router.post('/recuperar', recuperarLimiter, validate(schemaClienteRecuperar), async (req: Request, res: Response) => {
   const { correo_electronico } = req.body;
   const result = await UsuarioClienteController.recuperarContrasenia(correo_electronico);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -178,7 +175,7 @@ router.post('/recuperar', validate(schemaClienteRecuperar), async (req: Request,
  *       401:
  *         description: Código incorrecto o expirado
  */
-router.post('/restablecer', validate(schemaClienteRestablecer), async (req: Request, res: Response) => {
+router.post('/restablecer', restablecerLimiter, validate(schemaClienteRestablecer), async (req: Request, res: Response) => {
   const result = await UsuarioClienteController.restablecerContrasenia(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

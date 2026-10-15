@@ -40,7 +40,7 @@ export const FacturasVentaController = {
         serie: data.serie,
         numero: data.numero,
         fecha_emision: data.fecha_emision,
-        total: data.total
+        total: String(data.total)
       });
       return { data: nuevaFactura, error: null, status: 201 };
     } catch (error) {

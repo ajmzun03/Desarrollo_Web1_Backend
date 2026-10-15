@@ -94,7 +94,9 @@ export const sucursalTable = pgTable('SUCURSAL', { //1 - Angel
 export const clienteTable = pgTable('CLIENTE', { //2 - Angel
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   nombre: varchar('nombre', { length: 100 }).notNull(),
-  correo_electronico: varchar('correo_electronico', { length: 255 }).notNull().unique(),
+  // Nullable: los clientes creados por personal (walk-in) pueden no tener correo;
+  // el registro de la app sí lo envía. El login por correo solo los encuentra si existe.
+  correo_electronico: varchar('correo_electronico', { length: 255 }).unique(),
   apellido: varchar('apellido', { length: 100 }).notNull(),
   telefono: varchar('telefono', { length: 50 }).unique().notNull(),
   telefono_ref: varchar('telefono_ref', { length: 50 }),
@@ -130,7 +132,8 @@ export const direccionTable = pgTable('DIRECCION', { //5 - Angel
 
 export const categoriaTable = pgTable('CATEGORIA', { //6 - Angel
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
-  categoria: varchar('categoria', { length: 100 }).notNull(), //aquí le cambié el nombre del campo a "categoria" porque se llamaba "descripcion"
+  categoria_id: integer('categoria_id').notNull().unique(),
+  descripcion: varchar('descripcion', { length: 100 }).notNull(),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -454,7 +457,6 @@ export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   telefono: varchar('telefono', { length: 50 }).unique().notNull(),
   contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
   rol: rolUsuarioEnum('rol_usuario').notNull(),
-  activo: boolean('activo').notNull().default(true),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 

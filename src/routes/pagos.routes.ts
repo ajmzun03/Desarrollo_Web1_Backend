@@ -10,7 +10,7 @@ const router: Router = Router();
  * @openapi
  * /pagos/checkout:
  *   post:
- *     summary: Crear una sesión de pago Stripe
+ *     summary: Crear una sesión de pago Stripe (monto tomado del pedido en el servidor)
  *     tags: [Pagos]
  *     requestBody:
  *       required: true
@@ -18,7 +18,7 @@ const router: Router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [items]
+ *             required: [items, pedido_id]
  *             properties:
  *               items:
  *                 type: array
@@ -57,7 +57,7 @@ router.post('/checkout', authenticate, validate(schemaCheckout), async (req: Aut
  * @openapi
  * /pagos/payment-intent:
  *   post:
- *     summary: Cobrar con tarjeta directamente desde el backend (PaymentIntent)
+ *     summary: Cobrar con tarjeta directamente desde el backend (monto tomado del pedido)
  *     tags: [Pagos]
  *     requestBody:
  *       required: true
@@ -65,7 +65,7 @@ router.post('/checkout', authenticate, validate(schemaCheckout), async (req: Aut
  *         application/json:
  *           schema:
  *             type: object
- *             required: [items]
+ *             required: [items, pedido_id]
  *             properties:
  *               items:
  *                 type: array
@@ -89,7 +89,7 @@ router.post('/checkout', authenticate, validate(schemaCheckout), async (req: Aut
  *                 example: pm_1...
  *               tarjeta:
  *                 type: object
- *                 description: Datos de tarjeta de prueba (solo test mode). Opcional si envias payment_method.
+ *                 description: Datos de tarjeta de prueba (SOLO desarrollo/test; rechazado en producción). Opcional si envias payment_method.
  *                 properties:
  *                   number:
  *                     type: string
@@ -105,7 +105,8 @@ router.post('/checkout', authenticate, validate(schemaCheckout), async (req: Aut
  *                     example: "314"
  *               pedido_id:
  *                 type: integer
- *                 description: ID del pedido asociado al pago (se guarda como metadata en Stripe)
+ *                 required: true
+ *                 description: ID del pedido a pagar. El monto cobrado es pedido.total (servidor); los montos de items se ignoran.
  *                 example: 1
  *     responses:
  *       201:
@@ -142,13 +143,15 @@ router.post('/payment-intent', authenticate, validate(schemaPagoCreate), async (
  *         description: Estado del pago
  *       401:
  *         description: No autenticado
+ *       403:
+ *         description: El pago no pertenece al usuario
  *       404:
  *         description: PaymentIntent no encontrado
  *       500:
  *         description: Error interno del servidor
  */
 router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
-  const result = await PagosController.getPaymentIntent(String(req.params.id));
+  const result = await PagosController.getPaymentIntent(String(req.params.id), req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

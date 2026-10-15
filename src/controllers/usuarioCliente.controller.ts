@@ -1,6 +1,6 @@
 import { UsuarioClienteModel } from '../model/supabase/usuarioCliente.model.js';
 import { ClienteModel } from '../model/supabase/cliente.model.js';
-import { hassPassword, comparePassword } from '../utils/hashPassword.js';
+import { hashPassword, comparePassword } from '../utils/hashPassword.js';
 import { generarToken, getInfoToToken } from '../utils/generateToken.js';
 import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGenerarCodigo } from '../services/otp.service.js';
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
@@ -25,7 +25,7 @@ export const UsuarioClienteController = {
         return { data: null, error: 'Ya existe una cuenta con este correo electrónico', status: 409 };
       }
 
-      const hashedPassword = await hassPassword(data.contrasenia);
+      const hashedPassword = await hashPassword(data.contrasenia);
       const resultado = await UsuarioClienteModel.create({
         cliente: {
           nombre: data.nombre,
@@ -258,7 +258,7 @@ export const UsuarioClienteController = {
         return { data: null, error: mensajes[verdict] ?? 'Código inválido', status: 401 };
       }
 
-      const hash = await hassPassword(data.nuevaContrasenia);
+      const hash = await hashPassword(data.nuevaContrasenia);
       const ok = await UsuarioClienteModel.updateContrasenia(clienteId, hash);
 
       if (!ok) {

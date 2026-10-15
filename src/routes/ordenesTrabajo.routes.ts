@@ -28,7 +28,7 @@ const router: Router = Router();
  *         required: false
  *         schema:
  *           type: string
- *           enum: [GENERADA, EN_PROCESO, ANULADA, FINALIZADA]
+ *           enum: [GENERADA, EN_PREPARACION, ANULADA, FINALIZADA]
  *         description: Filtrar órdenes por estado
  *     responses:
  *       200:
@@ -207,7 +207,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo
  *             properties:
  *               estado:
  *                 type: string
- *                 enum: [GENERADA, EN_PROCESO, ANULADA, FINALIZADA]
+ *                 enum: [GENERADA, EN_PREPARACION, ANULADA, FINALIZADA]
  *                 example: ANULADA
  *     responses:
  *       200:
@@ -234,7 +234,7 @@ router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaO
  * @openapi
  * /ordenes-trabajo/{id}/iniciar:
  *   patch:
- *     summary: Iniciar una orden de trabajo, pasa a EN_PROCESO (solo ADMIN)
+ *     summary: Iniciar una orden de trabajo, pasa a EN_PREPARACION (solo ADMIN)
  *     tags: [ÓrdenesTrabajo]
  *     security:
  *       - bearerAuth: []

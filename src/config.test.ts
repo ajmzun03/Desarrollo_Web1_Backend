@@ -61,4 +61,44 @@ describe('config.ts guardia de producción', () => {
     const config = await import('./config.js');
     expect(config.SALT_ROUND).toBe(14);
   });
+
+  describe('normalización de NODE_ENV (falla cerrado)', () => {
+    const secretos = { SECRET_KEY: 'secreta', DATABASE_URL: 'postgres://x' };
+
+    it('el valor legado "prod" cuenta como producción (no como dev)', async () => {
+      setEnv({ NODE_ENV: 'prod', ...secretos });
+      const config = await import('./config.js');
+      expect(config.IS_PROD).toBe(true);
+      expect(config.IS_DEV).toBe(false);
+    });
+
+    it('mayúsculas se normalizan: "Production" es producción', async () => {
+      setEnv({ NODE_ENV: 'Production', ...secretos });
+      const config = await import('./config.js');
+      expect(config.IS_PROD).toBe(true);
+    });
+
+    it('"TEST" cuenta como desarrollo', async () => {
+      setEnv({ NODE_ENV: 'TEST' });
+      const config = await import('./config.js');
+      expect(config.IS_DEV).toBe(true);
+      expect(config.IS_PROD).toBe(false);
+    });
+
+    it('un valor desconocido detiene el arranque (no asume dev)', async () => {
+      setEnv({ NODE_ENV: 'prd' });
+      await expect(import('./config.js')).rejects.toThrow(/NODE_ENV inválido/);
+    });
+
+    it('otro valor desconocido también detiene el arranque', async () => {
+      setEnv({ NODE_ENV: 'staging' });
+      await expect(import('./config.js')).rejects.toThrow(/NODE_ENV inválido/);
+    });
+
+    it('un "prod" desconocido NO obtiene el trato blando de dev', async () => {
+      // Sin secretos: si asumiera dev arrancaría; con la validación debe fallar.
+      setEnv({ NODE_ENV: 'produccion' });
+      await expect(import('./config.js')).rejects.toThrow(/NODE_ENV inválido/);
+    });
+  });
 });

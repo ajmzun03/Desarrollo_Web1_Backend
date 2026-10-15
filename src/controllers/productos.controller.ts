@@ -54,7 +54,7 @@ export const ProductosController = {
       if (!data.categoria_id || !data.unidad_medida_id || !data.producto || !data.precio) {
         return { data: null, error: 'categoria_id, unidad_medida_id, producto y precio son requeridos', status: 400 };
       }
-      const nuevoProducto = await ProductoModel.create(data);
+      const nuevoProducto = await ProductoModel.create({ ...data, precio: String(data.precio) });
       return { data: nuevoProducto, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create producto:');

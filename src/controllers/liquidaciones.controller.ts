@@ -35,7 +35,13 @@ export const LiquidacionesController = {
       if (!data.turno_id || !data.repartidor_id) {
         return { data: null, error: 'turno_id y repartidor_id son requeridos', status: 400 };
       }
-      const nuevaLiquidacion = await LiquidacionRepartidorModel.create(data);
+      const nuevaLiquidacion = await LiquidacionRepartidorModel.create({
+        turno_id: data.turno_id,
+        repartidor_id: data.repartidor_id,
+        monto_entregado_repartidor: data.monto_entregado_repartidor == null ? undefined : String(data.monto_entregado_repartidor),
+        monto_recaudado_efectivo: data.monto_recaudado_efectivo == null ? undefined : String(data.monto_recaudado_efectivo),
+        monto_recaudado_voucher: data.monto_recaudado_voucher == null ? undefined : String(data.monto_recaudado_voucher)
+      });
       return { data: nuevaLiquidacion, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create liquidacion:');

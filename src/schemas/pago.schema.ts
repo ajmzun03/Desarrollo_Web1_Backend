@@ -17,9 +17,11 @@ export const schemaTarjetaPago = z.object({
   cvc: z.string().min(3).max(4).optional(),
 }).strict();
 
+// NOTA: el monto cobrado SIEMPRE sale de pedido.total (servidor).
+// `items` es solo informativo/descriptivo: sus montos nunca se usan para cobrar.
 export const schemaCheckout = z.object({
   items: z.array(schemaItemPago).min(1, 'Debe haber al menos un item'),
-  pedido_id: z.number().int().positive().optional(),
+  pedido_id: z.number().int().positive('pedido_id es requerido'),
 }).strict();
 
 export const schemaPagoCreate = z
@@ -27,7 +29,7 @@ export const schemaPagoCreate = z
     items: z.array(schemaItemPago).min(1, 'Debe haber al menos un item'),
     payment_method: z.string().startsWith('pm_', 'payment_method inválido').optional(),
     tarjeta: schemaTarjetaPago.optional(),
-    pedido_id: z.number().int().positive().optional(),
+    pedido_id: z.number().int().positive('pedido_id es requerido'),
   })
   .strict()
   .refine(data => !!(data.payment_method || data.tarjeta), {

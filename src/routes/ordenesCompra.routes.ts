@@ -21,7 +21,7 @@ const router: Router = Router();
  *         required: false
  *         schema:
  *           type: string
- *           enum: [CREADA, EN_PROCESO, FINALIZADO, ANULADO]
+ *           enum: [CREADA, EN_PREPARACION, FINALIZADO, ANULADO]
  *         description: Filtra por estado de la orden
  *       - in: query
  *         name: sucursal_id
@@ -49,7 +49,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * @openapi
  * /ordenes-compra/programadas:
  *   get:
- *     summary: Listar órdenes de compra programadas (EN_PROCESO)
+ *     summary: Listar órdenes de compra programadas (EN_PREPARACION)
  *     tags: [ÓrdenesCompra]
  *     security:
  *       - bearerAuth: []
@@ -164,7 +164,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenCompra)
  * @openapi
  * /ordenes-compra/{id}/agendar:
  *   patch:
- *     summary: Agendar una orden de compra (cambia su estado a EN_PROCESO, solo ADMIN)
+ *     summary: Agendar una orden de compra (cambia su estado a EN_PREPARACION, solo ADMIN)
  *     tags: [ÓrdenesCompra]
  *     security:
  *       - bearerAuth: []
@@ -218,7 +218,7 @@ router.patch('/:id/agendar', authenticate, requireRole('ADMIN'), async (req: Req
  *             properties:
  *               estado:
  *                 type: string
- *                 enum: [CREADA, EN_PROCESO, FINALIZADO, ANULADO]
+ *                 enum: [CREADA, EN_PREPARACION, FINALIZADO, ANULADO]
  *                 example: FINALIZADO
  *     responses:
  *       200:
