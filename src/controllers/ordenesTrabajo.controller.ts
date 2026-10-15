@@ -1,6 +1,6 @@
 import { OrdenTrabajoModel } from '../model/supabase/ordenTrabajo.model.js';
 import logger from '../config/logger.js';
-import { RecetaDetalleModel } from '../model/supabase/receta.model.js';
+import { RecetaDetalleModel, RecetaModel } from '../model/supabase/receta.model.js';
 import { ProductoLoteModel } from '../model/supabase/productoLote.model.js';
 
 export const OrdenesTrabajoController = {
@@ -66,7 +66,7 @@ export const OrdenesTrabajoController = {
       const nuevaOrden = await OrdenTrabajoModel.create({
         sucursal_id: data.sucursal_id,
         receta_id: data.receta_id,
-        cantidad_produccion: data.cantidad_produccion,
+        cantidad_produccion: String(data.cantidad_produccion),
         estado: 'GENERADA'
       });
       return { data: nuevaOrden, error: null, status: 201 };
@@ -76,7 +76,7 @@ export const OrdenesTrabajoController = {
     }
   },
 
-  async updateEstado(id: number, estado: 'GENERADA' | 'EN_PROCESO' | 'ANULADA' | 'FINALIZADA') {
+  async updateEstado(id: number, estado: 'GENERADA' | 'EN_PREPARACION' | 'ANULADA' | 'FINALIZADA') {
     try {
       const orden = await OrdenTrabajoModel.update(id, { estado });
       if (!orden) {
@@ -91,7 +91,7 @@ export const OrdenesTrabajoController = {
 
   async iniciar(id: number) {
     try {
-      const orden = await OrdenTrabajoModel.update(id, { estado: 'EN_PROCESO' });
+      const orden = await OrdenTrabajoModel.update(id, { estado: 'EN_PREPARACION' });
       if (!orden) {
         return { data: null, error: 'Orden de trabajo no encontrada', status: 404 };
       }
@@ -108,8 +108,16 @@ export const OrdenesTrabajoController = {
       if (!orden) {
         return { data: null, error: 'Orden de trabajo no encontrada', status: 404 };
       }
+      if (!orden.receta_id) {
+        return { data: null, error: 'La orden de trabajo no tiene receta asociada', status: 400 };
+      }
+      const receta = await RecetaModel.getById(orden.receta_id);
+      if (!receta?.producto_id) {
+        return { data: null, error: 'La receta de la orden no tiene producto asociado', status: 400 };
+      }
       const lote = await ProductoLoteModel.create({
         orden_id: id,
+        producto_id: receta.producto_id,
         cantidad_inicial: orden.cantidad_produccion,
         cantidad_actual: orden.cantidad_produccion,
         estado: 'VIGENTE'

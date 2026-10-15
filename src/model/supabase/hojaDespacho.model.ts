@@ -32,6 +32,12 @@ export const HojaDespachoModel: IHojaDespachoModel = {
     return hojas;
   },
 
+  async getByRepartidorId(repartidorId: number): Promise<SelectHojaDespacho[]> {
+    const hojas = await db.select().from(hojaDespachoTable).where(eq(hojaDespachoTable.repartidor_id, repartidorId));
+    logger.info(`Se encontraron ${hojas.length} hojas de despacho para el repartidor ${repartidorId}`);
+    return hojas;
+  },
+
   async create(data: InsertHojaDespacho): Promise<SelectHojaDespacho> {
     const [result] = await db.insert(hojaDespachoTable).values({ ...data }).returning();
     if (result) {

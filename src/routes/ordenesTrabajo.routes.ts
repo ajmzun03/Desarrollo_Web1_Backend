@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { OrdenesTrabajoController } from '../controllers/ordenesTrabajo.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaOrdenTrabajo, schemaOrdenTrabajoEstado } from '../schemas/ordenTrabajo.schema.js';
 
 const router: Router = Router();
@@ -27,7 +28,7 @@ const router: Router = Router();
  *         required: false
  *         schema:
  *           type: string
- *           enum: [GENERADA, EN_PROCESO, ANULADA, FINALIZADA]
+ *           enum: [GENERADA, EN_PREPARACION, ANULADA, FINALIZADA]
  *         description: Filtrar órdenes por estado
  *     responses:
  *       200:
@@ -68,7 +69,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/cola', authenticate, async (req: Request, res: Response) => {
+router.get('/cola', authenticate, cache('ordenes-cola', 5), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await OrdenesTrabajoController.getCola(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -176,6 +177,7 @@ router.get('/:id/receta', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.create(req.body);
+  if (result.status < 300) await invalidateTags('ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -205,7 +207,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo
  *             properties:
  *               estado:
  *                 type: string
- *                 enum: [GENERADA, EN_PROCESO, ANULADA, FINALIZADA]
+ *                 enum: [GENERADA, EN_PREPARACION, ANULADA, FINALIZADA]
  *                 example: ANULADA
  *     responses:
  *       200:
@@ -223,6 +225,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo
  */
 router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajoEstado), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.updateEstado(Number(req.params.id), req.body.estado);
+  if (result.status < 300) await invalidateTags('ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -231,7 +234,7 @@ router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaO
  * @openapi
  * /ordenes-trabajo/{id}/iniciar:
  *   patch:
- *     summary: Iniciar una orden de trabajo, pasa a EN_PROCESO (solo ADMIN)
+ *     summary: Iniciar una orden de trabajo, pasa a EN_PREPARACION (solo ADMIN)
  *     tags: [ÓrdenesTrabajo]
  *     security:
  *       - bearerAuth: []
@@ -256,6 +259,7 @@ router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaO
  */
 router.patch('/:id/iniciar', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.iniciar(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -289,6 +293,7 @@ router.patch('/:id/iniciar', authenticate, requireRole('ADMIN'), async (req: Req
  */
 router.patch('/:id/terminar', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.terminar(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('ordenes-cola', 'productos-stock', 'productos-disponibilidad');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

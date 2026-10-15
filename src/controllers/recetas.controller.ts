@@ -1,5 +1,6 @@
 import { RecetaModel, RecetaDetalleModel } from '../model/supabase/receta.model.js';
 import logger from '../config/logger.js';
+import { crearReceta } from '../services/recetas.service.js';
 
 export const RecetasController = {
   async getAll() {
@@ -31,22 +32,8 @@ export const RecetasController = {
       if (!data.producto_id || !data.nombre || !data.cantidad_lote) {
         return { data: null, error: 'producto_id, nombre y cantidad_lote son requeridos', status: 400 };
       }
-      const nuevaReceta = await RecetaModel.create({
-        producto_id: data.producto_id,
-        nombre: data.nombre,
-        cantidad_lote: data.cantidad_lote
-      });
-      if (data.items && Array.isArray(data.items)) {
-        for (const item of data.items) {
-          await RecetaDetalleModel.create({
-            receta_id: Number(nuevaReceta.id),
-            materia_prima_id: item.materia_prima_id,
-            cantidad_necesaria: item.cantidad_necesaria
-          });
-        }
-      }
-      const detalles = await RecetaDetalleModel.getByRecetaId(Number(nuevaReceta.id));
-      return { data: { ...nuevaReceta, detalles }, error: null, status: 201 };
+      const nuevaReceta = await crearReceta(data);
+      return { data: nuevaReceta, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create receta:');
       return { data: null, error: 'Error al crear receta', status: 500 };

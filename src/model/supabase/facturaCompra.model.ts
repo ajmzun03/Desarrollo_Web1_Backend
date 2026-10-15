@@ -1,5 +1,5 @@
 import { db } from "./db.model.js"
-import { facturaCompraTable } from "../../schemas/db.schema.js";
+import { facturaCompraTable, hojaRecepcionTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IFacturaCompraModel } from "../../types.js";
 import type { InsertFacturaCompra, SelectFacturaCompra } from "../../schemas/db.schema.js";
@@ -30,6 +30,17 @@ export const FacturaCompraModel: IFacturaCompraModel = {
     const facturas = await db.select().from(facturaCompraTable).where(eq(facturaCompraTable.hoja_recepcion_id, hojaRecepcionId));
     logger.info(`Se encontraron ${facturas.length} facturas para la hoja de recepción ${hojaRecepcionId}`);
     return facturas;
+  },
+
+  async getByOrdenCompraId(ordenCompraId: number): Promise<SelectFacturaCompra[]> {
+    const facturas = await db
+      .select({ factura: facturaCompraTable })
+      .from(facturaCompraTable)
+      .innerJoin(hojaRecepcionTable, eq(facturaCompraTable.hoja_recepcion_id, hojaRecepcionTable.id))
+      .where(eq(hojaRecepcionTable.orden_compra_id, ordenCompraId));
+    const lista = facturas.map((r) => r.factura);
+    logger.info(`Se encontraron ${lista.length} facturas para la orden de compra ${ordenCompraId}`);
+    return lista;
   },
 
   async create(data: InsertFacturaCompra): Promise<SelectFacturaCompra> {

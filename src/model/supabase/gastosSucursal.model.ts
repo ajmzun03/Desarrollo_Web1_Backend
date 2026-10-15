@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { gastosSucursalTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IGastosSucursalModel } from "../../types.js";
@@ -32,8 +32,8 @@ export const GastosSucursalModel: IGastosSucursalModel = {
     return gastos;
   },
 
-  async create(data: InsertGastosSucursal): Promise<SelectGastosSucursal> {
-    const [result] = await db.insert(gastosSucursalTable).values({ ...data }).returning();
+  async create(data: InsertGastosSucursal, executor: Tx = db): Promise<SelectGastosSucursal> {
+    const [result] = await executor.insert(gastosSucursalTable).values({ ...data }).returning();
     if (result) {
       logger.info("Gasto de sucursal creado exitosamente");
       return result;

@@ -1,5 +1,6 @@
 import { OrdenCompraModel, DetalleOrdenCompraModel } from '../model/supabase/ordenCompra.model.js';
 import logger from '../config/logger.js';
+import { crearOrdenCompra } from '../services/ordenesCompra.service.js';
 
 export const OrdenesCompraController = {
   async getAll(estado?: string, sucursalId?: number) {
@@ -21,7 +22,7 @@ export const OrdenesCompraController = {
 
   async getProgramadas(bodegaId?: number) {
     try {
-      const ordenes = await OrdenCompraModel.getByEstado('EN_PROCESO');
+      const ordenes = await OrdenCompraModel.getByEstado('EN_PREPARACION');
       return { data: ordenes, error: null, status: 200 };
     } catch (error) {
       logger.error({ error }, 'Error get ordenes-compra programadas:');
@@ -48,23 +49,8 @@ export const OrdenesCompraController = {
       if (!data.proveedor_id || !data.sucursal_destino || !data.items || !Array.isArray(data.items)) {
         return { data: null, error: 'proveedor_id, sucursal_destino y items son requeridos', status: 400 };
       }
-      const nuevaOrden = await OrdenCompraModel.create({
-        proveedor_id: data.proveedor_id,
-        sucursal_destino: data.sucursal_destino,
-        estado_orden: 'CREADA'
-      });
-      for (const item of data.items) {
-        const subtotal = item.cantidad_solicitada * item.precio_unitario;
-        await DetalleOrdenCompraModel.create({
-          orden_compra_id: Number(nuevaOrden.id),
-          materia_prima_id: item.materia_prima_id,
-          cantidad_solicitada: item.cantidad_solicitada,
-          precio_unitario: item.precio_unitario,
-          subtotal
-        });
-      }
-      const detalles = await DetalleOrdenCompraModel.getByOrdenCompraId(Number(nuevaOrden.id));
-      return { data: { ...nuevaOrden, detalles }, error: null, status: 201 };
+      const nuevaOrden = await crearOrdenCompra(data);
+      return { data: nuevaOrden, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create orden-compra:');
       return { data: null, error: 'Error al crear orden de compra', status: 500 };
@@ -73,7 +59,7 @@ export const OrdenesCompraController = {
 
   async agendar(id: number) {
     try {
-      const orden = await OrdenCompraModel.update(id, { estado_orden: 'EN_PROCESO' });
+      const orden = await OrdenCompraModel.update(id, { estado_orden: 'EN_PREPARACION' });
       if (!orden) {
         return { data: null, error: 'Orden de compra no encontrada', status: 404 };
       }
@@ -84,7 +70,7 @@ export const OrdenesCompraController = {
     }
   },
 
-  async updateEstado(id: number, estado: 'CREADA' | 'EN_PROCESO' | 'FINALIZADO' | 'ANULADO') {
+  async updateEstado(id: number, estado: 'CREADA' | 'EN_PREPARACION' | 'FINALIZADO' | 'ANULADO') {
     try {
       const orden = await OrdenCompraModel.update(id, { estado_orden: estado });
       if (!orden) {

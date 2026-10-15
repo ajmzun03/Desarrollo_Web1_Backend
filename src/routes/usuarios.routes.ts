@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { UsuariosController } from '../controllers/usuarios.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { schemaUsuario } from '../schemas/usuario.schema.js';
+import { schemaUsuario, schemaUsuarioUpdate } from '../schemas/usuario.schema.js';
 
 const router: Router = Router();
 
@@ -68,7 +68,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [usuario, correo_electronico, contrasenia, rol]
+ *             required: [usuario, correo_electronico, telefono, contrasenia, rol]
  *             properties:
  *               usuario:
  *                 type: string
@@ -77,6 +77,10 @@ router.get('/:id', async (req: Request, res: Response) => {
  *                 type: string
  *                 format: email
  *                 example: carlos@correo.com
+ *               telefono:
+ *                 type: string
+ *                 description: Entre 7 y 15 dígitos, sin espacios ni símbolos. Recibe el código del 2FA.
+ *                 example: 55551234
  *               contrasenia:
  *                 type: string
  *                 format: password
@@ -131,7 +135,7 @@ router.post('/', validate(schemaUsuario), async (req: Request, res: Response) =>
  *       404:
  *         description: Usuario no encontrado
  */
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', validate(schemaUsuarioUpdate), async (req: Request, res: Response) => {
   const result = await UsuariosController.update(Number(req.params.id), req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

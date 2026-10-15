@@ -1,5 +1,5 @@
 import { db } from "./db.model.js"
-import { productoLoteTable } from "../../schemas/db.schema.js";
+import { productoLoteTable, ordenTrabajoTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IProductoLoteModel } from "../../types.js";
 import type { InsertProductoLote, SelectProductoLote, UpdateProductoLote } from "../../schemas/db.schema.js";
@@ -29,6 +29,16 @@ export const ProductoLoteModel: IProductoLoteModel = {
   async getByOrdenId(ordenId: number): Promise<SelectProductoLote[]> {
     const lotes = await db.select().from(productoLoteTable).where(eq(productoLoteTable.orden_id, ordenId));
     logger.info(`Se encontraron ${lotes.length} lotes de producto para la orden ${ordenId}`);
+    return lotes;
+  },
+
+  async getBySucursalId(sucursalId: number): Promise<SelectProductoLote[]> {
+    const rows = await db.select({ lote: productoLoteTable })
+      .from(productoLoteTable)
+      .innerJoin(ordenTrabajoTable, eq(ordenTrabajoTable.id, productoLoteTable.orden_id))
+      .where(eq(ordenTrabajoTable.sucursal_id, sucursalId));
+    const lotes = rows.map(r => r.lote);
+    logger.info(`Se encontraron ${lotes.length} lotes de producto para la sucursal ${sucursalId}`);
     return lotes;
   },
 

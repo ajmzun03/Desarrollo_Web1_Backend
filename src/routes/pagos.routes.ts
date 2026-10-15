@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 import { PagosController } from '../controllers/pagos.controller.js';
+import { authenticate, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { schemaPagoCreate } from '../schemas/pago.schema.js';
+import { schemaPagoCreate, schemaCheckout } from '../schemas/pago.schema.js';
 
 const router: Router = Router();
 
@@ -9,7 +10,7 @@ const router: Router = Router();
  * @openapi
  * /pagos/checkout:
  *   post:
- *     summary: Crear una sesión de pago Stripe
+ *     summary: Crear una sesión de pago Stripe (monto tomado del pedido en el servidor)
  *     tags: [Pagos]
  *     requestBody:
  *       required: true
@@ -17,7 +18,7 @@ const router: Router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [items]
+ *             required: [items, pedido_id]
  *             properties:
  *               items:
  *                 type: array
@@ -39,12 +40,16 @@ const router: Router = Router();
  *       201:
  *         description: Sesión creada, devuelve la URL de pago
  *       400:
- *         description: items es requerido
+ *         description: items es requerido o inválido
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: El pedido no pertenece al usuario
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/checkout', async (req: Request, res: Response) => {
-  const result = await PagosController.createCheckout(req.body);
+router.post('/checkout', authenticate, validate(schemaCheckout), async (req: AuthRequest, res: Response) => {
+  const result = await PagosController.createCheckout(req.body, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -52,7 +57,7 @@ router.post('/checkout', async (req: Request, res: Response) => {
  * @openapi
  * /pagos/payment-intent:
  *   post:
- *     summary: Cobrar con tarjeta directamente desde el backend (PaymentIntent)
+ *     summary: Cobrar con tarjeta directamente desde el backend (monto tomado del pedido)
  *     tags: [Pagos]
  *     requestBody:
  *       required: true
@@ -60,7 +65,7 @@ router.post('/checkout', async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [items]
+ *             required: [items, pedido_id]
  *             properties:
  *               items:
  *                 type: array
@@ -84,7 +89,7 @@ router.post('/checkout', async (req: Request, res: Response) => {
  *                 example: pm_1...
  *               tarjeta:
  *                 type: object
- *                 description: Datos de tarjeta de prueba (solo test mode). Opcional si envias payment_method.
+ *                 description: Datos de tarjeta de prueba (SOLO desarrollo/test; rechazado en producción). Opcional si envias payment_method.
  *                 properties:
  *                   number:
  *                     type: string
@@ -100,18 +105,23 @@ router.post('/checkout', async (req: Request, res: Response) => {
  *                     example: "314"
  *               pedido_id:
  *                 type: integer
- *                 description: ID del pedido asociado al pago (se guarda como metadata en Stripe)
+ *                 required: true
+ *                 description: ID del pedido a pagar. El monto cobrado es pedido.total (servidor); los montos de items se ignoran.
  *                 example: 1
  *     responses:
  *       201:
  *         description: Pago procesado, devuelve el id y status del PaymentIntent
  *       400:
  *         description: items requeridos, o tarjeta/payment_method inválidos
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: El pedido no pertenece al usuario
  *       500:
  *         description: Error al procesar el pago
  */
-router.post('/payment-intent', validate(schemaPagoCreate), async (req: Request, res: Response) => {
-  const result = await PagosController.createPaymentIntent(req.body);
+router.post('/payment-intent', authenticate, validate(schemaPagoCreate), async (req: AuthRequest, res: Response) => {
+  const result = await PagosController.createPaymentIntent(req.body, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -131,13 +141,17 @@ router.post('/payment-intent', validate(schemaPagoCreate), async (req: Request, 
  *     responses:
  *       200:
  *         description: Estado del pago
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: El pago no pertenece al usuario
  *       404:
  *         description: PaymentIntent no encontrado
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', async (req: Request, res: Response) => {
-  const result = await PagosController.getPaymentIntent(String(req.params.id));
+router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
+  const result = await PagosController.getPaymentIntent(String(req.params.id), req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
