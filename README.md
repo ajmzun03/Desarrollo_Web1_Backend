@@ -4,7 +4,7 @@ API REST para el sistema de gestión del restaurante COPAC. Construida con **Exp
 
 ## Requisitos
 
-- Node.js 20+
+- Node.js 22+
 - pnpm 9+
 - Una instancia de Supabase/Postgres
 - Redis (obligatorio en producción para 2FA; opcional en dev)
