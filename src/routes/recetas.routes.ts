@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { RecetasController } from '../controllers/recetas.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaReceta, schemaRecetaUpdate } from '../schemas/receta.schema.js';
 
 const router: Router = Router();
@@ -23,7 +24,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (_req: Request, res: Response) => {
+router.get('/', authenticate, cache('recetas', 300), async (_req: Request, res: Response) => {
   const result = await RecetasController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -54,7 +55,7 @@ router.get('/', authenticate, async (_req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, cache('recetas', 300), async (req: Request, res: Response) => {
   const result = await RecetasController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -111,6 +112,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('ADMIN'), validate(schemaReceta), async (req: Request, res: Response) => {
   const result = await RecetasController.create(req.body);
+  if (result.status < 300) await invalidateTags('recetas');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -159,6 +161,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaReceta), asy
  */
 router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaRecetaUpdate), async (req: Request, res: Response) => {
   const result = await RecetasController.update(Number(req.params.id), req.body);
+  if (result.status < 300) await invalidateTags('recetas');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

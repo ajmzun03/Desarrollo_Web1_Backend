@@ -13,6 +13,10 @@ export const schemaUsuario = z.object({
         .toLowerCase()
         .email("El correo electrónico no es válido")
         .max(255, "El correo electrónico no puede tener más de 255 caracteres"),
+    // Requerido: la tabla lo exige y el 2FA envía el código a este teléfono
+    telefono: z.string()
+        .trim()
+        .regex(/^\d{7,15}$/, "El teléfono debe tener entre 7 y 15 dígitos, sin espacios ni símbolos"),
     contrasenia: z.string()
         .min(8, "La contraseña debe tener al menos 8 caracteres")
         .max(50, "La contraseña no puede tener más de 50 caracteres"),
@@ -20,6 +24,9 @@ export const schemaUsuario = z.object({
         message: `El rol debe ser uno de los siguientes: ${estadoRolEnum.join(', ')}`
     }),
 })
+
+// PATCH: campos opcionales, pero se rechazan campos desconocidos (strict)
+export const schemaUsuarioUpdate = schemaUsuario.partial().strict()
 
 export function validateUsuario(object: any) {
     return schemaUsuario.safeParse(object)

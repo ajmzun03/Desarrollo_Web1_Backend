@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { ReportesController } from '../controllers/reportes.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { cache } from '../middleware/cache.js';
 
 const router: Router = Router();
 
@@ -36,7 +37,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener reporte de utilidad diaria
  */
-router.get('/utilidad-diaria', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.get('/utilidad-diaria', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const fecha = req.query.fecha as string | undefined;
   const result = await ReportesController.getUtilidadDiaria(sucursalId, fecha);
@@ -82,7 +83,7 @@ router.get('/utilidad-diaria', authenticate, requireRole('ADMIN'), async (req: R
  *       500:
  *         description: Error al obtener reporte de gastos operativos
  */
-router.get('/gastos-operativos', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.get('/gastos-operativos', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
   const desde = req.query.desde as string | undefined;
   const hasta = req.query.hasta as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
@@ -129,7 +130,7 @@ router.get('/gastos-operativos', authenticate, requireRole('ADMIN'), async (req:
  *       500:
  *         description: Error al obtener reporte de anulaciones
  */
-router.get('/anulaciones', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.get('/anulaciones', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
   const desde = req.query.desde as string | undefined;
   const hasta = req.query.hasta as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
@@ -182,7 +183,7 @@ router.get('/anulaciones', authenticate, requireRole('ADMIN'), async (req: Reque
  *       500:
  *         description: Error al obtener auditoría de movimientos
  */
-router.get('/auditoria/movimientos', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.get('/auditoria/movimientos', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
   const tipo = req.query.tipo as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const desde = req.query.desde as string | undefined;
@@ -216,7 +217,7 @@ router.get('/auditoria/movimientos', authenticate, requireRole('ADMIN'), async (
  *       500:
  *         description: Error al obtener repartidores disponibles
  */
-router.get('/repartidores/disponibles', authenticate, requireRole('ADMIN', 'DESPACHADOR'), async (req: Request, res: Response) => {
+router.get('/repartidores/disponibles', authenticate, requireRole('ADMIN', 'DESPACHADOR'), cache('reportes', 60), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await ReportesController.getRepartidoresDisponibles(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });

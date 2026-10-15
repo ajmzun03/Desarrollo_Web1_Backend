@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { HojasDespachoController } from '../controllers/hojasDespacho.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache } from '../middleware/cache.js';
 import { schemaHojaDespacho } from '../schemas/hojaDespacho.schema.js';
 
 const router: Router = Router();
@@ -25,7 +26,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, requireRole('DESPACHADOR', 'ADMIN'), async (_req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('DESPACHADOR', 'ADMIN'), cache('hojas-despacho', 30), async (_req: Request, res: Response) => {
   const result = await HojasDespachoController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });

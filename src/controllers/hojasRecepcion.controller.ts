@@ -1,7 +1,6 @@
 import { HojaRecepcionModel, HojaRecepcionDetalleModel } from '../model/supabase/hojaRecepcion.model.js';
 import logger from '../config/logger.js';
-import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
-import { KardexBodegaModel } from '../model/supabase/kardexBodega.model.js';
+import { crearHojaRecepcion } from '../services/recepcion.service.js';
 
 export const HojasRecepcionController = {
   async getAll(sucursalId?: number) {
@@ -38,38 +37,8 @@ export const HojasRecepcionController = {
       if (!data.sucursal_receptora || !data.items || !Array.isArray(data.items)) {
         return { data: null, error: 'sucursal_receptora y items son requeridos', status: 400 };
       }
-      const nuevaHoja = await HojaRecepcionModel.create({
-        sucursal_receptora: data.sucursal_receptora,
-        orden_compra_id: data.orden_compra_id,
-        tipo_recepcion: data.tipo_recepcion || 'TOTAL'
-      });
-      for (const item of data.items) {
-        const saldo = item.cantidad_recibida - (item.merma || 0);
-        const detalle = await HojaRecepcionDetalleModel.create({
-          hoja_recepcion_id: Number(nuevaHoja.id),
-          materia_prima_id: item.materia_prima_id,
-          cantidad_recibida: item.cantidad_recibida,
-          fecha_vencimiento: item.fecha_vencimiento,
-          merma: item.merma || 0,
-          saldo: saldo,
-          estado: saldo > 0 ? 'COMPLETA' : 'INCOMPLETA'
-        });
-        const lote = await LoteMateriaPrimaModel.create({
-          materia_prima_id: item.materia_prima_id,
-          fecha_vencimiento: item.fecha_vencimiento,
-          cantidad_inicial: saldo,
-          cantidad_actual: saldo,
-          estado: 'VIGENTE'
-        });
-        await KardexBodegaModel.create({
-          bodega_id: data.sucursal_receptora,
-          lote_id: Number(lote.id),
-          tipo_movimiento: 'INGRESO',
-          cantidad: saldo
-        });
-      }
-      const detalles = await HojaRecepcionDetalleModel.getByHojaRecepcionId(Number(nuevaHoja.id));
-      return { data: { ...nuevaHoja, detalles }, error: null, status: 201 };
+      const nuevaHoja = await crearHojaRecepcion(data);
+      return { data: nuevaHoja, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create hoja-recepcion:');
       return { data: null, error: 'Error al crear hoja de recepción', status: 500 };

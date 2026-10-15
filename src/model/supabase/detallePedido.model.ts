@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { detallePedidoTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IDetallePedidoModel } from "../../types.js";
@@ -12,8 +12,8 @@ export const DetallePedidoModel: IDetallePedidoModel = {
     return detalles;
   },
 
-  async create(data: InsertDetallePedido): Promise<SelectDetallePedido> {
-    const [result] = await db.insert(detallePedidoTable).values({ ...data }).returning();
+  async create(data: InsertDetallePedido, executor: Tx = db): Promise<SelectDetallePedido> {
+    const [result] = await executor.insert(detallePedidoTable).values({ ...data }).returning();
     if (result) {
       logger.info("Detalle de pedido creado exitosamente");
       return result;

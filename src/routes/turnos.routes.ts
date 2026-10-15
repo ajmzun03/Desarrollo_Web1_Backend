@@ -3,6 +3,7 @@ import { TurnosController } from '../controllers/turnos.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaTurnoApertura, schemaTurnoCierre, schemaTurnoValidar } from '../schemas/turno.schema.js';
+import { schemaSencillo } from '../schemas/inventario.schema.js';
 
 const router: Router = Router();
 
@@ -218,6 +219,51 @@ router.patch('/:id/cierre', authenticate, requireRole('DESPACHADOR', 'ADMIN'), v
  */
 router.patch('/:id/validar', authenticate, requireRole('ADMIN'), validate(schemaTurnoValidar), async (req: Request, res: Response) => {
   const result = await TurnosController.validar(Number(req.params.id), req.body.monto_cierre_sistema);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
+ * /turnos/{id}/sencillo:
+ *   post:
+ *     summary: Asignación de efectivo inicial al despachador (RF-002 Administración)
+ *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno abierto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [monto]
+ *             properties:
+ *               monto:
+ *                 type: number
+ *                 example: 500
+ *     responses:
+ *       200:
+ *         description: Sencillo asignado (acumulado al monto de apertura)
+ *       400:
+ *         description: Turno cerrado o monto inválido
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *       403:
+ *         description: No tiene el rol requerido (ADMIN)
+ *       404:
+ *         description: Turno no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/:id/sencillo', authenticate, requireRole('ADMIN'), validate(schemaSencillo), async (req: Request, res: Response) => {
+  const result = await TurnosController.sencillo(Number(req.params.id), req.body.monto);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

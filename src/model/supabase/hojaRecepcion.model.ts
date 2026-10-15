@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { hojaRecepcionTable, hojaRecepcionDetalleTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type { IHojaRecepcionModel, IHojaRecepcionDetalleModel } from "../../types.js";
@@ -32,8 +32,8 @@ export const HojaRecepcionModel: IHojaRecepcionModel = {
     return hojas;
   },
 
-  async create(data: InsertHojaRecepcion): Promise<SelectHojaRecepcion> {
-    const [result] = await db.insert(hojaRecepcionTable).values({ ...data }).returning();
+  async create(data: InsertHojaRecepcion, executor: Tx = db): Promise<SelectHojaRecepcion> {
+    const [result] = await executor.insert(hojaRecepcionTable).values({ ...data }).returning();
     if (result) {
       logger.info("Hoja de recepción creada exitosamente");
       return result;
@@ -60,8 +60,8 @@ export const HojaRecepcionDetalleModel: IHojaRecepcionDetalleModel = {
     return detalles;
   },
 
-  async create(data: InsertHojaRecepcionDetalle): Promise<SelectHojaRecepcionDetalle> {
-    const [result] = await db.insert(hojaRecepcionDetalleTable).values({ ...data }).returning();
+  async create(data: InsertHojaRecepcionDetalle, executor: Tx = db): Promise<SelectHojaRecepcionDetalle> {
+    const [result] = await executor.insert(hojaRecepcionDetalleTable).values({ ...data }).returning();
     if (result) {
       logger.info("Detalle de hoja de recepción creado exitosamente");
       return result;

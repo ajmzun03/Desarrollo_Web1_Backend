@@ -1,4 +1,4 @@
-import { pgTable, varchar, integer, bigint, timestamp, boolean, date, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, varchar, integer, bigint, timestamp, boolean, date, doublePrecision, numeric } from "drizzle-orm/pg-core";
 import { pgEnum } from "drizzle-orm/pg-core";
 
 export const movimientoEnum = pgEnum('movimiento', [
@@ -17,15 +17,17 @@ export const estadoLoteEnum = pgEnum('estado_lote', [
 
 export const estadoPedidoEnum = pgEnum('estado_pedido', [
   'CREADO',
+  'EN_PREPARACION',
   'LISTO',
   'ANULADO',
+  'EN_DESPACHO',
   'EN_RUTA',
   'ENTREGADO'
 ]);
 
 export const estadoOrdenCompraEnum = pgEnum('estado_orden_compra', [
   'CREADA',
-  'EN_PROCESO',
+  'EN_PREPARACION',
   'FINALIZADO',
   'ANULADO'
 ]);
@@ -42,7 +44,7 @@ export const estadoRecepcionEnum = pgEnum('estado_recepcion', [
 
 export const estadoOrdenTrabajoEnum = pgEnum('estado_orden_trabajo', [
   'GENERADA',
-  'EN_PROCESO',
+  'EN_PREPARACION',
   'ANULADA',
   'FINALIZADA'
 ]);
@@ -58,7 +60,11 @@ export const rolUsuarioEnum = pgEnum('rol_usuario', [
   'BODEGUERO',
   'DESPACHADOR',
   'REPARTIDOR',
-  'CAJERO'
+  'CAJERO',
+  'GERENTE',
+  'COMPRAS',
+  'COCINERO',
+  'JEFE_COCINA'
 ]);
 
 export const estadoSolicitudInsumoEnum = pgEnum('estado_solicitud_insumo', [
@@ -66,6 +72,16 @@ export const estadoSolicitudInsumoEnum = pgEnum('estado_solicitud_insumo', [
   'ENVIADA',
   'RECIBIDA',
   'CANCELADA'
+]);
+
+export const metodoPagoEnum = pgEnum('metodo_pago', [
+  'EFECTIVO',
+  'TARJETA'
+]);
+
+export const tipoEntregaEnum = pgEnum('tipo_entrega', [
+  'DOMICILIO',
+  'RECOGER'
 ]);
 
 export const sucursalTable = pgTable('SUCURSAL', { //1 - Angel
@@ -78,9 +94,20 @@ export const sucursalTable = pgTable('SUCURSAL', { //1 - Angel
 export const clienteTable = pgTable('CLIENTE', { //2 - Angel
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   nombre: varchar('nombre', { length: 100 }).notNull(),
+  // Nullable: los clientes creados por personal (walk-in) pueden no tener correo;
+  // el registro de la app sí lo envía. El login por correo solo los encuentra si existe.
+  correo_electronico: varchar('correo_electronico', { length: 255 }).unique(),
   apellido: varchar('apellido', { length: 100 }).notNull(),
-  telefono: varchar('telefono', { length: 50 }).notNull().unique(),
-  telefono_ref: varchar('telefono_ref', { length: 50 }).notNull().unique(),
+  telefono: varchar('telefono', { length: 50 }).unique().notNull(),
+  telefono_ref: varchar('telefono_ref', { length: 50 }),
+  creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
+})
+
+export const UsuarioClienteTable = pgTable('USUARIO_CLIENTE', {
+  id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+  cliente_id: bigint('cliente_id', { mode: 'number' }).notNull().references(() => clienteTable.id),
+  contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
+  activo: boolean('activo').notNull().default(true),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -106,7 +133,7 @@ export const direccionTable = pgTable('DIRECCION', { //5 - Angel
 export const categoriaTable = pgTable('CATEGORIA', { //6 - Angel
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   categoria_id: integer('categoria_id').notNull().unique(),
-  descripcion: varchar('descripcion', { length: 100 }).notNull(), //aquí le cambié el nombre del campo a "descripcion" porque se llamaba categoría
+  descripcion: varchar('descripcion', { length: 100 }).notNull(),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -131,8 +158,8 @@ export const loteMateriaPrimaTable = pgTable('LOTE_MATERIA_PRIMA', { //9 - Angel
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   materia_prima_id: integer('materia_prima_id').notNull().references(() => materiaPrimaTable.id),
   fecha_vencimiento: date('fecha_vencimiento', { mode: 'string' }).notNull(),
-  cantidad_inicial: doublePrecision('cantidad_inicial').notNull(),
-  cantidad_actual: doublePrecision('cantidad_actual').notNull(),
+  cantidad_inicial: numeric({ precision: 10, scale: 2 }).notNull(),
+  cantidad_actual: numeric({ precision: 10, scale: 2 }).notNull(),
   estado: estadoLoteEnum('estado').notNull().default('VIGENTE'),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
@@ -154,8 +181,8 @@ export const kardexBodegaTable = pgTable('KARDEX_BODEGA', { //12 - Angel
   bodega_id: integer('bodega_id').notNull().references(() => bodegaTable.id),
   lote_id: bigint('lote_id', { mode: 'number' }).notNull().references(() => loteMateriaPrimaTable.id),
   tipo_movimiento: movimientoEnum('movimiento').notNull(),
-  cantidad: doublePrecision('cantidad').notNull(),
-  fecha_movimiento: timestamp('fecha_movimiento', { mode: 'string' }).notNull().defaultNow() //este campo no esta agregado en las tablas originales, lo dejo?  
+  cantidad: numeric({ precision: 10, scale: 2 }).notNull(),
+  fecha_movimiento: timestamp('fecha_movimiento', { mode: 'string' }).notNull().defaultNow()
 })
 
 export const alacenaTable = pgTable('ALACENA', { //13 - Angel
@@ -176,7 +203,7 @@ export const kardexAlacenaTable = pgTable('KARDEX_ALACENA', { //15 - Adrian
   alacena_id: integer('alacena_id').references(() => alacenaTable.id),
   lote_id: bigint('lote_id', { mode: 'number' }).references(() => loteMateriaPrimaTable.id),
   tipo_movimiento: movimientoEnum('movimiento').notNull(),
-  cantidad: doublePrecision('cantidad').notNull(),
+  cantidad: numeric({ precision: 10, scale: 2 }).notNull(),
   fecha_movimiento: timestamp('fecha_movimiento', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -185,7 +212,25 @@ export const productoTable = pgTable('PRODUCTO', { //16 - Adrian
   categoria_id: integer('categoria_id').notNull().references(() => categoriaTable.id),
   unidad_medida_id: integer('unidad_medida_id').notNull().references(() => unidadMedidaTable.id),
   producto: varchar('producto', { length: 150 }).notNull(),
-  precio: doublePrecision('precio').notNull()
+  precio: numeric({ precision: 10, scale: 2 }).notNull(),
+  imagen_url: varchar('imagen_url', { length: 255 }),
+  descripcion: varchar('descripcion', { length: 255 }),
+  activo: boolean('activo').notNull().default(true)
+})
+
+export const comboTable = pgTable('COMBO', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  nombre: varchar('nombre', { length: 100 }).notNull(),
+  precio: numeric({ precision: 10, scale: 2 }).notNull(),
+  imagen: varchar('imagen', { length: 255 }),
+  activo: boolean('activo').notNull().default(true)
+})
+
+export const comboDetalleTable = pgTable('COMBO_DETALLE',{
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  combo_id: integer('combo_id').notNull().references(() => comboTable.id),
+  producto_id: integer('producto_id').notNull().references(() => productoTable.id),
+  cantidad: numeric({ precision: 10, scale: 2 }).notNull()
 })
 
 export const pedidoTable = pgTable('PEDIDO', { //17 - Adrían
@@ -193,16 +238,36 @@ export const pedidoTable = pgTable('PEDIDO', { //17 - Adrían
   cliente_id: bigint('cliente_id', { mode: 'number' }).notNull().references(() => clienteTable.id),
   fecha_pedido: timestamp('fecha_pedido', { mode: 'string' }).notNull().defaultNow(),
   observaciones: varchar('observaciones', { length: 255 }),
-  total: doublePrecision('total').notNull().default(0),
-  estado: estadoPedidoEnum('estado').notNull().default('CREADO')
+  total: numeric({ precision: 10, scale: 2 }).notNull(),
+  estado: estadoPedidoEnum('estado').notNull().default('CREADO'),
+  direccion_id: integer('direccion_id').references(() => direccionTable.id),
+  sucursal_id: integer('sucursal_id').references(() => sucursalTable.id),
+  metodo_pago: metodoPagoEnum('metodo_pago').notNull().default('EFECTIVO'),
+  tipo_entrega: tipoEntregaEnum('tipo_entrega').notNull().default('DOMICILIO')
+})
+
+export const productoExtraTable = pgTable('PRODUCTO_EXTRA', {
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  producto_id: integer('producto_id').notNull().references(() => productoTable.id),
+  nombre: varchar('nombre', { length: 100 }).notNull(),
+  precio: numeric({ precision: 10, scale: 2 }).notNull(),
+  activo: boolean('activo').notNull().default(true)
 })
 
 export const detallePedidoTable = pgTable('DETALLE_PEDIDO', { //18 - Adrian
   id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
   pedido_id: bigint('pedido_id', { mode: 'number' }).references(() => pedidoTable.id),
   producto_id: integer('producto_id').notNull().references(() => productoTable.id),
-  precio_unitario: doublePrecision('precio_unitario').notNull().default(0),
-  cantidad: doublePrecision('cantidad').notNull()
+  precio_unitario: numeric({ precision: 10, scale: 2 }).notNull(),
+  cantidad: numeric({ precision: 10, scale: 2 }).notNull()
+})
+
+export const detalleProductoExtraTable = pgTable('DETALLE_PRODUCTO_EXTRA', {
+  id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+  producto_extra_id: integer('producto_extra_id').notNull().references(() => productoExtraTable.id),
+  detalle_pedido_id: bigint('detalle_pedido_id', { mode: 'number' }).notNull().references(() => detallePedidoTable.id),
+  cantidad: numeric({ precision: 10, scale: 2 }).notNull(),
+  precio_unitario: numeric({ precision: 10, scale: 2 }).notNull()
 })
 
 // ---- Solicitud de insumos (RF-003) ----
@@ -218,8 +283,8 @@ export const detalleSolicitudInsumoTable = pgTable('DETALLE_SOLICITUD_INSUMO', {
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   solicitud_id: bigint('solicitud_id', { mode: 'number' }).notNull().references(() => solicitudInsumoTable.id),
   materia_prima_id: integer('materia_prima_id').notNull().references(() => materiaPrimaTable.id),
-  cantidad_solicitada: doublePrecision('cantidad_solicitada').notNull(),
-  cantidad_recibida: doublePrecision('cantidad_recibida')
+  cantidad_solicitada: numeric({ precision: 10, scale: 2 }).notNull(),
+  cantidad_recibida: numeric({ precision: 10, scale: 2 })
 })
 
 export const facturaVentaTable = pgTable('FACTURA_VENTA', { //19 - Adrian
@@ -228,7 +293,7 @@ export const facturaVentaTable = pgTable('FACTURA_VENTA', { //19 - Adrian
   serie: varchar('serie', { length: 15 }).notNull(),
   numero: varchar('numero', { length: 32 }).notNull(),
   fecha_emision: timestamp('fecha_emision', { mode: "string" }).notNull().defaultNow(),
-  total: doublePrecision('total').notNull(),
+  total: numeric({ precision: 10, scale: 2 }).notNull(),
   creado_en: timestamp('creado_en', { mode: "string" }).notNull().defaultNow()
 })
 
@@ -251,9 +316,9 @@ export const detalleOrdenCompraTable = pgTable('DETALLE_ORDEN_COMPRA', { //22 - 
   id: bigint('id', { mode: "number" }).notNull().primaryKey().generatedByDefaultAsIdentity(),
   orden_compra_id: bigint('orden_compra_id', { mode: "number" }).notNull().references(() => ordenCompraTable.id),
   materia_prima_id: integer('materia_prima_id').notNull().references(() => materiaPrimaTable.id),
-  cantidad_solicitada: doublePrecision("cantidad_solicitada").notNull(),
-  precio_unitario: doublePrecision('precio_unitario').notNull(),
-  subtotal: doublePrecision('subtotal').notNull()
+  cantidad_solicitada: numeric({ precision: 10, scale: 2 }).notNull(),
+  precio_unitario: numeric({ precision: 10, scale: 2 }).notNull(),
+  subtotal: numeric({ precision: 10, scale: 2 }).notNull()
 })
 
 export const hojaRecepcionTable = pgTable("HOJA_RECEPCION", { //23 - Adrian
@@ -268,10 +333,10 @@ export const hojaRecepcionDetalleTable = pgTable("HOJA_RECEPCION_DETALLE", { //2
   id: bigint('id', { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
   hoja_recepcion_id: bigint('hoja_recepcion_id', { mode: "number" }).references(() => hojaRecepcionTable.id),
   materia_prima_id: integer('materia_prima_id').references(() => materiaPrimaTable.id),
-  cantidad_recibida: doublePrecision('cantidad_recibida').notNull(),
+  cantidad_recibida: numeric({ precision: 10, scale: 2 }).notNull(),
   fecha_vencimiento: timestamp('fecha_vencimiento', { mode: "string" }).notNull().defaultNow(),
-  merma: doublePrecision('merma'),
-  saldo: doublePrecision('saldo').notNull(),
+  merma: numeric({ precision: 10, scale: 2 }),
+  saldo: numeric({ precision: 10, scale: 2 }).notNull(),
   estado: estadoRecepcionEnum('estado_recepcion').notNull().default('COMPLETA')
 })
 
@@ -283,27 +348,8 @@ export const facturaCompraTable = pgTable('FACTURA_COMPRA', { //25 Carlos
   serie: varchar('serie', { length: 15 }).notNull(),
   numero: varchar('numero', { length: 32 }).notNull(),
   fecha_emision: date('fecha_emision', { mode: 'string' }).notNull(),
-  total: doublePrecision('total').notNull(),
+  total: numeric({ precision: 10, scale: 2 }).notNull(),
   fecha_ingreso: timestamp('fecha_ingreso', { mode: 'string' }).notNull().defaultNow()
-})
-
-// ---- Orden de trabajo: ejecuta una receta, produce un PRODUCTO_LOTE ----
-export const ordenTrabajoTable = pgTable('ORDEN_TRABAJO', { //26 Carlos
-  id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
-  sucursal_id: integer('sucursal_id').references(() => sucursalTable.id), // SUCURSAL.id - sucursal que produjo el lote
-  receta_id: integer('receta_id').references(() => recetaTable.id), // RECETA.id
-  cantidad_produccion: doublePrecision('cantidad_produccion'), // multiplicador de cantidad producida por receta
-  estado: estadoOrdenTrabajoEnum('estado')
-})
-
-// ---- Lote de producto terminado, generado por una orden de trabajo ----
-export const productoLoteTable = pgTable('PRODUCTO_LOTE', { //27 Carlos
-  id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
-  orden_id: bigint('orden_id', { mode: 'number' }).references(() => ordenTrabajoTable.id), // ORDEN_TRABAJO.id
-  cantidad_inicial: doublePrecision('cantidad_inicial'),
-  cantidad_actual: doublePrecision('cantidad_actual'),
-  estado: estadoLoteEnum('estado').default('VIGENTE'),
-  producido_en: timestamp('producido_en', { mode: 'string' }).notNull().defaultNow()
 })
 
 // ---- Receta: produce un producto a partir de materia prima ----
@@ -311,15 +357,35 @@ export const recetaTable = pgTable('RECETA', { //28 Carlos
   id: integer('id').notNull().primaryKey().generatedByDefaultAsIdentity(),
   producto_id: integer('producto_id').references(() => productoTable.id), // PRODUCTO.id
   nombre: varchar('nombre', { length: 150 }).notNull(),
-  cantidad_lote: doublePrecision('cantidad_lote').notNull(), // cantidad esperada producida por receta
+  cantidad_lote: numeric({ precision: 10, scale: 2 }).notNull(), // cantidad esperada producida por receta
   creada_en: timestamp('creada_en', { mode: 'string' }).notNull().defaultNow()
+})
+
+// ---- Orden de trabajo: ejecuta una receta, produce un PRODUCTO_LOTE ----
+export const ordenTrabajoTable = pgTable('ORDEN_TRABAJO', { //26 Carlos
+  id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
+  sucursal_id: integer('sucursal_id').references(() => sucursalTable.id), // SUCURSAL.id - sucursal que produjo el lote
+  receta_id: integer('receta_id').references(() => recetaTable.id), // RECETA.id
+  cantidad_produccion: numeric({ precision: 10, scale: 2 }), // multiplicador de cantidad producida por receta
+  estado: estadoOrdenTrabajoEnum('estado')
+})
+
+// ---- Lote de producto terminado, generado por una orden de trabajo ----
+export const productoLoteTable = pgTable('PRODUCTO_LOTE', { //27 Carlos
+  id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
+  orden_id: bigint('orden_id', { mode: 'number' }).references(() => ordenTrabajoTable.id), // ORDEN_TRABAJO.id
+  producto_id: integer('producto_id').references(() => productoTable.id).notNull(), // PRODUCTO.id
+  cantidad_inicial: numeric({ precision: 10, scale: 2 }),
+  cantidad_actual: numeric({ precision: 10, scale: 2 }),
+  estado: estadoLoteEnum('estado').default('VIGENTE'),
+  producido_en: timestamp('producido_en', { mode: 'string' }).notNull().defaultNow()
 })
 
 export const recetaDetalleTable = pgTable('RECETA_DETALLE', { //29 Carlos
   id: integer('id').notNull().primaryKey().generatedByDefaultAsIdentity(),
   receta_id: integer('receta_id').references(() => recetaTable.id), // RECETA.id
   materia_prima_id: integer('materia_prima_id').references(() => materiaPrimaTable.id), // MATERIA_PRIMA.id
-  cantidad_necesaria: doublePrecision('cantidad_necesaria').notNull()
+  cantidad_necesaria: numeric({ precision: 10, scale: 2 }).notNull()
 })
 
 // ---- Hoja de despacho: despacha lotes de producto por pedido ----
@@ -327,14 +393,15 @@ export const hojaDespachoTable = pgTable('HOJA_DESPACHO', { //30 Carlos
   id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
   pedido_id: bigint('pedido_id', { mode: 'number' }).references(() => pedidoTable.id), // PEDIDO.id
   sucursal_despacho: integer('sucursal_despacho').references(() => sucursalTable.id), // SUCURSAL.id
-  despachado_en: timestamp('despachado_en', { mode: 'string' }).notNull().defaultNow()
+  despachado_en: timestamp('despachado_en', { mode: 'string' }).notNull().defaultNow(),
+  repartidor_id: integer('repartidor_id').references(() => usuarioTable.id) // USUARIO.id
 })
 
 export const hojaDespachoDetalleTable = pgTable('HOJA_DESPACHO_DETALLE', { //31 Carlos
   id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
   hoja_despacho_id: bigint('hoja_despacho_id', { mode: 'number' }).references(() => hojaDespachoTable.id), // HOJA_DESPACHO.id
   producto_lote_id: integer('producto_lote_id').references(() => productoLoteTable.id), // PRODUCTO_LOTE.id
-  cantidad_despachada: doublePrecision('cantidad_despachada')
+  cantidad_despachada: numeric({ precision: 10, scale: 2 }).notNull()
 })
 
 // ---- Caja: registro de cajas por sucursal ----
@@ -350,10 +417,10 @@ export const turnoDespachadorTable = pgTable('TURNO_DESPACHADOR', { //33 Carlos
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   caja_id: integer('caja_id').references(() => cajaTable.id), // CAJA.id
   usuario_id: integer('usuario_id').references(() => usuarioTable.id), // USUARIO.id
-  administrador_id: integer('administrador_id').references(() => sucursalTable.id),
-  monto_apertura: doublePrecision('monto_apertura'), // el sencillo entregado
-  monto_cierre_declarado: doublePrecision('monto_cierre_declarado'), // arqueo ciego
-  monto_cierre_sistema: doublePrecision('monto_cierre_sistema'), // lo que el sistema calculó
+  administrador_id: integer('administrador_id').references(() => usuarioTable.id), // USUARIO.id
+  monto_apertura: numeric({ precision: 10, scale: 2 }).notNull(), // el sencillo entregado
+  monto_cierre_declarado: numeric({ precision: 10, scale: 2 }), // arqueo ciego
+  monto_cierre_sistema: numeric({ precision: 10, scale: 2 }), // lo que el sistema calculó
   abierto_en: timestamp('abierto_en', { mode: 'string' }),
   cerrado_en: timestamp('cerrado_en', { mode: 'string' })
 })
@@ -363,9 +430,9 @@ export const liquidacionRepartidorTable = pgTable('LIQUIDACION_REPARTIDOR', { //
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   turno_id: bigint('turno_id', { mode: 'number' }).references(() => turnoDespachadorTable.id), // TURNO_DESPACHADOR.id
   repartidor_id: integer('repartidor_id').references(() => usuarioTable.id), // USUARIO.id
-  monto_entregado_repartidor: doublePrecision('monto_entregado_repartidor'), // sencillo para ruta
-  monto_recaudado_efectivo: doublePrecision('monto_recaudado_efectivo'),
-  monto_recaudado_voucher: doublePrecision('monto_recaudado_voucher'),
+  monto_entregado_repartidor: numeric({ precision: 10, scale: 2 }), // sencillo para ruta
+  monto_recaudado_efectivo: numeric({ precision: 10, scale: 2 }),
+  monto_recaudado_voucher: numeric({ precision: 10, scale: 2 }),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 
@@ -375,9 +442,9 @@ export const gastosSucursalTable = pgTable('GASTOS_SUCURSAL', { //35 Carlos
   caja_id: integer('caja_id').references(() => cajaTable.id), // CAJA.id
   usuario_id: integer('usuario_id').references(() => usuarioTable.id), // USUARIO.id
   sucursal_id: integer('sucursal_id').references(() => sucursalTable.id), // SUCURSAL.id
-  monto_apertura: doublePrecision('monto_apertura'), // el sencillo entregado
-  monto_cierre_declarado: doublePrecision('monto_cierre_declarado'), // arqueo ciego
-  monto_cierre_sistema: doublePrecision('monto_cierre_sistema'), // lo que el sistema calculó
+  monto_apertura: numeric({ precision: 10, scale: 2 }).notNull(), // el sencillo entregado
+  monto_cierre_declarado: numeric({ precision: 10, scale: 2 }), // arqueo ciego
+  monto_cierre_sistema: numeric({ precision: 10, scale: 2 }), // lo que el sistema calculó
   abierto_en: timestamp('abierto_en', { mode: 'string' }),
   cerrado_en: timestamp('cerrado_en', { mode: 'string' })
 })
@@ -385,9 +452,10 @@ export const gastosSucursalTable = pgTable('GASTOS_SUCURSAL', { //35 Carlos
 // ---- Usuarios del sistema ----
 export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
-  usuario: varchar('usuario', { length: 50 }),
-  correo_electronico: varchar('correo_electronico', { length: 255 }), // encriptado con sha256 a nivel de aplicación
-  contrasenia: varchar('contrasenia', { length: 50 }), // encriptado con sha256 a nivel de aplicación
+  usuario: varchar('usuario', { length: 50 }).unique().notNull(),
+  correo_electronico: varchar('correo_electronico', { length: 255 }).unique().notNull(),
+  telefono: varchar('telefono', { length: 50 }).unique().notNull(),
+  contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
   rol: rolUsuarioEnum('rol_usuario').notNull(),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
@@ -435,8 +503,10 @@ export type InsertPedido = typeof pedidoTable.$inferInsert
 export type UpdatePedido = Partial<typeof pedidoTable.$inferInsert>
 
 export type SelectStockAlacena = typeof stockAlacenaTable.$inferSelect
+export type InsertStockAlacena = typeof stockAlacenaTable.$inferInsert
 
 export type SelectKardexAlacena = typeof kardexAlacenaTable.$inferSelect
+export type InsertKardexAlacena = typeof kardexAlacenaTable.$inferInsert
 
 // PRODUCTO
 export type SelectProducto = typeof productoTable.$inferSelect
@@ -540,6 +610,28 @@ export type InsertDetallePedido = typeof detallePedidoTable.$inferInsert
 // SOLICITUD INSUMO
 export type SelectSolicitudInsumo = typeof solicitudInsumoTable.$inferSelect
 export type InsertSolicitudInsumo = typeof solicitudInsumoTable.$inferInsert
+export type UpdateSolicitudInsumo = Partial<typeof solicitudInsumoTable.$inferInsert>
 
 export type SelectDetalleSolicitudInsumo = typeof detalleSolicitudInsumoTable.$inferSelect
 export type InsertDetalleSolicitudInsumo = typeof detalleSolicitudInsumoTable.$inferInsert
+
+// COMBO
+export type SelectCombo = typeof comboTable.$inferSelect
+export type InsertCombo = typeof comboTable.$inferInsert
+export type UpdateCombo = Partial<typeof comboTable.$inferInsert>
+
+export type SelectComboDetalle = typeof comboDetalleTable.$inferSelect
+export type InsertComboDetalle = typeof comboDetalleTable.$inferInsert
+
+// PRODUCTO EXTRA
+export type SelectProductoExtra = typeof productoExtraTable.$inferSelect
+export type InsertProductoExtra = typeof productoExtraTable.$inferInsert
+export type UpdateProductoExtra = Partial<typeof productoExtraTable.$inferInsert>
+
+export type SelectDetalleProductoExtra = typeof detalleProductoExtraTable.$inferSelect
+export type InsertDetalleProductoExtra = typeof detalleProductoExtraTable.$inferInsert
+
+// USUARIO CLIENTE
+export type SelectUsuarioCliente = typeof UsuarioClienteTable.$inferSelect
+export type InsertUsuarioCliente = typeof UsuarioClienteTable.$inferInsert
+export type UpdateUsuarioCliente = Partial<typeof UsuarioClienteTable.$inferInsert>

@@ -19,3 +19,12 @@ coverage
 # Sistema
 .DS_Store
 Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# Herramientas locales
+.codebase-memory
+*.tsbuildinfo

@@ -1,4 +1,5 @@
 import { MateriaPrimaModel } from '../model/supabase/materiaPrima.model.js';
+import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
 import logger from '../config/logger.js';
 
 export const MateriasPrimasController = {
@@ -9,6 +10,19 @@ export const MateriasPrimasController = {
     } catch (error) {
       logger.error({ error }, 'Error get materias-primas:');
       return { data: null, error: 'Error al obtener materias primas', status: 500 };
+    }
+  },
+
+  async getCriticas(sucursalId?: number, dias?: number, umbral?: number) {
+    try {
+      if (!sucursalId) {
+        return { data: null, error: 'sucursal_id es requerido', status: 400 };
+      }
+      const lotes = await LoteMateriaPrimaModel.getCriticosPorSucursal(sucursalId, dias ?? 7, umbral ?? 0);
+      return { data: lotes, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error get materias-primas criticas:');
+      return { data: null, error: 'Error al obtener insumos críticos', status: 500 };
     }
   },
 

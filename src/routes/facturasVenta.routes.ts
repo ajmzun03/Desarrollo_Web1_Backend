@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { FacturasVentaController } from '../controllers/facturasVenta.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { cache } from '../middleware/cache.js';
 import { schemaFacturaVenta } from '../schemas/facturaVenta.schema.js';
 
 const router: Router = Router();
@@ -30,7 +31,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, cache('facturas-venta', 30), async (req: Request, res: Response) => {
   const pedidoId = req.query.pedido_id ? Number(req.query.pedido_id) : undefined;
   const result = await FacturasVentaController.getAll(pedidoId);
   res.status(result.status).json({ data: result.data, error: result.error });

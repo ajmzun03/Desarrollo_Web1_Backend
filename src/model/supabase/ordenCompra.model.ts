@@ -1,4 +1,4 @@
-import { db } from "./db.model.js"
+import { db, type Tx } from "./db.model.js"
 import { ordenCompraTable, detalleOrdenCompraTable } from "../../schemas/db.schema.js";
 import { eq, and } from "drizzle-orm";
 import type { IOrdenCompraModel, IDetalleOrdenCompraModel } from "../../types.js";
@@ -38,8 +38,8 @@ export const OrdenCompraModel: IOrdenCompraModel = {
     return ordenes;
   },
 
-  async create(data: InsertOrdenCompra): Promise<SelectOrdenCompra> {
-    const [result] = await db.insert(ordenCompraTable).values({ ...data }).returning();
+  async create(data: InsertOrdenCompra, executor: Tx = db): Promise<SelectOrdenCompra> {
+    const [result] = await executor.insert(ordenCompraTable).values({ ...data }).returning();
     if (result) {
       logger.info("Orden de compra creada exitosamente");
       return result;
@@ -66,8 +66,8 @@ export const DetalleOrdenCompraModel: IDetalleOrdenCompraModel = {
     return detalles;
   },
 
-  async create(data: InsertDetalleOrdenCompra): Promise<SelectDetalleOrdenCompra> {
-    const [result] = await db.insert(detalleOrdenCompraTable).values({ ...data }).returning();
+  async create(data: InsertDetalleOrdenCompra, executor: Tx = db): Promise<SelectDetalleOrdenCompra> {
+    const [result] = await executor.insert(detalleOrdenCompraTable).values({ ...data }).returning();
     if (result) {
       logger.info("Detalle de orden de compra creado exitosamente");
       return result;

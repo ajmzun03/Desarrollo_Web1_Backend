@@ -1,7 +1,8 @@
 import { PedidoModel } from '../model/supabase/pedido.model.js';
 import logger from '../config/logger.js';
 import { DetallePedidoModel } from '../model/supabase/detallePedido.model.js';
-import { ProductoModel } from '../model/supabase/producto.model.js';
+import { HojaDespachoModel } from '../model/supabase/hojaDespacho.model.js';
+import { crearPedido } from '../services/pedidos.service.js';
 
 export const PedidosController = {
   async getAll() {
@@ -44,38 +45,8 @@ export const PedidosController = {
         return { data: null, error: 'cliente_id y items son requeridos', status: 400 };
       }
 
-      const itemsConPrecio: Array<{ producto_id: number; cantidad: number; precio_unitario: number }> = [];
-      let total = 0;
-
-      for (const item of data.items) {
-        try {
-          const producto = await ProductoModel.getById(item.producto_id);
-          const precio = producto?.precio ?? 0;
-          itemsConPrecio.push({ ...item, precio_unitario: precio });
-          total += precio * item.cantidad;
-        } catch {
-          itemsConPrecio.push({ ...item, precio_unitario: 0 });
-        }
-      }
-
-      const nuevoPedido = await PedidoModel.createPedido({
-        cliente_id: data.cliente_id,
-        observaciones: data.observaciones,
-        total,
-        estado: 'CREADO'
-      });
-
-      for (const item of itemsConPrecio) {
-        await DetallePedidoModel.create({
-          pedido_id: Number(nuevoPedido.id),
-          producto_id: item.producto_id,
-          precio_unitario: item.precio_unitario,
-          cantidad: item.cantidad
-        });
-      }
-
-      const detalles = await DetallePedidoModel.getByPedidoId(Number(nuevoPedido.id));
-      return { data: { ...nuevoPedido, detalles }, error: null, status: 201 };
+      const nuevoPedido = await crearPedido(data);
+      return { data: nuevoPedido, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create pedido:');
       return { data: null, error: 'Error al crear pedido', status: 500 };
@@ -118,6 +89,44 @@ export const PedidosController = {
     } catch (error) {
       logger.error({ error }, 'Error entregado pedido:');
       return { data: null, error: 'Error al marcar pedido como entregado', status: 500 };
+    }
+  },
+
+  async incidente(id: number, motivo: string, detalle?: string) {
+    try {
+      const pedido = await PedidoModel.getPedidoId(id);
+      if (!pedido) {
+        return { data: null, error: 'Pedido no encontrado', status: 404 };
+      }
+      const texto = `[INCIDENTE] ${motivo}${detalle ? ` — ${detalle}` : ''}`;
+      const observaciones = pedido.observaciones ? `${pedido.observaciones} | ${texto}` : texto;
+      const actualizado = await PedidoModel.updatePedido(id, { observaciones });
+      return { data: actualizado, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error incidente pedido:');
+      return { data: null, error: 'Error al registrar el incidente', status: 500 };
+    }
+  },
+
+  async getPedidosRepartidor(repartidorId?: number) {
+    try {
+      if (!repartidorId) {
+        return { data: null, error: 'repartidor_id es requerido', status: 400 };
+      }
+      const hojas = await HojaDespachoModel.getByRepartidorId(repartidorId);
+      const pedidos: Array<Record<string, any>> = [];
+      for (const hoja of hojas) {
+        if (hoja.pedido_id) {
+          const pedido = await PedidoModel.getPedidoId(Number(hoja.pedido_id));
+          if (pedido) {
+            pedidos.push({ ...pedido, hoja_despacho_id: Number(hoja.id) });
+          }
+        }
+      }
+      return { data: pedidos, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ error }, 'Error get pedidos repartidor:');
+      return { data: null, error: 'Error al obtener pedidos del repartidor', status: 500 };
     }
   }
 };
