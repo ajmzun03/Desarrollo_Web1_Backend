@@ -5,7 +5,7 @@ import logger from '../config/logger.js'
 
 export interface DestinoCodigo {
   telefono?: string | null
-  correo: string
+  correo?: string | null
 }
 
 function asunto(contexto: 'login' | 'reset'): string {
@@ -49,6 +49,10 @@ export async function enviarCodigo(
     logger.warn({ contexto }, 'SMS falló, intentando fallback por correo')
   }
 
+  if (!destino.correo) {
+    logger.error({ contexto, telefono: destino.telefono }, 'Sin correo registrado: no se pudo enviar el código')
+    return null
+  }
   const enviado = await sendEmail(destino.correo, asunto(contexto), plantillaHTML(codigo, contexto))
   if (enviado) {
     logger.info({ contexto, canal: 'email' }, 'Código OTP enviado por correo')

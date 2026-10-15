@@ -35,11 +35,11 @@ export const ReportesController = {
 
       const ventas = pedidos
         .filter(p => p.estado !== 'ANULADO' && startsWithDate(p.fecha_pedido, fechaBusqueda))
-        .reduce((acc, p) => acc + (p.total ?? 0), 0);
+        .reduce((acc, p) => acc + Number(p.total ?? 0), 0);
 
       const costos = gastos
         .filter(g => startsWithDate(g.abierto_en, fechaBusqueda))
-        .reduce((acc, g) => acc + (g.monto_cierre_declarado ?? 0), 0);
+        .reduce((acc, g) => acc + Number(g.monto_cierre_declarado ?? 0), 0);
 
       return {
         data: { fecha: fechaBusqueda, ventas, costos, utilidad: ventas - costos },
@@ -60,7 +60,7 @@ export const ReportesController = {
       );
 
       const filtrados = gastos.filter(g => inRange(g.abierto_en, desde, hasta));
-      const total = filtrados.reduce((acc, g) => acc + (g.monto_cierre_declarado ?? 0), 0);
+      const total = filtrados.reduce((acc, g) => acc + Number(g.monto_cierre_declarado ?? 0), 0);
 
       return {
         data: { desde, hasta, total_gastos: total, detalle: filtrados },

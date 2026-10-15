@@ -30,9 +30,27 @@ const SECRET_KEY = process.env.SECRET_KEY ?? ''
 // Coerción robusta: si la env var no es un número válido, usa 10
 const SALT_ROUND = Number(process.env.SALT_ROUND) || 10
 
-// Normalización de entorno
-const IS_PROD = NODE_ENV === 'production'
-const IS_DEV = NODE_ENV === 'development' || NODE_ENV === 'dev' || NODE_ENV === 'test'
+// Normalización de entorno: valor por defecto development SOLO si no está definido.
+// Un valor desconocido detiene el arranque (falla cerrado): nunca se asume dev.
+const ENTORNOS_DEV = new Set(['development', 'dev', 'test'])
+const ENTORNOS_PROD = new Set(['production', 'prod'])
+
+const nodoEnvNormalizado = NODE_ENV.trim().toLowerCase()
+let IS_PROD: boolean
+let IS_DEV: boolean
+
+if (ENTORNOS_DEV.has(nodoEnvNormalizado)) {
+  IS_DEV = true
+  IS_PROD = false
+} else if (ENTORNOS_PROD.has(nodoEnvNormalizado)) {
+  IS_DEV = false
+  IS_PROD = true
+} else {
+  throw new Error(
+    `NODE_ENV inválido: "${NODE_ENV}". Valores permitidos: ` +
+    `development, test (desarrollo) o production (producción).`
+  )
+}
 
 // Guardia: en producción no se puede arrancar sin secretos obligatorios
 if (IS_PROD) {

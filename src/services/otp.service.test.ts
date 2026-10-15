@@ -23,7 +23,10 @@ import { generarCodigo, guardarCodigo, verificarCodigo, puedeGenerarCodigo } fro
 const mockRedis = vi.mocked(redis, true);
 
 describe('otp.service', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIsProd = false; // por defecto dev (degrada)
+  });
 
   describe('generarCodigo', () => {
     it('genera un código de 6 dígitos', () => {
@@ -136,10 +139,30 @@ describe('otp.service', () => {
       expect(await puedeGenerarCodigo('usuario', 1)).toBe(false);
     });
 
-    it('permite si Redis no está listo (degradado)', async () => {
+    it('permite si Redis no está listo en dev (degradado)', async () => {
+      mockIsProd = false;
       mockRedis.isReady = false;
       expect(await puedeGenerarCodigo('usuario', 1)).toBe(true);
       mockRedis.isReady = true;
+    });
+
+    it('bloquea si Redis no está listo en prod (falla cerrado)', async () => {
+      mockIsProd = true;
+      mockRedis.isReady = false;
+      expect(await puedeGenerarCodigo('usuario', 1)).toBe(false);
+      mockRedis.isReady = true;
+    });
+
+    it('bloquea en prod si hay error consultando Redis (falla cerrado)', async () => {
+      mockIsProd = true;
+      mockRedis.incr.mockRejectedValueOnce(new Error('redis down'));
+      expect(await puedeGenerarCodigo('usuario', 1)).toBe(false);
+    });
+
+    it('en dev si hay error consultando Redis, degrada a true', async () => {
+      mockIsProd = false;
+      mockRedis.incr.mockRejectedValueOnce(new Error('redis down'));
+      expect(await puedeGenerarCodigo('usuario', 1)).toBe(true);
     });
   });
 });

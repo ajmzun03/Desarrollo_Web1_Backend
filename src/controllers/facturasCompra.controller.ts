@@ -40,7 +40,13 @@ export const FacturasCompraController = {
       if (!data.hoja_recepcion_id || !data.serie || !data.numero || !data.fecha_emision || !data.total) {
         return { data: null, error: 'hoja_recepcion_id, serie, numero, fecha_emision y total son requeridos', status: 400 };
       }
-      const nuevaFactura = await FacturaCompraModel.create(data);
+      const nuevaFactura = await FacturaCompraModel.create({
+        hoja_recepcion_id: data.hoja_recepcion_id,
+        serie: data.serie,
+        numero: data.numero,
+        fecha_emision: data.fecha_emision,
+        total: String(data.total)
+      });
       return { data: nuevaFactura, error: null, status: 201 };
     } catch (error) {
       logger.error({ error }, 'Error create factura-compra:');

@@ -10,6 +10,7 @@ const columnasSeguras = {
     id: usuarioTable.id,
     usuario: usuarioTable.usuario,
     correo_electronico: usuarioTable.correo_electronico,
+    telefono: usuarioTable.telefono,
     rol: usuarioTable.rol,
     creado_en: usuarioTable.creado_en,
 }

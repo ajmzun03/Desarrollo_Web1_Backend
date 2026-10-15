@@ -10,7 +10,7 @@ vi.mock('../model/supabase/usuario.model.js', () => ({
 }));
 vi.mock('../utils/hashPassword.js', () => ({
   comparePassword: vi.fn(),
-  hassPassword: vi.fn(),
+  hashPassword: vi.fn(),
 }));
 vi.mock('../utils/generateToken.js', () => ({
   generarToken: vi.fn(),
@@ -26,16 +26,22 @@ vi.mock('../services/notificarCodigo.service.js', () => ({
   enviarCodigo: vi.fn(),
 }));
 
+// Control mutable de IS_PROD para alternar entre dev (degrada) y prod (503)
+let mockIsProd = false;
+vi.mock('../config.js', () => ({
+  get IS_PROD() { return mockIsProd; },
+}));
+
 import { AuthController } from './auth.controller.js';
 import { UsuarioModel } from '../model/supabase/usuario.model.js';
-import { comparePassword, hassPassword } from '../utils/hashPassword.js';
+import { comparePassword, hashPassword } from '../utils/hashPassword.js';
 import { generarToken, getInfoToToken } from '../utils/generateToken.js';
 import { generarCodigo, guardarCodigo, verificarCodigo, puedeGenerarCodigo } from '../services/otp.service.js';
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
 
 const mockUsuario = vi.mocked(UsuarioModel, true);
 const mockCompare = vi.mocked(comparePassword, true);
-const mockHash = vi.mocked(hassPassword, true);
+const mockHash = vi.mocked(hashPassword, true);
 const mockGenToken = vi.mocked(generarToken, true);
 const mockGetInfo = vi.mocked(getInfoToToken, true);
 const mockGenCodigo = vi.mocked(generarCodigo, true);
@@ -54,7 +60,10 @@ const userBase = {
 };
 
 describe('AuthController', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIsProd = false; // por defecto dev (degrada)
+  });
 
   describe('login (paso 1)', () => {
     it('devuelve 400 si faltan credenciales', async () => {
@@ -99,7 +108,7 @@ describe('AuthController', () => {
       expect((r.data as any).canal).toBe('sms');
     });
 
-    it('degrada a 200 con twoFactor:false si Redis no guarda el OTP', async () => {
+    it('degrada a 200 con twoFactor:false si Redis no guarda el OTP en dev', async () => {
       mockUsuario.getByUsuario.mockResolvedValueOnce(userBase as never);
       mockCompare.mockResolvedValueOnce(true);
       mockPuede.mockResolvedValueOnce(true);
@@ -111,6 +120,29 @@ describe('AuthController', () => {
       expect(r.status).toBe(200);
       expect((r.data as any).twoFactor).toBe(false);
       expect((r.data as any).token).toBe('session.jwt');
+    });
+
+    it('devuelve 503 en prod si Redis no guarda el OTP (falla cerrado)', async () => {
+      mockIsProd = true;
+      mockUsuario.getByUsuario.mockResolvedValueOnce(userBase as never);
+      mockCompare.mockResolvedValueOnce(true);
+      mockPuede.mockResolvedValueOnce(true);
+      mockGenCodigo.mockReturnValueOnce('123456');
+      mockGuardar.mockResolvedValueOnce(false);
+
+      const r = await AuthController.login('admin.mc', 'buena');
+      expect(r.status).toBe(503);
+      expect((r.data as any)).toBeNull();
+    });
+
+    it('devuelve 429 en prod si Redis no está listo (puedeGenerarCodigo falla cerrado)', async () => {
+      mockIsProd = true;
+      mockUsuario.getByUsuario.mockResolvedValueOnce(userBase as never);
+      mockCompare.mockResolvedValueOnce(true);
+      mockPuede.mockResolvedValueOnce(false); // Redis caído → false en prod
+
+      const r = await AuthController.login('admin.mc', 'buena');
+      expect(r.status).toBe(429);
     });
   });
 

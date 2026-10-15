@@ -68,7 +68,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [usuario, correo_electronico, contrasenia, rol]
+ *             required: [usuario, correo_electronico, telefono, contrasenia, rol]
  *             properties:
  *               usuario:
  *                 type: string
@@ -77,6 +77,10 @@ router.get('/:id', async (req: Request, res: Response) => {
  *                 type: string
  *                 format: email
  *                 example: carlos@correo.com
+ *               telefono:
+ *                 type: string
+ *                 description: Entre 7 y 15 dígitos, sin espacios ni símbolos. Recibe el código del 2FA.
+ *                 example: 55551234
  *               contrasenia:
  *                 type: string
  *                 format: password

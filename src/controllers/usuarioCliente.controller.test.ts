@@ -12,7 +12,7 @@ vi.mock('../model/supabase/cliente.model.js', () => ({
 }));
 vi.mock('../utils/hashPassword.js', () => ({
   comparePassword: vi.fn(),
-  hassPassword: vi.fn(),
+  hashPassword: vi.fn(),
 }));
 vi.mock('../utils/generateToken.js', () => ({
   generarToken: vi.fn(),
@@ -30,14 +30,14 @@ vi.mock('../services/notificarCodigo.service.js', () => ({
 
 import { UsuarioClienteController } from './usuarioCliente.controller.js';
 import { UsuarioClienteModel } from '../model/supabase/usuarioCliente.model.js';
-import { comparePassword, hassPassword } from '../utils/hashPassword.js';
+import { comparePassword, hashPassword } from '../utils/hashPassword.js';
 import { generarToken, getInfoToToken } from '../utils/generateToken.js';
 import { generarCodigo, guardarCodigo, verificarCodigo, puedeGenerarCodigo } from '../services/otp.service.js';
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
 
 const mockUC = vi.mocked(UsuarioClienteModel, true);
 const mockCompare = vi.mocked(comparePassword, true);
-const mockHash = vi.mocked(hassPassword, true);
+const mockHash = vi.mocked(hashPassword, true);
 const mockGenToken = vi.mocked(generarToken, true);
 const mockGetInfo = vi.mocked(getInfoToToken, true);
 const mockGenCodigo = vi.mocked(generarCodigo, true);

@@ -1,6 +1,6 @@
 import { UsuarioModel } from '../model/supabase/usuario.model.js';
 import logger from '../config/logger.js';
-import { hassPassword } from '../utils/hashPassword.js';
+import { hashPassword } from '../utils/hashPassword.js';
 
 export const UsuariosController = {
   async getAll() {
@@ -26,12 +26,12 @@ export const UsuariosController = {
     }
   },
 
-  async create(data: { usuario: string; correo_electronico?: string; contrasenia: string; rol: 'ADMIN' | 'BODEGUERO' | 'DESPACHADOR' | 'REPARTIDOR' | 'CAJERO' }) {
+  async create(data: { usuario: string; correo_electronico: string; telefono: string; contrasenia: string; rol: 'ADMIN' | 'BODEGUERO' | 'DESPACHADOR' | 'REPARTIDOR' | 'CAJERO' }) {
     try {
-      if (!data.usuario || !data.contrasenia || !data.rol) {
-        return { data: null, error: 'usuario, contrasenia y rol son requeridos', status: 400 };
+      if (!data.usuario || !data.contrasenia || !data.rol || !data.telefono) {
+        return { data: null, error: 'usuario, contrasenia, telefono y rol son requeridos', status: 400 };
       }
-      const hashedPassword = await hassPassword(data.contrasenia);
+      const hashedPassword = await hashPassword(data.contrasenia);
       const nuevoUsuario = await UsuarioModel.create({
         ...data,
         contrasenia: hashedPassword
@@ -47,7 +47,7 @@ export const UsuariosController = {
   async update(id: number, data: { contrasenia?: string; [key: string]: any }) {
     try {
       if (data.contrasenia) {
-        data.contrasenia = await hassPassword(data.contrasenia);
+        data.contrasenia = await hashPassword(data.contrasenia);
       }
       const usuario = await UsuarioModel.update(id, data);
       if (!usuario) {

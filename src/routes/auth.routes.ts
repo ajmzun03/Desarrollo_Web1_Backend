@@ -1,20 +1,19 @@
 import { Router, type Request, type Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import { AuthController } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { crearAuthLimiter } from '../middleware/authRateLimit.js';
 import { schemaVerificarCodigo, schemaRecuperar, schemaRestablecer } from '../schemas/auth.schema.js';
 
 const router: Router = Router();
 
-// Rate limit estricto para login/verificación: 5 intentos por 15 min por IP
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 5,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  message: { data: null, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' }
-});
+// Limitadores separados: login y verificar no comparten presupuesto.
+// skipSuccessfulRequests: los aciertos no consumen intentos.
+// Clave por IP + identificador: los fallos de un usuario no bloquean a otro.
+const loginLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
+const verificarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 15 });
+const recuperarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 5, porIdentificador: true });
+const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
 
 /**
  * @openapi
@@ -45,7 +44,7 @@ const authLimiter = rateLimit({
  *       429:
  *         description: Demasiados intentos de envío de código
  */
-router.post('/login', authLimiter, async (req: Request, res: Response) => {
+router.post('/login', loginLimiter, async (req: Request, res: Response) => {
   const { usuario, contrasenia } = req.body;
   const result = await AuthController.login(usuario, contrasenia);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -76,7 +75,7 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
  *       401:
  *         description: Código incorrecto, expirado o token temporal inválido
  */
-router.post('/verificar', authLimiter, validate(schemaVerificarCodigo), async (req: Request, res: Response) => {
+router.post('/verificar', verificarLimiter, validate(schemaVerificarCodigo), async (req: Request, res: Response) => {
   const { tmpToken, codigo } = req.body;
   const result = await AuthController.verificarCodigo(tmpToken, codigo);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -103,7 +102,7 @@ router.post('/verificar', authLimiter, validate(schemaVerificarCodigo), async (r
  *       202:
  *         description: Si el usuario existe, se envió un código (respuesta genérica)
  */
-router.post('/recuperar', validate(schemaRecuperar), async (req: Request, res: Response) => {
+router.post('/recuperar', recuperarLimiter, validate(schemaRecuperar), async (req: Request, res: Response) => {
   const { identificador } = req.body;
   const result = await AuthController.recuperarContrasenia(identificador);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -136,7 +135,7 @@ router.post('/recuperar', validate(schemaRecuperar), async (req: Request, res: R
  *       401:
  *         description: Código incorrecto o expirado
  */
-router.post('/restablecer', validate(schemaRestablecer), async (req: Request, res: Response) => {
+router.post('/restablecer', restablecerLimiter, validate(schemaRestablecer), async (req: Request, res: Response) => {
   const result = await AuthController.restablecerContrasenia(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

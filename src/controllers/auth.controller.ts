@@ -1,5 +1,5 @@
 import { UsuarioModel } from '../model/supabase/usuario.model.js';
-import { comparePassword, hassPassword } from '../utils/hashPassword.js';
+import { comparePassword, hashPassword } from '../utils/hashPassword.js';
 import { generarToken, getInfoToToken } from '../utils/generateToken.js';
 import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGenerarCodigo } from '../services/otp.service.js';
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
@@ -180,7 +180,7 @@ export const AuthController = {
       return { data: null, error: mensajes[verdict] ?? 'Código inválido', status: 401 };
     }
 
-    const hash = await hassPassword(data.nuevaContrasenia);
+    const hash = await hashPassword(data.nuevaContrasenia);
     await UsuarioModel.update(Number(user.id), { contrasenia: hash });
 
     return { data: { message: 'Contraseña actualizada exitosamente' }, error: null, status: 200 };

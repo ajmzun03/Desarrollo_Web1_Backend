@@ -22,7 +22,7 @@ export const OrdenesCompraController = {
 
   async getProgramadas(bodegaId?: number) {
     try {
-      const ordenes = await OrdenCompraModel.getByEstado('EN_PROCESO');
+      const ordenes = await OrdenCompraModel.getByEstado('EN_PREPARACION');
       return { data: ordenes, error: null, status: 200 };
     } catch (error) {
       logger.error({ error }, 'Error get ordenes-compra programadas:');
@@ -59,7 +59,7 @@ export const OrdenesCompraController = {
 
   async agendar(id: number) {
     try {
-      const orden = await OrdenCompraModel.update(id, { estado_orden: 'EN_PROCESO' });
+      const orden = await OrdenCompraModel.update(id, { estado_orden: 'EN_PREPARACION' });
       if (!orden) {
         return { data: null, error: 'Orden de compra no encontrada', status: 404 };
       }
@@ -70,7 +70,7 @@ export const OrdenesCompraController = {
     }
   },
 
-  async updateEstado(id: number, estado: 'CREADA' | 'EN_PROCESO' | 'FINALIZADO' | 'ANULADO') {
+  async updateEstado(id: number, estado: 'CREADA' | 'EN_PREPARACION' | 'FINALIZADO' | 'ANULADO') {
     try {
       const orden = await OrdenCompraModel.update(id, { estado_orden: estado });
       if (!orden) {

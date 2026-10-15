@@ -30,7 +30,7 @@ export const PedidoModel: IPedidoModel = {
     const pedido = await db.select().from(pedidoTable).where(eq(pedidoTable.id, id))
     if (!pedido || pedido.length === 0) {
       logger.warn(`No se encontró el pedido con id ${id}`)
-      throw new Error(`No se encontró el pedido`)
+      return null
     }
     return pedido[0] || null
   },

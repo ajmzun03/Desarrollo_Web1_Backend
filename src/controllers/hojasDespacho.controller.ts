@@ -41,7 +41,7 @@ export const HojasDespachoController = {
           await HojaDespachoDetalleModel.create({
             hoja_despacho_id: Number(nuevaHoja.id),
             producto_lote_id: item.producto_lote_id,
-            cantidad_despachada: item.cantidad_despachada
+            cantidad_despachada: String(item.cantidad_despachada)
           });
         }
       }

@@ -39,9 +39,9 @@ export const GastosSucursalController = {
         caja_id: data.caja_id,
         usuario_id: data.usuario_id,
         sucursal_id: data.sucursal_id,
-        monto_apertura: data.monto_apertura,
-        monto_cierre_declarado: data.monto_cierre_declarado,
-        monto_cierre_sistema: data.monto_cierre_sistema,
+        monto_apertura: String(data.monto_apertura ?? 0),
+        monto_cierre_declarado: data.monto_cierre_declarado == null ? undefined : String(data.monto_cierre_declarado),
+        monto_cierre_sistema: data.monto_cierre_sistema == null ? undefined : String(data.monto_cierre_sistema),
         abierto_en: data.monto_apertura ? new Date().toISOString() : undefined,
         cerrado_en: data.monto_cierre_declarado ? new Date().toISOString() : undefined
       });
