@@ -87,11 +87,16 @@ router.get('/:id', authenticate, requireRole('BODEGUERO', 'ADMIN'), async (req: 
  *         application/json:
  *           schema:
  *             type: object
- *             required: [sucursal_receptora, items]
+ *             required: [sucursal_receptora, bodega_id, items]
+ *             description: bodega_id debe pertenecer a la sucursal_receptora; si se indica orden_compra_id debe estar EN_PREPARACION
  *             properties:
  *               sucursal_receptora:
  *                 type: integer
  *                 example: 2
+ *               bodega_id:
+ *                 type: integer
+ *                 description: Bodega (de la sucursal receptora) donde queda el producto
+ *                 example: 1
  *               orden_compra_id:
  *                 type: integer
  *                 example: 5

@@ -1,4 +1,5 @@
 import { CategoriaModel } from '../model/supabase/categoria.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const CategoriasController = {
@@ -7,8 +8,8 @@ export const CategoriasController = {
       const categorias = await CategoriaModel.getAll();
       return { data: categorias, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get categorias:');
-      return { data: null, error: 'Error al obtener categorías', status: 500 };
+      logger.error({ err: error }, 'Error get categorias:');
+      return errorDb(error, 'Error al obtener categorías');
     }
   },
 
@@ -20,8 +21,8 @@ export const CategoriasController = {
       }
       return { data: categoria, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get categoria:');
-      return { data: null, error: 'Error al obtener categoría', status: 500 };
+      logger.error({ err: error }, 'Error get categoria:');
+      return errorDb(error, 'Error al obtener categoría');
     }
   },
 
@@ -33,8 +34,8 @@ export const CategoriasController = {
       const nuevaCategoria = await CategoriaModel.create(data);
       return { data: nuevaCategoria, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create categoria:');
-      return { data: null, error: 'Error al crear categoría', status: 500 };
+      logger.error({ err: error }, 'Error create categoria:');
+      return errorDb(error, 'Error al crear categoría');
     }
   },
 
@@ -46,8 +47,8 @@ export const CategoriasController = {
       }
       return { data: categoria, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update categoria:');
-      return { data: null, error: 'Error al actualizar categoría', status: 500 };
+      logger.error({ err: error }, 'Error update categoria:');
+      return errorDb(error, 'Error al actualizar categoría');
     }
   }
 };

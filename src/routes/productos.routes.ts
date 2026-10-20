@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { ProductosController } from '../controllers/productos.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaProducto, schemaProductoUpdate, schemaProductoStockMinimo } from '../schemas/producto.schema.js';
@@ -75,7 +75,7 @@ router.get('/disponibilidad', cache('productos-disponibilidad', 5), async (req: 
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/stock', authenticate, cache('productos-stock', 5), async (req: Request, res: Response) => {
+router.get('/stock', authenticate, staffOnly, cache('productos-stock', 5), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await ProductosController.getStock(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -246,6 +246,7 @@ router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(s
  */
 router.patch('/:id/stock-minimo', authenticate, requireRole('ADMIN'), validate(schemaProductoStockMinimo), async (req: Request, res: Response) => {
   const result = await ProductosController.updateStockMinimo(Number(req.params.id), req.body.stock_minimo);
+  if (result.status < 300) await invalidateTags('productos', 'productos-disponibilidad');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

@@ -9,10 +9,6 @@ import logger from "../../config/logger.js";
 export const SucursalModel: ISucursalModel = {
     async getAll(): Promise<SelectSucursal[]> {
         const sucursales = await db.select().from(sucursalTable).limit(100).offset(0);
-        if (sucursales.length === 0) {
-            logger.warn("No se encontraron sucursales");
-            throw new Error("No se encontraron sucursales");
-        }
         return sucursales;
     },
     async getById(id: number): Promise<SelectSucursal | null> {

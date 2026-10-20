@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const RecetaModel: IRecetaModel = {
   async getAll(): Promise<SelectReceta[]> {
     const recetas = await db.select().from(recetaTable).limit(100).offset(0);
-    if (recetas.length === 0) {
-      logger.warn("No se encontraron recetas");
-      throw new Error("No se encontraron recetas");
-    }
     logger.info(`Se encontraron ${recetas.length} recetas`);
     return recetas;
   },

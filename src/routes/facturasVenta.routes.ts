@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { FacturasVentaController } from '../controllers/facturasVenta.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { cache } from '../middleware/cache.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaFacturaVenta } from '../schemas/facturaVenta.schema.js';
 
 const router: Router = Router();
@@ -31,7 +31,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, cache('facturas-venta', 30), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'CAJERO', 'GERENTE'), cache('facturas-venta', 30), async (req: Request, res: Response) => {
   const pedidoId = req.query.pedido_id ? Number(req.query.pedido_id) : undefined;
   const result = await FacturasVentaController.getAll(pedidoId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -63,7 +63,7 @@ router.get('/', authenticate, cache('facturas-venta', 30), async (req: Request, 
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, requireRole('ADMIN', 'CAJERO', 'GERENTE'), async (req: Request, res: Response) => {
   const result = await FacturasVentaController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -83,7 +83,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [pedido_id, serie, numero, total]
+ *             required: [pedido_id, serie, numero]
  *             properties:
  *               pedido_id:
  *                 type: integer
@@ -115,6 +115,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, requireRole('CAJERO', 'ADMIN'), validate(schemaFacturaVenta), async (req: Request, res: Response) => {
   const result = await FacturasVentaController.create(req.body);
+  if (result.status < 300) await invalidateTags('facturas-venta');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

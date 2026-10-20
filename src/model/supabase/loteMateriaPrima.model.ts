@@ -8,16 +8,14 @@ import logger from "../../config/logger.js";
 export const LoteMateriaPrimaModel: ILoteMateriaPrimaModel = {
   async getAll(): Promise<SelectLoteMateriaPrima[]> {
     const lotes = await db.select().from(loteMateriaPrimaTable).limit(100).offset(0);
-    if (lotes.length === 0) {
-      logger.warn("No se encontraron lotes de materia prima");
-      throw new Error("No se encontraron lotes de materia prima");
-    }
     logger.info(`Se encontraron ${lotes.length} lotes de materia prima`);
     return lotes;
   },
 
-  async getById(id: number, executor: Tx = db): Promise<SelectLoteMateriaPrima | null> {
-    const lote = await executor.select().from(loteMateriaPrimaTable).where(eq(loteMateriaPrimaTable.id, id)).limit(1);
+  /** Con `bloquear` toma SELECT ... FOR UPDATE: debe usarse dentro de una transacción. */
+  async getById(id: number, executor: Tx = db, bloquear = false): Promise<SelectLoteMateriaPrima | null> {
+    const consulta = executor.select().from(loteMateriaPrimaTable).where(eq(loteMateriaPrimaTable.id, id)).limit(1);
+    const lote = await (bloquear ? consulta.for('update') : consulta);
     if (lote.length === 0) {
       logger.warn(`Lote de materia prima con ID ${id} no encontrado`);
       throw new Error("Lote de materia prima no encontrado");

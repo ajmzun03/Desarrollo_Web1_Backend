@@ -1,4 +1,5 @@
 import { db } from '../model/supabase/db.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 import { municipioTable, departamentoTable } from '../schemas/db.schema.js';
 import { eq } from 'drizzle-orm';
@@ -14,8 +15,8 @@ export const MunicipiosController = {
       }
       return { data: municipios, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get municipios:');
-      return { data: null, error: 'Error al obtener municipios', status: 500 };
+      logger.error({ err: error }, 'Error get municipios:');
+      return errorDb(error, 'Error al obtener municipios');
     }
   },
 
@@ -24,8 +25,8 @@ export const MunicipiosController = {
       const departamentos = await db.select().from(departamentoTable).limit(100).offset(0);
       return { data: departamentos, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get departamentos:');
-      return { data: null, error: 'Error al obtener departamentos', status: 500 };
+      logger.error({ err: error }, 'Error get departamentos:');
+      return errorDb(error, 'Error al obtener departamentos');
     }
   }
 };

@@ -16,8 +16,8 @@ function otpKey(scope: OtpScope, targetType: OtpTargetType, targetId: number): s
   return `otp:${scope}:${targetType}:${targetId}`
 }
 
-function otpLimitKey(targetType: OtpTargetType, targetId: number): string {
-  return `otp:limit:${targetType}:${targetId}`
+function otpLimitKey(scope: OtpScope, targetType: OtpTargetType, targetId: number): string {
+  return `otp:limit:${scope}:${targetType}:${targetId}`
 }
 
 function hashCodigo(codigo: string): string {
@@ -86,16 +86,18 @@ export async function verificarCodigo(
 }
 
 /**
- * Rate limit de envíos OTP por usuario: max MAX_ENVIOS por VENTANA_ENVIOS_SECONDS.
+ * Rate limit de envíos OTP por usuario y por scope (login y reset no comparten cupo, así que
+ * pedir códigos de recuperación de otra persona no le bloquea el login): max MAX_ENVIOS por VENTANA_ENVIOS_SECONDS.
  * Devuelve false si se superó el límite.
  * En producción, si Redis no está listo devuelve false (falla cerrado).
  */
 export async function puedeGenerarCodigo(
   targetType: OtpTargetType,
-  targetId: number
+  targetId: number,
+  scope: OtpScope = 'login'
 ): Promise<boolean> {
   if (!redis.isReady) return !IS_PROD // en prod falla cerrado; en dev degrada
-  const key = otpLimitKey(targetType, targetId)
+  const key = otpLimitKey(scope, targetType, targetId)
   try {
     const count = await redis.incr(key)
     if (count === 1) {

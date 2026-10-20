@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const OrdenTrabajoModel: IOrdenTrabajoModel = {
   async getAll(): Promise<SelectOrdenTrabajo[]> {
     const ordenes = await db.select().from(ordenTrabajoTable).limit(100).offset(0);
-    if (ordenes.length === 0) {
-      logger.warn("No se encontraron órdenes de trabajo");
-      throw new Error("No se encontraron órdenes de trabajo");
-    }
     logger.info(`Se encontraron ${ordenes.length} órdenes de trabajo`);
     return ordenes;
   },

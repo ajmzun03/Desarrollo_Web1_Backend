@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const ClienteModel: IClienteModel = {
   async getAll(): Promise<SelectCliente[]> {
     const clientes = await db.select().from(clienteTable).limit(100).offset(0);
-    if (clientes.length === 0) {
-      logger.warn("No se encontraron clientes");
-      throw new Error("No se encontraron clientes");
-    }
     logger.info(`Se encontraron ${clientes.length} clientes`);
     return clientes;
   },

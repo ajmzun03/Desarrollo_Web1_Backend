@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { UsuarioClienteController } from '../controllers/usuarioCliente.controller.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, clienteOnly, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { crearAuthLimiter } from '../middleware/authRateLimit.js';
 import {
@@ -14,6 +14,8 @@ import {
 const router: Router = Router();
 
 // Limitadores separados (aciertos no consumen intentos; clave IP + correo)
+// Registro: cada intento cuenta (aunque tenga éxito) para frenar la creación masiva de cuentas
+const registroLimiter = crearAuthLimiter({ ventanaMinutos: 60, limite: 10, contarAciertos: true });
 const loginLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
 const verificarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 15 });
 const recuperarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 5, porIdentificador: true });
@@ -53,7 +55,7 @@ const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, po
  *       409:
  *         description: Ya existe una cuenta con este correo
  */
-router.post('/registro', validate(schemaClienteRegistro), async (req: Request, res: Response) => {
+router.post('/registro', registroLimiter, validate(schemaClienteRegistro), async (req: Request, res: Response) => {
   const result = await UsuarioClienteController.registro(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -194,7 +196,12 @@ router.post('/restablecer', restablecerLimiter, validate(schemaClienteRestablece
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  */
-router.get('/me', authenticate, async (req: Request, res: Response) => {
+router.post('/logout', authenticate, clienteOnly, async (req: AuthRequest, res: Response) => {
+  const result = await UsuarioClienteController.logout(req.user!);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+router.get('/me', authenticate, clienteOnly, async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   const token = authHeader!.split(' ')[1]!;
   const result = await UsuarioClienteController.me(token);

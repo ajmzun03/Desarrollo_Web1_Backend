@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { OrdenesTrabajoController } from '../controllers/ordenesTrabajo.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaOrdenTrabajo, schemaOrdenTrabajoEstado } from '../schemas/ordenTrabajo.schema.js';
@@ -38,7 +38,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, staffOnly, async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const estado = req.query.estado as string | undefined;
   const result = await OrdenesTrabajoController.getAll(sucursalId, estado);
@@ -69,7 +69,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/cola', authenticate, cache('ordenes-cola', 5), async (req: Request, res: Response) => {
+router.get('/cola', authenticate, staffOnly, cache('ordenes-cola', 5), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await OrdenesTrabajoController.getCola(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -101,7 +101,7 @@ router.get('/cola', authenticate, cache('ordenes-cola', 5), async (req: Request,
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, staffOnly, async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -132,7 +132,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id/receta', authenticate, async (req: Request, res: Response) => {
+router.get('/:id/receta', authenticate, staffOnly, async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.getReceta(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -175,7 +175,7 @@ router.get('/:id/receta', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole('ADMIN', 'JEFE_COCINA'), validate(schemaOrdenTrabajo), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.create(req.body);
   if (result.status < 300) await invalidateTags('ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -223,7 +223,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajo
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaOrdenTrabajoEstado), async (req: Request, res: Response) => {
+router.patch('/:id/estado', authenticate, requireRole('ADMIN', 'JEFE_COCINA'), validate(schemaOrdenTrabajoEstado), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.updateEstado(Number(req.params.id), req.body.estado);
   if (result.status < 300) await invalidateTags('ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -257,7 +257,7 @@ router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaO
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id/iniciar', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id/iniciar', authenticate, requireRole('ADMIN', 'JEFE_COCINA', 'COCINERO'), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.iniciar(Number(req.params.id));
   if (result.status < 300) await invalidateTags('ordenes-cola');
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -291,9 +291,9 @@ router.patch('/:id/iniciar', authenticate, requireRole('ADMIN'), async (req: Req
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id/terminar', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id/terminar', authenticate, requireRole('ADMIN', 'JEFE_COCINA', 'COCINERO'), async (req: Request, res: Response) => {
   const result = await OrdenesTrabajoController.terminar(Number(req.params.id));
-  if (result.status < 300) await invalidateTags('ordenes-cola', 'productos-stock', 'productos-disponibilidad');
+  if (result.status < 300) await invalidateTags('ordenes-cola', 'productos-stock', 'productos-disponibilidad', 'stock-bodega', 'stock-alacena', 'kardex-bodega', 'kardex-alacena', 'inventario-bajo-minimo', 'materias-primas-criticas');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

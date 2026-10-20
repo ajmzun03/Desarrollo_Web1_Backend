@@ -1,6 +1,7 @@
 import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
-import { traslado, ingresoVale, cuadre } from '../services/inventario.service.js';
+import { traslado, ingresoVale, cuadre, trasladoAAlacena } from '../services/inventario.service.js';
 
 export const InventarioController = {
   async traslado(data: { bodega_origen_id: number; bodega_destino_id: number; lote_id: number; cantidad: number }) {
@@ -8,11 +9,8 @@ export const InventarioController = {
       const result = await traslado(data);
       return { data: result, error: null, status: 201 };
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Error al registrar el traslado';
-      const status = msg.includes('deben ser diferentes') || msg.includes('mayor al disponible') ? 400 :
-                     msg.includes('no se encuentra') || msg.includes('no encontrado') ? 404 : 500;
-      logger.error({ error }, 'Error traslado:');
-      return { data: null, error: status === 500 ? 'Error al registrar el traslado' : msg, status };
+      logger.error({ err: error }, 'Error traslado:');
+      return errorDb(error, 'Error al registrar el traslado');
     }
   },
 
@@ -28,8 +26,8 @@ export const InventarioController = {
       const result = await ingresoVale(data);
       return { data: result, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error ingreso-vale:');
-      return { data: null, error: 'Error al registrar el ingreso por vale', status: 500 };
+      logger.error({ err: error }, 'Error ingreso-vale:');
+      return errorDb(error, 'Error al registrar el ingreso por vale');
     }
   },
 
@@ -38,10 +36,18 @@ export const InventarioController = {
       const result = await cuadre(data);
       return { data: result, error: null, status: 200 };
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Error al realizar el cuadre de inventario';
-      const status = msg.includes('no encontrado') ? 404 : 500;
-      logger.error({ error }, 'Error cuadre:');
-      return { data: null, error: status === 500 ? 'Error al realizar el cuadre de inventario' : msg, status };
+      logger.error({ err: error }, 'Error cuadre:');
+      return errorDb(error, 'Error al realizar el cuadre de inventario');
+    }
+  },
+
+  async trasladoAlacena(data: { bodega_id: number; alacena_id: number; lote_id: number; cantidad: number }) {
+    try {
+      const result = await trasladoAAlacena(data);
+      return { data: result, error: null, status: 201 };
+    } catch (error) {
+      logger.error({ err: error }, 'Error traslado a alacena:');
+      return errorDb(error, 'Error al trasladar a la alacena');
     }
   },
 
@@ -53,8 +59,8 @@ export const InventarioController = {
       const lotes = await LoteMateriaPrimaModel.getBajoMinimoPorSucursal(sucursalId, umbral ?? 0);
       return { data: lotes, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get inventario bajo-minimo:');
-      return { data: null, error: 'Error al obtener inventario bajo mínimo', status: 500 };
+      logger.error({ err: error }, 'Error get inventario bajo-minimo:');
+      return errorDb(error, 'Error al obtener inventario bajo mínimo');
     }
   }
 };

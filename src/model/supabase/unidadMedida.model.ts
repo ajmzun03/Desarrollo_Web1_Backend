@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const UnidadMedidaModel: IUnidadMedidaModel = {
     async getAll(): Promise<SelectUnidadMedida[]> {
         const unidadesMedida = await db.select().from(unidadMedidaTable).limit(100).offset(0);
-        if (unidadesMedida.length === 0) {
-            logger.warn("No se encontraron unidades de medida");
-            throw new Error("No se encontraron unidades de medida");
-        }
         logger.info(`Se encontraron ${unidadesMedida.length} unidades de medida`);
         return unidadesMedida;
     },

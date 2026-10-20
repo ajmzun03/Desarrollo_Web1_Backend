@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { AuthController } from '../controllers/auth.controller.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, staffOnly, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { crearAuthLimiter } from '../middleware/authRateLimit.js';
 import { schemaVerificarCodigo, schemaRecuperar, schemaRestablecer } from '../schemas/auth.schema.js';
@@ -150,8 +150,8 @@ router.post('/restablecer', restablecerLimiter, validate(schemaRestablecer), asy
  *       200:
  *         description: Logout exitoso :)
  */
-router.post('/logout', async (_req: Request, res: Response) => {
-  const result = await AuthController.logout();
+router.post('/logout', authenticate, staffOnly, async (req: AuthRequest, res: Response) => {
+  const result = await AuthController.logout(req.user);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -169,7 +169,7 @@ router.post('/logout', async (_req: Request, res: Response) => {
  *       401:
  *         description: Token no proporcionado, inválido o expirado :(
  */
-router.get('/me', authenticate, async (req: Request, res: Response) => {
+router.get('/me', authenticate, staffOnly, async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   const token = authHeader!.split(' ')[1]!;
   const result = await AuthController.me(token);

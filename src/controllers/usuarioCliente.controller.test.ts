@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('../services/sesiones.service.js', () => ({
+  revocarToken: vi.fn().mockResolvedValue(true),
+  revocarSesionesDe: vi.fn().mockResolvedValue(true),
+  estaRevocado: vi.fn().mockResolvedValue(false),
+}));
+
 vi.mock('../model/supabase/usuarioCliente.model.js', () => ({
   UsuarioClienteModel: {
     getByCorreo: vi.fn(),

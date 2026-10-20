@@ -3,7 +3,7 @@ import { CategoriasController } from '../controllers/categorias.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
-import { schemaCategoria } from '../schemas/categoria.schema.js';
+import { schemaCategoria, schemaCategoriaUpdate } from '../schemas/categoria.schema.js';
 
 const router: Router = Router();
 
@@ -115,7 +115,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaCategoria), 
  *       404:
  *         description: Categoría no encontrada
  */
-router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaCategoriaUpdate), async (req: Request, res: Response) => {
   const result = await CategoriasController.update(Number(req.params.id), req.body);
   if (result.status < 300) await invalidateTags('categorias');
   res.status(result.status).json({ data: result.data, error: result.error });
