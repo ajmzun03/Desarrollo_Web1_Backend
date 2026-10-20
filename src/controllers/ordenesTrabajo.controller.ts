@@ -1,7 +1,9 @@
 import { OrdenTrabajoModel } from '../model/supabase/ordenTrabajo.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 import { RecetaDetalleModel, RecetaModel } from '../model/supabase/receta.model.js';
-import { ProductoLoteModel } from '../model/supabase/productoLote.model.js';
+import { terminarOrdenTrabajo } from '../services/produccion.service.js';
+import { TRANSICIONES_ORDEN_TRABAJO, validarTransicion } from '../utils/transiciones.js';
 
 export const OrdenesTrabajoController = {
   async getAll(sucursalId?: number, estado?: string) {
@@ -16,8 +18,8 @@ export const OrdenesTrabajoController = {
       }
       return { data: ordenes, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get ordenes-trabajo:');
-      return { data: null, error: 'Error al obtener órdenes de trabajo', status: 500 };
+      logger.error({ err: error }, 'Error get ordenes-trabajo:');
+      return errorDb(error, 'Error al obtener órdenes de trabajo');
     }
   },
 
@@ -26,8 +28,8 @@ export const OrdenesTrabajoController = {
       const ordenes = await OrdenTrabajoModel.getByEstado('GENERADA');
       return { data: ordenes, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get cola ordenes-trabajo:');
-      return { data: null, error: 'Error al obtener cola de órdenes', status: 500 };
+      logger.error({ err: error }, 'Error get cola ordenes-trabajo:');
+      return errorDb(error, 'Error al obtener cola de órdenes');
     }
   },
 
@@ -39,8 +41,8 @@ export const OrdenesTrabajoController = {
       }
       return { data: orden, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get orden-trabajo:');
-      return { data: null, error: 'Error al obtener orden de trabajo', status: 500 };
+      logger.error({ err: error }, 'Error get orden-trabajo:');
+      return errorDb(error, 'Error al obtener orden de trabajo');
     }
   },
 
@@ -53,8 +55,8 @@ export const OrdenesTrabajoController = {
       const detalles = await RecetaDetalleModel.getByRecetaId(orden.receta_id);
       return { data: { orden, detalles }, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get receta orden:');
-      return { data: null, error: 'Error al obtener receta de la orden', status: 500 };
+      logger.error({ err: error }, 'Error get receta orden:');
+      return errorDb(error, 'Error al obtener receta de la orden');
     }
   },
 
@@ -71,62 +73,46 @@ export const OrdenesTrabajoController = {
       });
       return { data: nuevaOrden, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create orden-trabajo:');
-      return { data: null, error: 'Error al crear orden de trabajo', status: 500 };
+      logger.error({ err: error }, 'Error create orden-trabajo:');
+      return errorDb(error, 'Error al crear orden de trabajo');
     }
   },
 
   async updateEstado(id: number, estado: 'GENERADA' | 'EN_PREPARACION' | 'ANULADA' | 'FINALIZADA') {
     try {
-      const orden = await OrdenTrabajoModel.update(id, { estado });
-      if (!orden) {
-        return { data: null, error: 'Orden de trabajo no encontrada', status: 404 };
+      // Finalizar descuenta materia prima y crea el lote: solo se hace con /terminar
+      if (estado === 'FINALIZADA') {
+        return { data: null, error: 'Para finalizar una orden usa PATCH /ordenes-trabajo/:id/terminar', status: 400 };
       }
+      const actual = await OrdenTrabajoModel.getById(id);
+      validarTransicion(TRANSICIONES_ORDEN_TRABAJO, actual?.estado, estado, 'la orden de trabajo');
+      const orden = await OrdenTrabajoModel.update(id, { estado });
       return { data: orden, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update estado orden-trabajo:');
-      return { data: null, error: 'Error al actualizar estado de orden de trabajo', status: 500 };
+      logger.error({ err: error }, 'Error update estado orden-trabajo:');
+      return errorDb(error, 'Error al actualizar estado de orden de trabajo');
     }
   },
 
   async iniciar(id: number) {
     try {
+      const actual = await OrdenTrabajoModel.getById(id);
+      validarTransicion(TRANSICIONES_ORDEN_TRABAJO, actual?.estado, 'EN_PREPARACION', 'la orden de trabajo');
       const orden = await OrdenTrabajoModel.update(id, { estado: 'EN_PREPARACION' });
-      if (!orden) {
-        return { data: null, error: 'Orden de trabajo no encontrada', status: 404 };
-      }
       return { data: orden, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error iniciar orden-trabajo:');
-      return { data: null, error: 'Error al iniciar orden de trabajo', status: 500 };
+      logger.error({ err: error }, 'Error iniciar orden-trabajo:');
+      return errorDb(error, 'Error al iniciar orden de trabajo');
     }
   },
 
   async terminar(id: number) {
     try {
-      const orden = await OrdenTrabajoModel.getById(id);
-      if (!orden) {
-        return { data: null, error: 'Orden de trabajo no encontrada', status: 404 };
-      }
-      if (!orden.receta_id) {
-        return { data: null, error: 'La orden de trabajo no tiene receta asociada', status: 400 };
-      }
-      const receta = await RecetaModel.getById(orden.receta_id);
-      if (!receta?.producto_id) {
-        return { data: null, error: 'La receta de la orden no tiene producto asociado', status: 400 };
-      }
-      const lote = await ProductoLoteModel.create({
-        orden_id: id,
-        producto_id: receta.producto_id,
-        cantidad_inicial: orden.cantidad_produccion,
-        cantidad_actual: orden.cantidad_produccion,
-        estado: 'VIGENTE'
-      });
-      const ordenActualizada = await OrdenTrabajoModel.update(id, { estado: 'FINALIZADA' });
-      return { data: { orden: ordenActualizada, lote }, error: null, status: 200 };
+      const resultado = await terminarOrdenTrabajo(id);
+      return { data: resultado, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error terminar orden-trabajo:');
-      return { data: null, error: 'Error al terminar orden de trabajo', status: 500 };
+      logger.error({ err: error }, 'Error terminar orden-trabajo:');
+      return errorDb(error, 'Error al terminar orden de trabajo');
     }
   }
 };

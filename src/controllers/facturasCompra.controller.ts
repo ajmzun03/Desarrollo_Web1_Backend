@@ -1,4 +1,5 @@
 import { FacturaCompraModel } from '../model/supabase/facturaCompra.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const FacturasCompraController = {
@@ -7,8 +8,8 @@ export const FacturasCompraController = {
       const facturas = await FacturaCompraModel.getAll();
       return { data: facturas, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get facturas-compra:');
-      return { data: null, error: 'Error al obtener facturas de compra', status: 500 };
+      logger.error({ err: error }, 'Error get facturas-compra:');
+      return errorDb(error, 'Error al obtener facturas de compra');
     }
   },
 
@@ -20,8 +21,8 @@ export const FacturasCompraController = {
       }
       return { data: factura, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get factura-compra:');
-      return { data: null, error: 'Error al obtener factura de compra', status: 500 };
+      logger.error({ err: error }, 'Error get factura-compra:');
+      return errorDb(error, 'Error al obtener factura de compra');
     }
   },
 
@@ -30,8 +31,8 @@ export const FacturasCompraController = {
       const facturas = await FacturaCompraModel.getByOrdenCompraId(ordenCompraId);
       return { data: facturas, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get facturas por orden de compra:');
-      return { data: null, error: 'Error al obtener facturas por orden de compra', status: 500 };
+      logger.error({ err: error }, 'Error get facturas por orden de compra:');
+      return errorDb(error, 'Error al obtener facturas por orden de compra');
     }
   },
 
@@ -49,8 +50,8 @@ export const FacturasCompraController = {
       });
       return { data: nuevaFactura, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create factura-compra:');
-      return { data: null, error: 'Error al crear factura de compra', status: 500 };
+      logger.error({ err: error }, 'Error create factura-compra:');
+      return errorDb(error, 'Error al crear factura de compra');
     }
   }
 };

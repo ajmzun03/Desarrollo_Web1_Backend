@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { TurnosController } from '../controllers/turnos.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, requireRole, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaTurnoApertura, schemaTurnoCierre, schemaTurnoValidar } from '../schemas/turno.schema.js';
 import { schemaSencillo } from '../schemas/inventario.schema.js';
@@ -24,7 +24,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (_req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'CAJERO'), async (_req: Request, res: Response) => {
   const result = await TurnosController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -79,7 +79,7 @@ router.get('/pendientes-validacion', authenticate, requireRole('ADMIN'), async (
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'CAJERO'), async (req: Request, res: Response) => {
   const result = await TurnosController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -99,7 +99,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [caja_id, usuario_id, monto_apertura]
+ *             required: [caja_id, monto_apertura]
  *             properties:
  *               caja_id:
  *                 type: integer
@@ -125,8 +125,8 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/apertura', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaTurnoApertura), async (req: Request, res: Response) => {
-  const result = await TurnosController.apertura(req.body);
+router.post('/apertura', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaTurnoApertura), async (req: AuthRequest, res: Response) => {
+  const result = await TurnosController.apertura(req.body, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -171,8 +171,8 @@ router.post('/apertura', authenticate, requireRole('DESPACHADOR', 'ADMIN'), vali
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id/cierre', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaTurnoCierre), async (req: Request, res: Response) => {
-  const result = await TurnosController.cierre(Number(req.params.id), req.body.monto_cierre_declarado);
+router.patch('/:id/cierre', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaTurnoCierre), async (req: AuthRequest, res: Response) => {
+  const result = await TurnosController.cierre(Number(req.params.id), req.body.monto_cierre_declarado, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

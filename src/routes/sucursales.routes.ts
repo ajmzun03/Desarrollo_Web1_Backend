@@ -3,7 +3,7 @@ import { SucursalesController } from '../controllers/sucursales.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
-import { schemaSucursal } from '../schemas/sucursal.schema.js';
+import { schemaSucursal, schemaSucursalUpdate } from '../schemas/sucursal.schema.js';
 
 const router: Router = Router();
 
@@ -138,7 +138,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaSucursal), a
  *       500:
  *         description: Error al actualizar sucursal
  */
-router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaSucursalUpdate), async (req: Request, res: Response) => {
   const result = await SucursalesController.update(Number(req.params.id), req.body);
   if (result.status < 300) await invalidateTags('sucursales');
   res.status(result.status).json({ data: result.data, error: result.error });

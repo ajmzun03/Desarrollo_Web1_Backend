@@ -12,16 +12,13 @@ const columnasSeguras = {
     correo_electronico: usuarioTable.correo_electronico,
     telefono: usuarioTable.telefono,
     rol: usuarioTable.rol,
+    activo: usuarioTable.activo,
     creado_en: usuarioTable.creado_en,
 }
 
 export const UsuarioModel: IUsuarioModel = {
     async getAll(): Promise<Omit<SelectUsuario, 'contrasenia'>[]> {
         const usuarios = await db.select(columnasSeguras).from(usuarioTable).limit(100).offset(0);
-        if (usuarios.length === 0) {
-            logger.warn("No se encontraron usuarios");
-            throw new Error("No se encontraron usuarios");
-        }
         logger.info(`Se encontraron ${usuarios.length} usuarios`);
         return usuarios;
     },

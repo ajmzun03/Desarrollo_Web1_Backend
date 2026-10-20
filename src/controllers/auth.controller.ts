@@ -5,6 +5,8 @@ import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGen
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
 import { IS_PROD } from '../config.js';
 import logger from '../config/logger.js';
+import { revocarToken, revocarSesionesDe } from '../services/sesiones.service.js';
+import type { DecodedToken } from '../jwt.js';
 
 const OTP_SCOPE_LOGIN = 'login' as const;
 const OTP_SCOPE_RESET = 'reset' as const;
@@ -21,7 +23,8 @@ export const AuthController = {
 
     const user = await UsuarioModel.getByUsuario(usuario);
 
-    if (!user) {
+    // Un usuario desactivado no inicia sesión (mismo mensaje para no revelar que existe)
+    if (!user || user.activo === false) {
       return { data: null, error: 'Credenciales inválidas', status: 401 };
     }
 
@@ -31,7 +34,7 @@ export const AuthController = {
       return { data: null, error: 'Credenciales inválidas', status: 401 };
     }
 
-    const puedeEnviar = await puedeGenerarCodigo('usuario', Number(user.id));
+    const puedeEnviar = await puedeGenerarCodigo('usuario', Number(user.id), OTP_SCOPE_LOGIN);
     if (!puedeEnviar) {
       return { data: null, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.', status: 429 };
     }
@@ -120,6 +123,9 @@ export const AuthController = {
     if (!user) {
       return { data: null, error: 'Usuario no encontrado', status: 404 };
     }
+    if (user.activo === false) {
+      return { data: null, error: 'Credenciales inválidas', status: 401 };
+    }
 
     return { data: { usuario: user, token }, error: null, status: 200 };
   },
@@ -135,8 +141,8 @@ export const AuthController = {
 
     const user = await UsuarioModel.getByUsuarioOrCorreo(identificador);
 
-    if (user) {
-      const puedeEnviar = await puedeGenerarCodigo('usuario', Number(user.id));
+    if (user && user.activo !== false) {
+      const puedeEnviar = await puedeGenerarCodigo('usuario', Number(user.id), OTP_SCOPE_RESET);
       if (puedeEnviar) {
         const codigo = generarCodigo();
         const guardado = await guardarCodigo(OTP_SCOPE_RESET, 'usuario', Number(user.id), codigo);
@@ -166,7 +172,7 @@ export const AuthController = {
     }
 
     const user = await UsuarioModel.getByUsuarioOrCorreo(data.identificador);
-    if (!user) {
+    if (!user || user.activo === false) {
       return { data: null, error: 'Código incorrecto o expirado', status: 401 };
     }
 
@@ -182,11 +188,15 @@ export const AuthController = {
 
     const hash = await hashPassword(data.nuevaContrasenia);
     await UsuarioModel.update(Number(user.id), { contrasenia: hash });
+    // Cambiar la contraseña invalida las sesiones abiertas con la anterior
+    await revocarSesionesDe('usuario', Number(user.id));
 
     return { data: { message: 'Contraseña actualizada exitosamente' }, error: null, status: 200 };
   },
 
-  async logout() {
+  async logout(user?: DecodedToken) {
+    // Revoca el token actual (jti) hasta su expiración; sin Redis el logout solo es del lado del cliente
+    if (user) await revocarToken(user.jti, user.exp);
     return {
       data: { message: 'Sesión cerrada exitosamente' },
       error: null,

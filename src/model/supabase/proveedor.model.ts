@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const ProveedorModel: IProveedorModel = {
   async getAll(): Promise<SelectProveedor[] | null> {
     const proveedores = await db.select().from(proveedorTable).limit(100).offset(0);
-    if (proveedores.length === 0) {
-      logger.warn("No se encontraron proveedores")
-      throw new Error("No se encontraron proveedores")
-    }
     logger.info(`Se encontraron ${proveedores.length} proveedores`);
     return proveedores;
   },

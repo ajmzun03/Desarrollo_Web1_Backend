@@ -6,6 +6,8 @@ import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGen
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
 import { IS_PROD } from '../config.js';
 import logger from '../config/logger.js';
+import { revocarToken, revocarSesionesDe } from '../services/sesiones.service.js';
+import type { DecodedToken } from '../jwt.js';
 
 const OTP_SCOPE_LOGIN = 'login' as const;
 const OTP_SCOPE_RESET = 'reset' as const;
@@ -53,7 +55,7 @@ export const UsuarioClienteController = {
         status: 201
       };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error al registrar cliente:');
+      logger.error({ err: error }, 'Error al registrar cliente:');
       return { data: null, error: 'Error al registrar cliente', status: 500 };
     }
   },
@@ -78,7 +80,7 @@ export const UsuarioClienteController = {
       }
 
       const clienteId = Number(registro.cliente.id);
-      const puedeEnviar = await puedeGenerarCodigo('cliente', clienteId);
+      const puedeEnviar = await puedeGenerarCodigo('cliente', clienteId, OTP_SCOPE_LOGIN);
       if (!puedeEnviar) {
         return { data: null, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.', status: 429 };
       }
@@ -137,7 +139,7 @@ export const UsuarioClienteController = {
         status: 202
       };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error al iniciar sesión cliente:');
+      logger.error({ err: error }, 'Error al iniciar sesión cliente:');
       return { data: null, error: 'Error al iniciar sesión', status: 500 };
     }
   },
@@ -188,7 +190,7 @@ export const UsuarioClienteController = {
 
       return { data: { cliente, token }, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error al verificar código cliente:');
+      logger.error({ err: error }, 'Error al verificar código cliente:');
       return { data: null, error: 'Error al verificar el código', status: 500 };
     }
   },
@@ -207,7 +209,7 @@ export const UsuarioClienteController = {
 
       if (registro && registro.usuarioCliente.activo) {
         const clienteId = Number(registro.cliente.id);
-        const puedeEnviar = await puedeGenerarCodigo('cliente', clienteId);
+        const puedeEnviar = await puedeGenerarCodigo('cliente', clienteId, OTP_SCOPE_RESET);
         if (puedeEnviar) {
           const codigo = generarCodigo();
           const guardado = await guardarCodigo(OTP_SCOPE_RESET, 'cliente', clienteId, codigo);
@@ -227,7 +229,7 @@ export const UsuarioClienteController = {
         status: 202
       };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error al solicitar recuperación cliente:');
+      logger.error({ err: error }, 'Error al solicitar recuperación cliente:');
       return { data: null, error: 'Error al procesar la solicitud', status: 500 };
     }
   },
@@ -264,12 +266,19 @@ export const UsuarioClienteController = {
       if (!ok) {
         return { data: null, error: 'No se pudo actualizar la contraseña', status: 500 };
       }
+      // Cambiar la contraseña invalida las sesiones abiertas con la anterior
+      await revocarSesionesDe('cliente', clienteId);
 
       return { data: { message: 'Contraseña actualizada exitosamente' }, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error al restablecer contraseña cliente:');
+      logger.error({ err: error }, 'Error al restablecer contraseña cliente:');
       return { data: null, error: 'Error al restablecer la contraseña', status: 500 };
     }
+  },
+
+  async logout(user: DecodedToken) {
+    await revocarToken(user.jti, user.exp);
+    return { data: { message: 'Sesión cerrada exitosamente' }, error: null, status: 200 };
   },
 
   async me(token: string) {
@@ -286,7 +295,7 @@ export const UsuarioClienteController = {
 
       return { data: cliente, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error al obtener perfil de cliente:');
+      logger.error({ err: error }, 'Error al obtener perfil de cliente:');
       return { data: null, error: 'Error al obtener datos del cliente', status: 500 };
     }
   }

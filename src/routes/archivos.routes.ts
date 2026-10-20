@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { ArchivosController } from '../controllers/archivos.controller.js';
 import { validate } from '../middleware/validate.js';
 import { schemaUploadUrl } from '../schemas/archivo.schema.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, staffOnly } from '../middleware/auth.js';
 
 const router: Router = Router();
 
@@ -56,9 +56,9 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/upload-url', authenticate, validate(schemaUploadUrl), async (req: Request, res: Response) => {
-  const { fileName, fileType } = req.body;
-  const result = await ArchivosController.getUploadUrl(fileName, fileType);
+router.post('/upload-url', authenticate, staffOnly, validate(schemaUploadUrl), async (req: Request, res: Response) => {
+  const { fileName, fileType, fileSize } = req.body;
+  const result = await ArchivosController.getUploadUrl(fileName, fileType, fileSize);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

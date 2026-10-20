@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const MunicipioModel: IMunicipioModel = {
   async getAll(): Promise<SelectMunicipio[]> {
     const municipios = await db.select().from(municipioTable).limit(100).offset(0);
-    if (municipios.length === 0) {
-      logger.warn("No se encontraron municipios")
-      throw new Error("No se encontraron municipios")
-    }
     logger.info(`Se encontraron ${municipios.length} municipios`);
     return municipios;
   },

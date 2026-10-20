@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { HojasDespachoController } from '../controllers/hojasDespacho.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { cache } from '../middleware/cache.js';
+import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaHojaDespacho } from '../schemas/hojaDespacho.schema.js';
 
 const router: Router = Router();
@@ -79,11 +79,14 @@ router.get('/:id', authenticate, requireRole('DESPACHADOR', 'ADMIN'), async (req
  *         application/json:
  *           schema:
  *             type: object
- *             required: [pedido_id, sucursal_despacho]
+ *             required: [pedido_id, sucursal_despacho, items]
  *             properties:
  *               pedido_id:
  *                 type: integer
  *                 example: 3
+ *               repartidor_id:
+ *                 type: integer
+ *                 description: Obligatorio para pedidos a domicilio (usuario con rol REPARTIDOR)
  *               sucursal_despacho:
  *                 type: integer
  *                 example: 1
@@ -111,6 +114,7 @@ router.get('/:id', authenticate, requireRole('DESPACHADOR', 'ADMIN'), async (req
  */
 router.post('/', authenticate, requireRole('DESPACHADOR', 'ADMIN'), validate(schemaHojaDespacho), async (req: Request, res: Response) => {
   const result = await HojasDespachoController.create(req.body);
+  if (result.status < 300) await invalidateTags('pedidos-listos', 'productos-stock', 'productos-disponibilidad');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

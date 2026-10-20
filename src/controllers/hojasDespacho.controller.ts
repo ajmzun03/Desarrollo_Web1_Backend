@@ -1,5 +1,7 @@
 import { HojaDespachoModel, HojaDespachoDetalleModel } from '../model/supabase/hojaDespacho.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
+import { crearHojaDespacho, type CrearHojaDespachoInput } from '../services/despacho.service.js';
 
 export const HojasDespachoController = {
   async getAll() {
@@ -7,8 +9,8 @@ export const HojasDespachoController = {
       const hojas = await HojaDespachoModel.getAll();
       return { data: hojas, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get hojas-despacho:');
-      return { data: null, error: 'Error al obtener hojas de despacho', status: 500 };
+      logger.error({ err: error }, 'Error get hojas-despacho:');
+      return errorDb(error, 'Error al obtener hojas de despacho');
     }
   },
 
@@ -21,35 +23,21 @@ export const HojasDespachoController = {
       const detalles = await HojaDespachoDetalleModel.getByHojaDespachoId(id);
       return { data: { ...hoja, detalles }, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get hoja-despacho:');
-      return { data: null, error: 'Error al obtener hoja de despacho', status: 500 };
+      logger.error({ err: error }, 'Error get hoja-despacho:');
+      return errorDb(error, 'Error al obtener hoja de despacho');
     }
   },
 
-  async create(data: { pedido_id: number; sucursal_despacho: number; items?: Array<{ producto_lote_id: number; cantidad_despachada: number }> }) {
+  async create(data: CrearHojaDespachoInput) {
     try {
       if (!data.pedido_id || !data.sucursal_despacho) {
         return { data: null, error: 'pedido_id y sucursal_despacho son requeridos', status: 400 };
       }
-      const nuevaHoja = await HojaDespachoModel.create({
-        pedido_id: data.pedido_id,
-        sucursal_despacho: data.sucursal_despacho,
-        despachado_en: new Date().toISOString()
-      });
-      if (data.items && Array.isArray(data.items)) {
-        for (const item of data.items) {
-          await HojaDespachoDetalleModel.create({
-            hoja_despacho_id: Number(nuevaHoja.id),
-            producto_lote_id: item.producto_lote_id,
-            cantidad_despachada: String(item.cantidad_despachada)
-          });
-        }
-      }
-      const detalles = await HojaDespachoDetalleModel.getByHojaDespachoId(Number(nuevaHoja.id));
-      return { data: { ...nuevaHoja, detalles }, error: null, status: 201 };
+      const hoja = await crearHojaDespacho(data);
+      return { data: hoja, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create hoja-despacho:');
-      return { data: null, error: 'Error al crear hoja de despacho', status: 500 };
+      logger.error({ err: error }, 'Error create hoja-despacho:');
+      return errorDb(error, 'Error al crear hoja de despacho');
     }
   }
 };

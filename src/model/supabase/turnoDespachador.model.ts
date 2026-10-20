@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const TurnoDespachadorModel: ITurnoDespachadorModel = {
   async getAll(): Promise<SelectTurnoDespachador[]> {
     const turnos = await db.select().from(turnoDespachadorTable).limit(100).offset(0);
-    if (turnos.length === 0) {
-      logger.warn("No se encontraron turnos de despachador");
-      throw new Error("No se encontraron turnos de despachador");
-    }
     logger.info(`Se encontraron ${turnos.length} turnos de despachador`);
     return turnos;
   },

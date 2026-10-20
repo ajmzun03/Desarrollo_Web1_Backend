@@ -13,8 +13,10 @@ export const schemaFacturaVenta = z.object({
         .min(1, "El número es requerido")
         .max(32, "El número no puede tener más de 32 caracteres"),
     fecha_emision: z.string().optional(),
+    // Opcional: el total real sale del pedido; si se envía debe coincidir
     total: z.number()
         .positive("El total debe ser un número positivo")
+        .optional()
 })
 
 export function validateFacturaVenta(object: unknown) {

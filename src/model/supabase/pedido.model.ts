@@ -1,7 +1,7 @@
 import type { IPedidoModel } from "../../types.js";
 import { type SelectPedido, type InsertPedido, type UpdatePedido, pedidoTable } from "../../schemas/db.schema.js";
 import { db, type Tx } from "./db.model.js";
-import { eq, like } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import logger from "../../config/logger.js";
 
 export const PedidoModel: IPedidoModel = {
@@ -11,19 +11,27 @@ export const PedidoModel: IPedidoModel = {
     return pedidos;
   },
 
+  async getPaginado({ limit, offset, estado }: { limit: number; offset: number; estado?: string | undefined }): Promise<SelectPedido[]> {
+    const where = estado ? eq(pedidoTable.estado, estado as any) : undefined
+    return db.select().from(pedidoTable).where(where).orderBy(desc(pedidoTable.id)).limit(limit).offset(offset)
+  },
+
+  async getByClienteId(id: number): Promise<SelectPedido[]> {
+    return db.select().from(pedidoTable).where(eq(pedidoTable.cliente_id, id)).orderBy(desc(pedidoTable.id))
+  },
+
+  async marcarPagado(id: number, stripePaymentId: string): Promise<SelectPedido | null> {
+    const [result] = await db.update(pedidoTable)
+      .set({ pagado: true, stripe_payment_id: stripePaymentId })
+      .where(and(eq(pedidoTable.id, id), eq(pedidoTable.pagado, false)))
+      .returning()
+    return result ?? null
+  },
+
   async getByEstado(estado: string): Promise<SelectPedido[]> {
     const pedidos = await db.select().from(pedidoTable).where(eq(pedidoTable.estado, estado as any));
     logger.info(`Se encontraron ${pedidos.length} pedidos con estado ${estado}`);
     return pedidos;
-  },
-
-  async getPedidosCliente(id: number): Promise<SelectPedido[] | null> {
-    const pedidosCliente = await db.select().from(pedidoTable).where(eq(pedidoTable.cliente_id, id))
-    if (pedidosCliente.length === 0) {
-      logger.warn(`No se encontraron pedidos para el cliente con id ${id}`)
-      throw new Error(`No se encontraron pedidos para el cliente`)
-    }
-    return pedidosCliente.length > 0 ? pedidosCliente : null
   },
 
   async getPedidoId(id: number): Promise<SelectPedido | null> {
@@ -51,7 +59,7 @@ export const PedidoModel: IPedidoModel = {
       logger.info(`Pedido con id ${id} actualizado exitosamente`)
       return result
     }
-    logger.error(`Error al actualizar el pedido con id ${id}`)
-    throw new Error('Error al actualizar el pedido')
+    logger.warn(`Pedido con id ${id} no encontrado al actualizar`)
+    return null
   }
 }

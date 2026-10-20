@@ -23,6 +23,8 @@ export const schemaUsuario = z.object({
     rol: z.enum(estadoRolEnum, {
         message: `El rol debe ser uno de los siguientes: ${estadoRolEnum.join(', ')}`
     }),
+    // false = desactiva la cuenta (no puede iniciar sesión y sus sesiones se cierran)
+    activo: z.boolean().optional(),
 })
 
 // PATCH: campos opcionales, pero se rechazan campos desconocidos (strict)

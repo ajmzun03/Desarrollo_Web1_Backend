@@ -1,9 +1,13 @@
 import z from 'zod'
 import { tipoRecepcionEnum } from './db.schema.js'
+import { fechaVencimiento } from './inventario.schema.js'
 
 const tipoRecepcionValues = tipoRecepcionEnum.enumValues
 
 export const schemaHojaRecepcion = z.object({
+    bodega_id: z.number()
+        .int("El ID de la bodega debe ser un número entero")
+        .positive("El ID de la bodega debe ser un número positivo"),
     sucursal_receptora: z.number()
         .int("El ID de la sucursal receptora debe ser un número entero")
         .positive("El ID de la sucursal receptora debe ser un número positivo"),
@@ -18,12 +22,11 @@ export const schemaHojaRecepcion = z.object({
             .positive("El ID de la materia prima debe ser un número positivo"),
         cantidad_recibida: z.number()
             .positive("La cantidad recibida debe ser un número positivo"),
-        fecha_vencimiento: z.string()
-            .min(1, "La fecha de vencimiento es requerida"),
+        fecha_vencimiento: fechaVencimiento,
         merma: z.number()
             .min(0, "La merma no puede ser negativa")
             .optional()
-    })).min(1, "Debe incluir al menos un ítem")
+    })).min(1, "Debe incluir al menos un ítem").max(200)
 })
 
 export function validateHojaRecepcion(object: unknown) {

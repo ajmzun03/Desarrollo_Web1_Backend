@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const DireccionModel: IDireccionModel = {
     async getAll(): Promise<SelectDireccion[]> {
         const direcciones = await db.select().from(direccionTable).limit(100).offset(0);
-        if (direcciones.length === 0) {
-            logger.warn("No se encontraron direcciones");
-            throw new Error("No se encontraron direcciones");
-        }
         logger.info(`Se encontraron ${direcciones.length} direcciones`);
         return direcciones;
     },
