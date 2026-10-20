@@ -1,4 +1,5 @@
 import { BodegaModel } from '../model/supabase/bodega.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
 
@@ -13,8 +14,8 @@ export const BodegasController = {
       }
       return { data: bodegas, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get bodegas:');
-      return { data: null, error: 'Error al obtener bodegas', status: 500 };
+      logger.error({ err: error }, 'Error get bodegas:');
+      return errorDb(error, 'Error al obtener bodegas');
     }
   },
 
@@ -26,8 +27,8 @@ export const BodegasController = {
       }
       return { data: bodega, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get bodega:');
-      return { data: null, error: 'Error al obtener bodega', status: 500 };
+      logger.error({ err: error }, 'Error get bodega:');
+      return errorDb(error, 'Error al obtener bodega');
     }
   },
 
@@ -39,8 +40,8 @@ export const BodegasController = {
       const nuevaBodega = await BodegaModel.create(data);
       return { data: nuevaBodega, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create bodega:');
-      return { data: null, error: 'Error al crear bodega', status: 500 };
+      logger.error({ err: error }, 'Error create bodega:');
+      return errorDb(error, 'Error al crear bodega');
     }
   },
 
@@ -52,8 +53,8 @@ export const BodegasController = {
       }
       return { data: bodega, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update bodega:');
-      return { data: null, error: 'Error al actualizar bodega', status: 500 };
+      logger.error({ err: error }, 'Error update bodega:');
+      return errorDb(error, 'Error al actualizar bodega');
     }
   },
 
@@ -65,8 +66,8 @@ export const BodegasController = {
       const lotes = await LoteMateriaPrimaModel.getFEFO(Number(bodegaId) || 0, Number(materiaPrimaId));
       return { data: lotes, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get lotes FEFO:');
-      return { data: null, error: 'Error al obtener lotes FEFO', status: 500 };
+      logger.error({ err: error }, 'Error get lotes FEFO:');
+      return errorDb(error, 'Error al obtener lotes FEFO');
     }
   }
 };

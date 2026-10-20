@@ -3,7 +3,7 @@ import { ProveedoresController } from '../controllers/proveedores.controller.js'
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
-import { schemaProveedor } from '../schemas/proveedor.schema.js';
+import { schemaProveedor, schemaProveedorUpdate } from '../schemas/proveedor.schema.js';
 
 const router: Router = Router();
 
@@ -135,7 +135,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaProveedor), 
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaProveedorUpdate), async (req: Request, res: Response) => {
   const result = await ProveedoresController.update(Number(req.params.id), req.body);
   if (result.status < 300) await invalidateTags('proveedores');
   res.status(result.status).json({ data: result.data, error: result.error });

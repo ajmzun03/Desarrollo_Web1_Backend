@@ -1,4 +1,5 @@
 import { MateriaPrimaModel } from '../model/supabase/materiaPrima.model.js';
+import { errorDb } from '../utils/errors.js';
 import { LoteMateriaPrimaModel } from '../model/supabase/loteMateriaPrima.model.js';
 import logger from '../config/logger.js';
 
@@ -8,8 +9,8 @@ export const MateriasPrimasController = {
       const materias = await MateriaPrimaModel.getAll();
       return { data: materias, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get materias-primas:');
-      return { data: null, error: 'Error al obtener materias primas', status: 500 };
+      logger.error({ err: error }, 'Error get materias-primas:');
+      return errorDb(error, 'Error al obtener materias primas');
     }
   },
 
@@ -21,8 +22,8 @@ export const MateriasPrimasController = {
       const lotes = await LoteMateriaPrimaModel.getCriticosPorSucursal(sucursalId, dias ?? 7, umbral ?? 0);
       return { data: lotes, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get materias-primas criticas:');
-      return { data: null, error: 'Error al obtener insumos críticos', status: 500 };
+      logger.error({ err: error }, 'Error get materias-primas criticas:');
+      return errorDb(error, 'Error al obtener insumos críticos');
     }
   },
 
@@ -34,8 +35,8 @@ export const MateriasPrimasController = {
       }
       return { data: materia, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get materia:');
-      return { data: null, error: 'Error al obtener materia prima', status: 500 };
+      logger.error({ err: error }, 'Error get materia:');
+      return errorDb(error, 'Error al obtener materia prima');
     }
   },
 
@@ -51,8 +52,8 @@ export const MateriasPrimasController = {
       });
       return { data: nuevaMateria, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create materia:');
-      return { data: null, error: 'Error al crear materia prima', status: 500 };
+      logger.error({ err: error }, 'Error create materia:');
+      return errorDb(error, 'Error al crear materia prima');
     }
   },
 
@@ -64,8 +65,8 @@ export const MateriasPrimasController = {
       }
       return { data: materia, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update materia:');
-      return { data: null, error: 'Error al actualizar materia prima', status: 500 };
+      logger.error({ err: error }, 'Error update materia:');
+      return errorDb(error, 'Error al actualizar materia prima');
     }
   }
 };

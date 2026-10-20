@@ -1,177 +1,47 @@
-import express from "express";
-import helmet from 'helmet'
-import logger from './config/logger.js'
-import pagosRoutes from './routes/pagos.routes.js';
-import type { Request, Response } from "express";
-import rateLimit from "express-rate-limit"
-import { corsMiddleware } from "./middleware/cors.js";
-import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './config/swagger.js';
-import { errorHandler } from "./middleware/errorHandler.js";
-import authRoutes from './routes/auth.routes.js';
-import sucursalesRoutes from './routes/sucursales.routes.js';
-import usuariosRoutes from './routes/usuarios.routes.js';
-import categoriasRoutes from './routes/categorias.routes.js';
-import unidadesMedidaRoutes from './routes/unidadesMedida.routes.js';
-import proveedoresRoutes from './routes/proveedores.routes.js';
-import materiasPrimasRoutes from './routes/materiasPrimas.routes.js';
-import productosRoutes from './routes/productos.routes.js';
-import clientesRoutes from './routes/clientes.routes.js';
-import pedidosRoutes from './routes/pedidos.routes.js';
-import recetasRoutes from './routes/recetas.routes.js';
-import ordenesTrabajoRoutes from './routes/ordenesTrabajo.routes.js';
-import ordenesCompraRoutes from './routes/ordenesCompra.routes.js';
-import facturasCompraRoutes from './routes/facturasCompra.routes.js';
-import bodegasRoutes from './routes/bodegas.routes.js';
-import alacenasRoutes from './routes/alacenas.routes.js';
-import hojasRecepcionRoutes from './routes/hojasRecepcion.routes.js';
-import turnosRoutes from './routes/turnos.routes.js';
-import hojasDespachoRoutes from './routes/hojasDespacho.routes.js';
-import gastosSucursalRoutes from './routes/gastosSucursal.routes.js';
-import reportesRoutes from './routes/reportes.routes.js';
-import municipiosRoutes from './routes/municipios.routes.js';
-import direccionesRoutes from './routes/direcciones.routes.js';
-import cajasRoutes from './routes/cajas.routes.js';
-import liquidacionesRoutes from './routes/liquidaciones.routes.js';
-import facturasVentaRoutes from './routes/facturasVenta.routes.js';
-import stockBodegaRoutes from './routes/stockBodega.routes.js';
-import stockAlacenaRoutes from './routes/stockAlacena.routes.js';
-import kardexBodegaRoutes from './routes/kardexBodega.routes.js';
-import kardexAlacenaRoutes from './routes/kardexAlacena.routes.js';
-import combosRoutes from './routes/combos.routes.js';
-import productosExtraRoutes from './routes/productosExtra.routes.js';
-import solicitudesInsumoRoutes from './routes/solicitudesInsumo.routes.js';
-import archivosRoutes from './routes/archivos.routes.js';
-import usuarioClienteRoutes from './routes/usuarioCliente.routes.js';
-import inventarioRoutes from './routes/inventario.routes.js';
-import repartidorRoutes from './routes/repartidor.routes.js';
-import { IS_PROD } from "./config.js";
-import { connectRedis, redisHealth } from "./services/redis.js";
-
-
-
-const app = express();
-
-if (IS_PROD) app.set('trust proxy', 1) // trust first proxy
-
-app.use(helmet());
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
-  legacyHeaders: false,
-  message: { message: 'Demasiadas request, Por favor intenta más tarde.' }
-})
+import app from './app.js';
+import logger from './config/logger.js';
+import { connectRedis, redis } from './services/redis.js';
+import { sql } from './model/supabase/db.model.js';
 
 const PORT = process.env.PORT ?? 3000;
-app.use(limiter)
-app.use(corsMiddleware())
-app.use(express.json());
-app.disable('x-powered-by')
-
-// Rutas públicas
-app.get("/health", async (_req: Request, res: Response) => {
-  try {
-    const redisStatus = await redisHealth();
-    res
-      .status(200)
-      .json({
-        status: redisStatus === 'ok' ? "ok" : "degraded",
-        message: "API de gestión de inventario y ventas",
-        redis: redisStatus,
-        docs: "/docs"
-      });
-  } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Error al verificar la salud de la API",
-        redis: 'error'
-      });
-  }
-});
-
-// Documentación interactiva (Swagger UI)
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Auth (login/logout son públicos, /me se protege internamente)
-app.use('/auth', authRoutes);
-
-// Auth cliente final (app móvil/web del cliente)
-app.use('/cliente/auth', usuarioClienteRoutes);
-
-// Archivos (URLs prefirmadas S3)
-app.use('/archivos', archivosRoutes);
-
-// Catálogos (lectura pública, escritura protegida)
-app.use('/sucursales', sucursalesRoutes);
-app.use('/usuarios', usuariosRoutes);
-app.use('/categorias', categoriasRoutes);
-app.use('/unidades-medida', unidadesMedidaRoutes);
-app.use('/proveedores', proveedoresRoutes);
-app.use('/materias-primas', materiasPrimasRoutes);
-app.use('/productos', productosRoutes);
-app.use('/municipios', municipiosRoutes);
-
-// Ventas
-app.use('/clientes', clientesRoutes);
-app.use('/pedidos', pedidosRoutes);
-app.use('/direcciones', direccionesRoutes);
-app.use('/facturas-venta', facturasVentaRoutes);
-app.use('/combos', combosRoutes);
-app.use('/productos-extra', productosExtraRoutes);
-
-// Cocina
-app.use('/recetas', recetasRoutes);
-app.use('/ordenes-trabajo', ordenesTrabajoRoutes);
-app.use('/solicitudes-insumo', solicitudesInsumoRoutes);
-
-// Compras
-app.use('/ordenes-compra', ordenesCompraRoutes);
-app.use('/facturas-compra', facturasCompraRoutes);
-
-// Bodega
-app.use('/bodegas', bodegasRoutes);
-app.use('/alacenas', alacenasRoutes);
-app.use('/hojas-recepcion', hojasRecepcionRoutes);
-app.use('/stock-bodega', stockBodegaRoutes);
-app.use('/stock-alacena', stockAlacenaRoutes);
-app.use('/kardex-bodega', kardexBodegaRoutes);
-app.use('/kardex-alacena', kardexAlacenaRoutes);
-
-// Inventario (traslados, ingreso por vale, cuadre, bajo mínimo)
-app.use('/', inventarioRoutes);
-
-// Despacho
-app.use('/turnos', turnosRoutes);
-app.use('/hojas-despacho', hojasDespachoRoutes);
-app.use('/cajas', cajasRoutes);
-app.use('/liquidaciones', liquidacionesRoutes);
-
-// Repartidor (app móvil)
-app.use('/repartidor', repartidorRoutes);
-
-// Admin y Gerencia
-app.use('/gastos-sucursal', gastosSucursalRoutes);
-app.use('/reportes', reportesRoutes);
-
-//PAGOS STRIPE
-app.use('/pagos', pagosRoutes);
-
-// Handler global de errores (debe ir después de todas las rutas)
-app.use(errorHandler);
 
 async function main() {
   const redisOk = await connectRedis()
   if (!redisOk) {
     logger.warn('Servidor iniciado SIN Redis: sesiones en memoria y caché desactivada')
   }
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     logger.info({ port: PORT }, 'Servidor corriendo');
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
   });
+
+  // Cierre ordenado: deja de aceptar conexiones, termina las en curso y libera Redis y la BD.
+  let cerrando = false
+  const apagar = (senial: string) => {
+    if (cerrando) return
+    cerrando = true
+    logger.info({ senial }, 'Cerrando servidor')
+    const forzar = setTimeout(() => process.exit(1), 10_000)
+    forzar.unref()
+    server.close(async () => {
+      try {
+        await Promise.allSettled([redis.isOpen ? redis.quit() : Promise.resolve(), sql.end({ timeout: 5 })])
+      } finally {
+        process.exit(0)
+      }
+    })
+  }
+  process.on('SIGTERM', () => apagar('SIGTERM'))
+  process.on('SIGINT', () => apagar('SIGINT'))
 }
+
+process.on('unhandledRejection', (reason) => {
+  logger.error({ err: reason }, 'unhandledRejection')
+})
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'uncaughtException')
+  process.exit(1)
+})
 
 main().catch((err) => {
   console.error('Error al iniciar el servidor:', err);

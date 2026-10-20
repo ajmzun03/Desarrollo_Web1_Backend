@@ -18,3 +18,5 @@ export const schemaProveedor = z.object({
 export function validateProveedor(object: any) {
   return schemaProveedor.safeParse(object)
 }
+// PATCH: campos opcionales; se rechazan campos desconocidos (evita mass-assignment)
+export const schemaProveedorUpdate = schemaProveedor.partial().strict()

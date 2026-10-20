@@ -15,7 +15,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  logger.error({ error: err.message }, '[Error]');
+  logger.error({ err }, '[Error]');
 
   // Errores de validación Zod
   if (err instanceof ZodError) {
@@ -37,6 +37,23 @@ export function errorHandler(
   }
   if (err.name === 'JsonWebTokenError') {
     res.status(401).json({ data: null, error: 'Token inválido' });
+    return;
+  }
+
+  // Origen no permitido por CORS
+  if (err.message.startsWith('Not allowed by CORS')) {
+    res.status(403).json({ data: null, error: 'Origen no permitido' });
+    return;
+  }
+
+  // Cuerpo JSON mal formado o demasiado grande (body-parser)
+  const tipo = (err as any).type;
+  if (tipo === 'entity.parse.failed') {
+    res.status(400).json({ data: null, error: 'JSON inválido' });
+    return;
+  }
+  if (tipo === 'entity.too.large') {
+    res.status(413).json({ data: null, error: 'Cuerpo demasiado grande' });
     return;
   }
 

@@ -14,3 +14,5 @@ export const schemaUnidadMedida = z.object({
 export function validateUnidadMedida(object: any) {
     return schemaUnidadMedida.safeParse(object)
 }
+// PATCH: campos opcionales; se rechazan campos desconocidos (evita mass-assignment)
+export const schemaUnidadMedidaUpdate = schemaUnidadMedida.partial().strict()

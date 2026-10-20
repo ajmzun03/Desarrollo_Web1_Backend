@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const BodegaModel: IBodegaModel = {
   async getAll(): Promise<SelectBodega[]> {
     const bodegas = await db.select().from(bodegaTable).limit(100).offset(0);
-    if (bodegas.length === 0) {
-      logger.warn("No se encontraron bodegas");
-      throw new Error("No se encontraron bodegas");
-    }
     logger.info(`Se encontraron ${bodegas.length} bodegas`);
     return bodegas;
   },

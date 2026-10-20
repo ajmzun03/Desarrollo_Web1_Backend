@@ -1,4 +1,4 @@
-import { db } from "./db.model.js";
+import { db, type Tx } from "./db.model.js";
 import { comboTable, comboDetalleTable, productoTable } from "../../schemas/db.schema.js";
 import { eq } from "drizzle-orm";
 import type {
@@ -38,14 +38,14 @@ export const ComboModel = {
     return detalles as any;
   },
 
-  async create(data: InsertCombo): Promise<SelectCombo> {
-    const [nuevo] = await db.insert(comboTable).values(data).returning();
+  async create(data: InsertCombo, executor: Tx = db): Promise<SelectCombo> {
+    const [nuevo] = await executor.insert(comboTable).values(data).returning();
     if (!nuevo) throw new Error("Error al crear combo");
     return nuevo;
   },
 
-  async update(id: number, data: UpdateCombo): Promise<SelectCombo | null> {
-    const [actualizado] = await db
+  async update(id: number, data: UpdateCombo, executor: Tx = db): Promise<SelectCombo | null> {
+    const [actualizado] = await executor
       .update(comboTable)
       .set(data)
       .where(eq(comboTable.id, id))
@@ -62,13 +62,13 @@ export const ComboModel = {
     return desactivado || null;
   },
 
-  async createDetalle(data: InsertComboDetalle): Promise<SelectComboDetalle> {
-    const [detalle] = await db.insert(comboDetalleTable).values(data).returning();
+  async createDetalle(data: InsertComboDetalle, executor: Tx = db): Promise<SelectComboDetalle> {
+    const [detalle] = await executor.insert(comboDetalleTable).values(data).returning();
     if (!detalle) throw new Error("Error al agregar detalle al combo");
     return detalle;
   },
 
-  async deleteDetalles(comboId: number): Promise<void> {
-    await db.delete(comboDetalleTable).where(eq(comboDetalleTable.combo_id, comboId));
+  async deleteDetalles(comboId: number, executor: Tx = db): Promise<void> {
+    await executor.delete(comboDetalleTable).where(eq(comboDetalleTable.combo_id, comboId));
   }
 };

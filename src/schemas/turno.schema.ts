@@ -4,15 +4,17 @@ export const schemaTurnoApertura = z.object({
     caja_id: z.number()
         .int("El ID de la caja debe ser un número entero")
         .positive("El ID de la caja debe ser un número positivo"),
+    // Solo lo usa un ADMIN para abrir el turno de otra persona; si no, se toma del token
     usuario_id: z.number()
         .int("El ID del usuario debe ser un número entero")
-        .positive("El ID del usuario debe ser un número positivo"),
+        .positive("El ID del usuario debe ser un número positivo")
+        .optional(),
     administrador_id: z.number()
         .int("El ID del administrador debe ser un número entero")
         .positive("El ID del administrador debe ser un número positivo")
         .optional(),
     monto_apertura: z.number()
-        .positive("El monto de apertura debe ser un número positivo")
+        .min(0, "El monto de apertura no puede ser negativo")
 })
 
 export const schemaTurnoCierre = z.object({

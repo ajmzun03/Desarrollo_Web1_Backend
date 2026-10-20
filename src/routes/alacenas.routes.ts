@@ -1,9 +1,11 @@
 import { Router, type Request, type Response } from 'express';
 import { AlacenasController } from '../controllers/alacenas.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { invalidateTags } from '../middleware/cache.js';
-import { schemaMerma } from '../schemas/inventario.schema.js';
+import { schemaAlacena, schemaAlacenaUpdate } from '../schemas/alacena.js';
+import { schemaMerma, schemaTrasladoAlacena } from '../schemas/inventario.schema.js';
+import { InventarioController } from '../controllers/inventario.controller.js';
 
 const alacenaRouter: Router = Router();
 
@@ -31,7 +33,7 @@ const alacenaRouter: Router = Router();
  *         description: Error al obtener alacenas
  */
 // GET /alacenas?bodega_id= — autenticado
-alacenaRouter.get('/', authenticate, async (req: Request, res: Response) => {
+alacenaRouter.get('/', authenticate, staffOnly, async (req: Request, res: Response) => {
   const bodegaId = req.query.bodega_id ? Number(req.query.bodega_id) : undefined;
   const result = await AlacenasController.getAll(bodegaId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -69,7 +71,7 @@ alacenaRouter.get('/', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-alacenaRouter.get('/vencimientos', authenticate, async (req: Request, res: Response) => {
+alacenaRouter.get('/vencimientos', authenticate, staffOnly, async (req: Request, res: Response) => {
   const alacenaId = req.query.alacena_id ? Number(req.query.alacena_id) : undefined;
   const dias = req.query.dias ? Number(req.query.dias) : undefined;
   const result = await AlacenasController.getVencimientos(alacenaId, dias);
@@ -114,7 +116,7 @@ alacenaRouter.get('/vencimientos', authenticate, async (req: Request, res: Respo
  *       500:
  *         description: Error interno del servidor
  */
-alacenaRouter.post('/mermas', authenticate, validate(schemaMerma), async (req: Request, res: Response) => {
+alacenaRouter.post('/mermas', authenticate, requireRole('ADMIN', 'BODEGUERO', 'JEFE_COCINA', 'COCINERO'), validate(schemaMerma), async (req: Request, res: Response) => {
   const result = await AlacenasController.merma(req.body);
   if (result.status < 300) await invalidateTags('stock-alacena', 'kardex-alacena', 'inventario-bajo-minimo', 'materias-primas-criticas');
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -146,7 +148,41 @@ alacenaRouter.post('/mermas', authenticate, validate(schemaMerma), async (req: R
  *         description: Error al obtener alacena
  */
 // GET /alacenas/:id — autenticado
-alacenaRouter.get('/:id', authenticate, async (req: Request, res: Response) => {
+/**
+ * @openapi
+ * /alacenas/traslados:
+ *   post:
+ *     summary: Trasladar una cantidad de un lote de una bodega a una de sus alacenas
+ *     tags: [Alacenas]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [bodega_id, alacena_id, lote_id, cantidad]
+ *             properties:
+ *               bodega_id: { type: integer }
+ *               alacena_id: { type: integer }
+ *               lote_id: { type: integer }
+ *               cantidad: { type: number }
+ *     responses:
+ *       201:
+ *         description: Traslado registrado (crea un lote en la alacena y deja kardex en ambos lados)
+ *       400:
+ *         description: Cantidad mayor al disponible o alacena de otra bodega
+ *       404:
+ *         description: Lote o alacena no encontrados
+ */
+alacenaRouter.post('/traslados', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaTrasladoAlacena), async (req: Request, res: Response) => {
+  const result = await InventarioController.trasladoAlacena(req.body);
+  if (result.status < 300) await invalidateTags('stock-alacena', 'stock-bodega', 'kardex-alacena', 'kardex-bodega', 'inventario-bajo-minimo', 'materias-primas-criticas');
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+alacenaRouter.get('/:id', authenticate, staffOnly, async (req: Request, res: Response) => {
   const result = await AlacenasController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -186,7 +222,7 @@ alacenaRouter.get('/:id', authenticate, async (req: Request, res: Response) => {
  *         description: Error al crear alacena
  */
 // POST /alacenas — ADMIN o BODEGUERO
-alacenaRouter.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+alacenaRouter.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaAlacena), async (req: Request, res: Response) => {
   const result = await AlacenasController.create(req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -232,7 +268,7 @@ alacenaRouter.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (
  *         description: Error al actualizar alacena
  */
 // PATCH /alacenas/:id — ADMIN o BODEGUERO
-alacenaRouter.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+alacenaRouter.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaAlacenaUpdate), async (req: Request, res: Response) => {
   const result = await AlacenasController.update(Number(req.params.id), req.body);
   res.status(result.status).json({ data: result.data, error: result.error });
 });

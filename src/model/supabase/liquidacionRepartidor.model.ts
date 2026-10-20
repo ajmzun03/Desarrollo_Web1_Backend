@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const LiquidacionRepartidorModel: ILiquidacionRepartidorModel = {
   async getAll(): Promise<SelectLiquidacionRepartidor[]> {
     const liquidaciones = await db.select().from(liquidacionRepartidorTable).limit(100).offset(0);
-    if (liquidaciones.length === 0) {
-      logger.warn("No se encontraron liquidaciones de repartidor");
-      throw new Error("No se encontraron liquidaciones de repartidor");
-    }
     logger.info(`Se encontraron ${liquidaciones.length} liquidaciones de repartidor`);
     return liquidaciones;
   },

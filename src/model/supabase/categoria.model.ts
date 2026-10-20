@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const CategoriaModel: ICategoriaModel = {
     async getAll(): Promise<SelectCategoria[]> {
         const categorias = await db.select().from(categoriaTable).limit(100).offset(0);
-        if (categorias.length === 0) {
-            logger.warn("No se encontraron categorias");
-            throw new Error("No se encontraron categorias");
-        }
         logger.info(`Se encontraron ${categorias.length} categorias`);
         return categorias;
     },

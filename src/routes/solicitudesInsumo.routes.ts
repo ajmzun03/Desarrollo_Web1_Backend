@@ -1,6 +1,6 @@
 import { Router, type Response } from 'express';
 import { SolicitudesInsumoController } from '../controllers/solicitudesInsumo.controller.js';
-import { authenticate, requireRole, type AuthRequest } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaSolicitudInsumoCreate, schemaSolicitudInsumoEstado } from '../schemas/solicitudInsumo.schema.js';
 
@@ -20,7 +20,7 @@ const router: Router = Router();
  *       401:
  *         description: No autenticado
  */
-router.get('/', authenticate, async (_req: AuthRequest, res: Response) => {
+router.get('/', authenticate, staffOnly, async (_req: AuthRequest, res: Response) => {
   const result = await SolicitudesInsumoController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -43,7 +43,7 @@ router.get('/', authenticate, async (_req: AuthRequest, res: Response) => {
  *       200:
  *         description: Solicitudes de la sucursal
  */
-router.get('/sucursal/:sucursalId', authenticate, async (req: AuthRequest, res: Response) => {
+router.get('/sucursal/:sucursalId', authenticate, staffOnly, async (req: AuthRequest, res: Response) => {
   const result = await SolicitudesInsumoController.getBySucursal(Number(req.params.sucursalId));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -68,7 +68,7 @@ router.get('/sucursal/:sucursalId', authenticate, async (req: AuthRequest, res: 
  *       404:
  *         description: No encontrada
  */
-router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
+router.get('/:id', authenticate, staffOnly, async (req: AuthRequest, res: Response) => {
   const result = await SolicitudesInsumoController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -114,7 +114,7 @@ router.post(
   requireRole('ADMIN', 'JEFE_COCINA', 'COCINERO', 'BODEGUERO'),
   validate(schemaSolicitudInsumoCreate),
   async (req: AuthRequest, res: Response) => {
-    const userId = Number(req.user?.id ?? 1);
+    const userId = Number(req.user?.id);
     const result = await SolicitudesInsumoController.create(req.body, userId);
     res.status(result.status).json({ data: result.data, error: result.error });
   }

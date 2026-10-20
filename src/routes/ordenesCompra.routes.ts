@@ -37,7 +37,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'COMPRAS', 'BODEGUERO'), async (req: Request, res: Response) => {
   const estado = req.query.estado as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await OrdenesCompraController.getAll(estado, sucursalId);
@@ -102,7 +102,7 @@ router.get('/programadas', authenticate, requireRole('BODEGUERO', 'ADMIN'), asyn
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'COMPRAS', 'BODEGUERO'), async (req: Request, res: Response) => {
   const result = await OrdenesCompraController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });

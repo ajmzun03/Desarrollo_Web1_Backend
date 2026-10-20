@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const ProductoModel: IProductoModel = {
   async getAll(): Promise<SelectProducto[]> {
     const productos = await db.select().from(productoTable).limit(100).offset(0);
-    if (productos.length === 0) {
-      logger.warn("No se encontraron productos");
-      throw new Error("No se encontraron productos");
-    }
     logger.info(`Se encontraron ${productos.length} productos`);
     return productos;
   },

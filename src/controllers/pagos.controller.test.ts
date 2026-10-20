@@ -10,13 +10,14 @@ vi.mock('../config/stripe.js', async (importOriginal) => {
       checkout: { sessions: { create: vi.fn() } },
       paymentMethods: { retrieve: vi.fn(), create: vi.fn() },
       paymentIntents: { create: vi.fn(), retrieve: vi.fn() },
+      webhooks: { constructEvent: vi.fn() },
     },
     testTokenParaTarjeta: actual.testTokenParaTarjeta,
   };
 });
 
 vi.mock('../model/supabase/pedido.model.js', () => ({
-  PedidoModel: { getPedidoId: vi.fn() },
+  PedidoModel: { getPedidoId: vi.fn(), marcarPagado: vi.fn() },
 }));
 
 // Control mutable de IS_PROD para alternar tarjeta-cruda dev/prod
@@ -26,6 +27,7 @@ vi.mock('../config.js', () => ({
   STRIPE_SUCCESS_URL: 'https://ok.test',
   STRIPE_CANCEL_URL: 'https://cancel.test',
   STRIPE_SECRET_KEY: 'sk_test_dummy',
+  STRIPE_WEBHOOK_SECRET: 'whsec_test',
 }));
 
 import { PedidoModel } from '../model/supabase/pedido.model.js';
@@ -37,7 +39,7 @@ const cliente: DecodedToken = { id: '10', rol: 'CLIENTE', tipo: 'cliente' } as D
 // Empleado con id numérico idéntico al cliente 10 (colisión de ids)
 const empleado: DecodedToken = { id: '10', rol: 'CAJERO' } as DecodedToken;
 
-const pedidoPropio = { id: 7, cliente_id: 10, total: '500.00' } as never;
+const pedidoPropio = { id: 7, cliente_id: 10, total: '500.00', estado: 'CREADO', metodo_pago: 'TARJETA', pagado: false } as never;
 const itemsMentirosos = [{ nombre: 'X', cantidad: 1, monto: 1 }];
 
 beforeEach(() => {
@@ -66,7 +68,7 @@ describe('PagosController — monto siempre del servidor', () => {
         })],
         metadata: { pedido_id: '7' },
       }),
-      { idempotencyKey: 'pagar-pedido:7' }
+      { idempotencyKey: 'pagar-pedido:7:50000' }
     );
   });
 
@@ -85,12 +87,12 @@ describe('PagosController — monto siempre del servidor', () => {
     expect(result.status).toBe(201);
     expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 50000 }),
-      { idempotencyKey: 'pagar-pedido:7' }
+      { idempotencyKey: 'pagar-pedido:7:50000' }
     );
   });
 
   it('un pedido de Q500 no se puede pagar Q1 (montos del cliente ignorados)', async () => {
-    mockPedido.getPedidoId.mockResolvedValueOnce({ id: 7, cliente_id: 10, total: '500.00' } as never);
+    mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
     vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
     vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({
       id: 'pi_1', status: 'succeeded', metadata: { pedido_id: '7' },
@@ -228,7 +230,7 @@ describe('PagosController — tarjeta cruda', () => {
     });
     expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 50000, payment_method: 'pm_creado' }),
-      { idempotencyKey: 'pagar-pedido:7' }
+      { idempotencyKey: 'pagar-pedido:7:50000' }
     );
   });
 
@@ -243,5 +245,117 @@ describe('PagosController — tarjeta cruda', () => {
       cliente
     );
     expect(r.status).toBe(400);
+  });
+});
+
+describe('PagosController — reglas de cobro', () => {
+  beforeEach(() => {
+    // clearAllMocks no vacía las colas de mockResolvedValueOnce de otros tests
+    mockPedido.getPedidoId.mockReset();
+    vi.mocked(mockStripe.paymentMethods.retrieve).mockReset();
+    vi.mocked(mockStripe.paymentIntents.create).mockReset();
+  });
+
+  it('rechaza 409 si el pedido ya fue pagado', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ ...(pedidoPropio as object), pagado: true } as never);
+    const r = await PagosController.createCheckout({ items: itemsMentirosos, pedido_id: 7 }, cliente);
+    expect(r.status).toBe(409);
+    expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it('rechaza 409 si el pedido está anulado', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ ...(pedidoPropio as object), estado: 'ANULADO' } as never);
+    const r = await PagosController.createCheckout({ items: itemsMentirosos, pedido_id: 7 }, cliente);
+    expect(r.status).toBe(409);
+  });
+
+  it('rechaza 409 si el método de pago del pedido no es TARJETA', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce({ ...(pedidoPropio as object), metodo_pago: 'EFECTIVO' } as never);
+    const r = await PagosController.createCheckout({ items: itemsMentirosos, pedido_id: 7 }, cliente);
+    expect(r.status).toBe(409);
+  });
+
+  it('marca el pedido como pagado cuando el PaymentIntent queda succeeded', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
+    vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
+    vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({ id: 'pi_9', status: 'succeeded' } as any);
+    await PagosController.createPaymentIntent(
+      { items: itemsMentirosos, payment_method: 'pm_good', pedido_id: 7 },
+      cliente
+    );
+    expect(mockPedido.marcarPagado).toHaveBeenCalledWith(7, 'pi_9');
+  });
+
+  it('no filtra mensajes internos de Stripe en errores inesperados', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
+    vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
+    vi.mocked(mockStripe.paymentIntents.create).mockRejectedValueOnce(new Error('Invalid API Key sk_test_secret'));
+    const r = await PagosController.createPaymentIntent(
+      { items: itemsMentirosos, payment_method: 'pm_good', pedido_id: 7 },
+      cliente
+    );
+    expect(r.status).toBe(500);
+    expect(r.error).toBe('Error al procesar el pago');
+  });
+
+  it('devuelve 402 con el mensaje cuando la tarjeta es rechazada', async () => {
+    mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
+    vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: 'pm_good' } as any);
+    vi.mocked(mockStripe.paymentIntents.create).mockRejectedValueOnce(
+      Object.assign(new Error('Tu tarjeta fue rechazada.'), { type: 'StripeCardError' })
+    );
+    const r = await PagosController.createPaymentIntent(
+      { items: itemsMentirosos, payment_method: 'pm_good', pedido_id: 7 },
+      cliente
+    );
+    expect(r.status).toBe(402);
+    expect(r.error).toBe('Tu tarjeta fue rechazada.');
+  });
+});
+
+describe('PagosController — webhook de Stripe', () => {
+  beforeEach(() => {
+    mockPedido.getPedidoId.mockReset();
+    vi.mocked(mockStripe.webhooks.constructEvent).mockReset();
+  });
+
+  const evento = (amount: number) => ({
+    type: 'payment_intent.succeeded',
+    data: { object: { id: 'pi_w', amount_received: amount, metadata: { pedido_id: '7' } } },
+  });
+
+  it('rechaza 400 si falta la firma', async () => {
+    const r = await PagosController.procesarWebhook(Buffer.from('{}'), undefined);
+    expect(r.status).toBe(400);
+  });
+
+  it('rechaza 400 si la firma es inválida', async () => {
+    vi.mocked(mockStripe.webhooks.constructEvent).mockImplementationOnce(() => { throw new Error('bad sig'); });
+    const r = await PagosController.procesarWebhook(Buffer.from('{}'), 'sig');
+    expect(r.status).toBe(400);
+    expect(mockPedido.marcarPagado).not.toHaveBeenCalled();
+  });
+
+  it('marca el pedido pagado cuando el monto coincide', async () => {
+    vi.mocked(mockStripe.webhooks.constructEvent).mockReturnValueOnce(evento(50000) as any);
+    mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
+    const r = await PagosController.procesarWebhook(Buffer.from('{}'), 'sig');
+    expect(r.status).toBe(200);
+    expect(mockPedido.marcarPagado).toHaveBeenCalledWith(7, 'pi_w');
+  });
+
+  it('NO marca pagado si el monto cobrado no coincide con el total', async () => {
+    vi.mocked(mockStripe.webhooks.constructEvent).mockReturnValueOnce(evento(100) as any);
+    mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
+    const r = await PagosController.procesarWebhook(Buffer.from('{}'), 'sig');
+    expect(r.status).toBe(200);
+    expect(mockPedido.marcarPagado).not.toHaveBeenCalled();
+  });
+
+  it('ignora eventos no relevantes con 200', async () => {
+    vi.mocked(mockStripe.webhooks.constructEvent).mockReturnValueOnce({ type: 'charge.refunded', data: { object: {} } } as any);
+    const r = await PagosController.procesarWebhook(Buffer.from('{}'), 'sig');
+    expect(r.status).toBe(200);
+    expect(mockPedido.marcarPagado).not.toHaveBeenCalled();
   });
 });

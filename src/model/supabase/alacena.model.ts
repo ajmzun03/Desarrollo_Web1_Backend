@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const AlacenaModel: IAlacenaModel = {
   async getAll(): Promise<SelectAlacena[]> {
     const alacenas = await db.select().from(alacenaTable).limit(100).offset(0);
-    if (alacenas.length === 0) {
-      logger.warn("No se encontraron alacenas");
-      throw new Error("No se encontraron alacenas");
-    }
     logger.info(`Se encontraron ${alacenas.length} alacenas`);
     return alacenas;
   },

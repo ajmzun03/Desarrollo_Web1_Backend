@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { PedidosController } from '../controllers/pedidos.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, requireRole, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaPedidoCreate, schemaPedidoEstado } from '../schemas/pedido.schema.js';
@@ -8,7 +8,7 @@ import { schemaIncidente } from '../schemas/inventario.schema.js';
 
 const router: Router = Router();
 
-// GET /pedidos — autenticado
+// GET /pedidos — autenticado (cliente: solo los suyos; personal: todos, paginado con limit/offset/estado)
 /**
  * @openapi
  * /pedidos:
@@ -25,8 +25,11 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (_req: Request, res: Response) => {
-  const result = await PedidosController.getAll();
+router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
+  const estado = typeof req.query.estado === 'string' ? req.query.estado : undefined;
+  const result = await PedidosController.getAll(req.user!, { limit, offset, estado });
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -54,7 +57,7 @@ router.get('/listos', authenticate, requireRole('DESPACHADOR', 'ADMIN'), cache('
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
-// GET /pedidos/:id — autenticado
+// GET /pedidos/:id — autenticado (un cliente solo ve los suyos)
 /**
  * @openapi
  * /pedidos/{id}:
@@ -80,12 +83,12 @@ router.get('/listos', authenticate, requireRole('DESPACHADOR', 'ADMIN'), cache('
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
-  const result = await PedidosController.getById(Number(req.params.id));
+router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
+  const result = await PedidosController.getById(Number(req.params.id), req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
-// POST /pedidos — autenticado
+// POST /pedidos — cliente (para sí mismo) o ADMIN/CAJERO (con cliente_id)
 /**
  * @openapi
  * /pedidos:
@@ -100,11 +103,24 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [cliente_id, items]
+ *             required: [items]
  *             properties:
  *               cliente_id:
  *                 type: integer
+ *                 description: Solo para personal (ADMIN/CAJERO). Un cliente final siempre crea pedidos para sí mismo
  *                 example: 1
+ *               direccion_id:
+ *                 type: integer
+ *                 description: Obligatoria si tipo_entrega es DOMICILIO; debe ser una dirección del cliente
+ *               sucursal_id:
+ *                 type: integer
+ *               metodo_pago:
+ *                 type: string
+ *                 enum: [EFECTIVO, TARJETA]
+ *               tipo_entrega:
+ *                 type: string
+ *                 enum: [DOMICILIO, RECOGER]
+ *                 description: Por defecto DOMICILIO si hay direccion_id, de lo contrario RECOGER
  *               observaciones:
  *                 type: string
  *                 example: Sin sal
@@ -125,14 +141,14 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *       201:
  *         description: Pedido creado con sus detalles
  *       400:
- *         description: Datos inválidos (cliente_id e items son requeridos)
+ *         description: Datos inválidos o producto inexistente
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/', authenticate, validate(schemaPedidoCreate), async (req: Request, res: Response) => {
-  const result = await PedidosController.create(req.body);
+router.post('/', authenticate, validate(schemaPedidoCreate), async (req: AuthRequest, res: Response) => {
+  const result = await PedidosController.create(req.body, req.user!);
   if (result.status < 300) await invalidateTags('pedidos-listos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -247,8 +263,8 @@ router.patch('/:id/confirmar', authenticate, requireRole('ADMIN', 'CAJERO'), asy
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id/entregado', authenticate, requireRole('DESPACHADOR', 'REPARTIDOR'), async (req: Request, res: Response) => {
-  const result = await PedidosController.marcarEntregado(Number(req.params.id));
+router.patch('/:id/entregado', authenticate, requireRole('DESPACHADOR', 'REPARTIDOR', 'ADMIN'), async (req: AuthRequest, res: Response) => {
+  const result = await PedidosController.marcarEntregado(Number(req.params.id), req.user!);
   if (result.status < 300) await invalidateTags('pedidos-listos');
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -296,9 +312,9 @@ router.patch('/:id/entregado', authenticate, requireRole('DESPACHADOR', 'REPARTI
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/:id/incidente', authenticate, requireRole('REPARTIDOR', 'ADMIN'), validate(schemaIncidente), async (req: Request, res: Response) => {
+router.post('/:id/incidente', authenticate, requireRole('REPARTIDOR', 'ADMIN'), validate(schemaIncidente), async (req: AuthRequest, res: Response) => {
   const { motivo, detalle } = req.body;
-  const result = await PedidosController.incidente(Number(req.params.id), motivo, detalle);
+  const result = await PedidosController.incidente(Number(req.params.id), motivo, detalle, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

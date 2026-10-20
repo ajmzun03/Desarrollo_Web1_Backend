@@ -32,10 +32,13 @@ const router: Router = Router();
  *         description: Error interno del servidor
  */
 router.get('/pedidos', authenticate, requireRole('REPARTIDOR', 'ADMIN'), async (req: AuthRequest, res: Response) => {
-  const repartidorId = req.query.repartidor_id
+  // Un REPARTIDOR solo ve sus propios pedidos; el ADMIN puede consultar a cualquiera.
+  const propio = req.user?.id ? Number(req.user.id) : undefined;
+  const repartidorId = req.user?.rol === 'ADMIN' && req.query.repartidor_id
     ? Number(req.query.repartidor_id)
-    : (req.user?.id ? Number(req.user.id) : undefined);
-  const result = await PedidosController.getPedidosRepartidor(repartidorId);
+    : propio;
+  const incluirCerrados = req.query.todos === 'true';
+  const result = await PedidosController.getPedidosRepartidor(repartidorId, incluirCerrados);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

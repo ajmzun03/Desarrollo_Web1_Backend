@@ -31,7 +31,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, cache('facturas-compra', 30), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'COMPRAS', 'GERENTE'), cache('facturas-compra', 30), async (req: Request, res: Response) => {
   const ordenCompraId = req.query.orden_compra_id ? Number(req.query.orden_compra_id) : undefined;
   const result = ordenCompraId
     ? await FacturasCompraController.getByOrdenCompraId(ordenCompraId)
@@ -65,7 +65,7 @@ router.get('/', authenticate, cache('facturas-compra', 30), async (req: Request,
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, requireRole('ADMIN', 'COMPRAS', 'GERENTE'), async (req: Request, res: Response) => {
   const result = await FacturasCompraController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });

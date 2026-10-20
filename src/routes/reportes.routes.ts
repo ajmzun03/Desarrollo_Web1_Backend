@@ -37,7 +37,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener reporte de utilidad diaria
  */
-router.get('/utilidad-diaria', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
+router.get('/utilidad-diaria', authenticate, requireRole('ADMIN', 'GERENTE'), cache('reportes', 60), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const fecha = req.query.fecha as string | undefined;
   const result = await ReportesController.getUtilidadDiaria(sucursalId, fecha);
@@ -83,7 +83,7 @@ router.get('/utilidad-diaria', authenticate, requireRole('ADMIN'), cache('report
  *       500:
  *         description: Error al obtener reporte de gastos operativos
  */
-router.get('/gastos-operativos', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
+router.get('/gastos-operativos', authenticate, requireRole('ADMIN', 'GERENTE'), cache('reportes', 60), async (req: Request, res: Response) => {
   const desde = req.query.desde as string | undefined;
   const hasta = req.query.hasta as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
@@ -130,7 +130,7 @@ router.get('/gastos-operativos', authenticate, requireRole('ADMIN'), cache('repo
  *       500:
  *         description: Error al obtener reporte de anulaciones
  */
-router.get('/anulaciones', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
+router.get('/anulaciones', authenticate, requireRole('ADMIN', 'GERENTE'), cache('reportes', 60), async (req: Request, res: Response) => {
   const desde = req.query.desde as string | undefined;
   const hasta = req.query.hasta as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
@@ -183,7 +183,7 @@ router.get('/anulaciones', authenticate, requireRole('ADMIN'), cache('reportes',
  *       500:
  *         description: Error al obtener auditoría de movimientos
  */
-router.get('/auditoria/movimientos', authenticate, requireRole('ADMIN'), cache('reportes', 60), async (req: Request, res: Response) => {
+router.get('/auditoria/movimientos', authenticate, requireRole('ADMIN', 'GERENTE'), cache('reportes', 60), async (req: Request, res: Response) => {
   const tipo = req.query.tipo as string | undefined;
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const desde = req.query.desde as string | undefined;

@@ -1,4 +1,5 @@
-import { pgTable, varchar, integer, bigint, timestamp, boolean, date, doublePrecision, numeric } from "drizzle-orm/pg-core";
+import { pgTable, varchar, integer, bigint, timestamp, boolean, date, doublePrecision, numeric, index, unique, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { pgEnum } from "drizzle-orm/pg-core";
 
 export const movimientoEnum = pgEnum('movimiento', [
@@ -162,7 +163,10 @@ export const loteMateriaPrimaTable = pgTable('LOTE_MATERIA_PRIMA', { //9 - Angel
   cantidad_actual: numeric({ precision: 10, scale: 2 }).notNull(),
   estado: estadoLoteEnum('estado').notNull().default('VIGENTE'),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
-})
+}, (t) => [
+  check('lote_mp_cantidad_actual_no_negativa', sql`${t.cantidad_actual} >= 0`),
+  index('idx_lote_mp_materia_prima').on(t.materia_prima_id)
+])
 
 export const bodegaTable = pgTable('BODEGA', { //10 - Angel
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
@@ -174,7 +178,10 @@ export const stockBodegaTable = pgTable('STOCK_BODEGA', { //11 - Angel
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   bodega_id: integer('bodega_id').notNull().references(() => bodegaTable.id),
   lote_id: bigint('lote_id', { mode: 'number' }).notNull().references(() => loteMateriaPrimaTable.id) //acá no deberíamos incluir cuánto hay en stock, porque eso lo manejamos en la tabla de lote_materia_prima, acá solo estamos diciendo que ese lote está en esa bodega
-})
+}, (t) => [
+  unique("stock_bodega_bodega_lote_uq").on(t.bodega_id, t.lote_id),
+  index("idx_stock_bodega_lote").on(t.lote_id)
+])
 
 export const kardexBodegaTable = pgTable('KARDEX_BODEGA', { //12 - Angel
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
@@ -215,6 +222,7 @@ export const productoTable = pgTable('PRODUCTO', { //16 - Adrian
   precio: numeric({ precision: 10, scale: 2 }).notNull(),
   imagen_url: varchar('imagen_url', { length: 255 }),
   descripcion: varchar('descripcion', { length: 255 }),
+  stock_minimo: numeric({ precision: 10, scale: 2 }).notNull().default('0'),
   activo: boolean('activo').notNull().default(true)
 })
 
@@ -243,8 +251,13 @@ export const pedidoTable = pgTable('PEDIDO', { //17 - Adrían
   direccion_id: integer('direccion_id').references(() => direccionTable.id),
   sucursal_id: integer('sucursal_id').references(() => sucursalTable.id),
   metodo_pago: metodoPagoEnum('metodo_pago').notNull().default('EFECTIVO'),
-  tipo_entrega: tipoEntregaEnum('tipo_entrega').notNull().default('DOMICILIO')
-})
+  tipo_entrega: tipoEntregaEnum('tipo_entrega').notNull().default('DOMICILIO'),
+  pagado: boolean('pagado').notNull().default(false),
+  stripe_payment_id: varchar('stripe_payment_id', { length: 100 })
+}, (t) => [
+  index('idx_pedido_cliente').on(t.cliente_id),
+  index('idx_pedido_estado').on(t.estado)
+])
 
 export const productoExtraTable = pgTable('PRODUCTO_EXTRA', {
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
@@ -256,11 +269,11 @@ export const productoExtraTable = pgTable('PRODUCTO_EXTRA', {
 
 export const detallePedidoTable = pgTable('DETALLE_PEDIDO', { //18 - Adrian
   id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
-  pedido_id: bigint('pedido_id', { mode: 'number' }).references(() => pedidoTable.id),
+  pedido_id: bigint('pedido_id', { mode: 'number' }).notNull().references(() => pedidoTable.id),
   producto_id: integer('producto_id').notNull().references(() => productoTable.id),
   precio_unitario: numeric({ precision: 10, scale: 2 }).notNull(),
   cantidad: numeric({ precision: 10, scale: 2 }).notNull()
-})
+}, (t) => [index('idx_detalle_pedido_pedido').on(t.pedido_id)])
 
 export const detalleProductoExtraTable = pgTable('DETALLE_PRODUCTO_EXTRA', {
   id: bigint('id', { mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
@@ -295,7 +308,10 @@ export const facturaVentaTable = pgTable('FACTURA_VENTA', { //19 - Adrian
   fecha_emision: timestamp('fecha_emision', { mode: "string" }).notNull().defaultNow(),
   total: numeric({ precision: 10, scale: 2 }).notNull(),
   creado_en: timestamp('creado_en', { mode: "string" }).notNull().defaultNow()
-})
+}, (t) => [
+  unique('factura_venta_serie_numero_uq').on(t.serie, t.numero),
+  unique('factura_venta_pedido_uq').on(t.pedido_id)
+])
 
 export const proveedorTable = pgTable('PROVEEDOR', { //20 - Adrian
   id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
@@ -334,7 +350,7 @@ export const hojaRecepcionDetalleTable = pgTable("HOJA_RECEPCION_DETALLE", { //2
   hoja_recepcion_id: bigint('hoja_recepcion_id', { mode: "number" }).references(() => hojaRecepcionTable.id),
   materia_prima_id: integer('materia_prima_id').references(() => materiaPrimaTable.id),
   cantidad_recibida: numeric({ precision: 10, scale: 2 }).notNull(),
-  fecha_vencimiento: timestamp('fecha_vencimiento', { mode: "string" }).notNull().defaultNow(),
+  fecha_vencimiento: date('fecha_vencimiento', { mode: 'string' }).notNull(),
   merma: numeric({ precision: 10, scale: 2 }),
   saldo: numeric({ precision: 10, scale: 2 }).notNull(),
   estado: estadoRecepcionEnum('estado_recepcion').notNull().default('COMPLETA')
@@ -383,7 +399,7 @@ export const productoLoteTable = pgTable('PRODUCTO_LOTE', { //27 Carlos
 
 export const recetaDetalleTable = pgTable('RECETA_DETALLE', { //29 Carlos
   id: integer('id').notNull().primaryKey().generatedByDefaultAsIdentity(),
-  receta_id: integer('receta_id').references(() => recetaTable.id), // RECETA.id
+  receta_id: integer('receta_id').notNull().references(() => recetaTable.id), // RECETA.id
   materia_prima_id: integer('materia_prima_id').references(() => materiaPrimaTable.id), // MATERIA_PRIMA.id
   cantidad_necesaria: numeric({ precision: 10, scale: 2 }).notNull()
 })
@@ -391,7 +407,7 @@ export const recetaDetalleTable = pgTable('RECETA_DETALLE', { //29 Carlos
 // ---- Hoja de despacho: despacha lotes de producto por pedido ----
 export const hojaDespachoTable = pgTable('HOJA_DESPACHO', { //30 Carlos
   id: bigint('id', { mode: 'number' }).notNull().primaryKey().generatedByDefaultAsIdentity(),
-  pedido_id: bigint('pedido_id', { mode: 'number' }).references(() => pedidoTable.id), // PEDIDO.id
+  pedido_id: bigint('pedido_id', { mode: 'number' }).notNull().references(() => pedidoTable.id), // PEDIDO.id
   sucursal_despacho: integer('sucursal_despacho').references(() => sucursalTable.id), // SUCURSAL.id
   despachado_en: timestamp('despachado_en', { mode: 'string' }).notNull().defaultNow(),
   repartidor_id: integer('repartidor_id').references(() => usuarioTable.id) // USUARIO.id
@@ -457,6 +473,7 @@ export const usuarioTable = pgTable('USUARIO', { //36 Carlos
   telefono: varchar('telefono', { length: 50 }).unique().notNull(),
   contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
   rol: rolUsuarioEnum('rol_usuario').notNull(),
+  activo: boolean('activo').notNull().default(true),
   creado_en: timestamp('creado_en', { mode: 'string' }).notNull().defaultNow()
 })
 

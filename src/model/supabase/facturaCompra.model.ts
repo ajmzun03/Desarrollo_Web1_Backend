@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const FacturaCompraModel: IFacturaCompraModel = {
   async getAll(): Promise<SelectFacturaCompra[]> {
     const facturas = await db.select().from(facturaCompraTable).limit(100).offset(0);
-    if (facturas.length === 0) {
-      logger.warn("No se encontraron facturas de compra");
-      throw new Error("No se encontraron facturas de compra");
-    }
     logger.info(`Se encontraron ${facturas.length} facturas de compra`);
     return facturas;
   },

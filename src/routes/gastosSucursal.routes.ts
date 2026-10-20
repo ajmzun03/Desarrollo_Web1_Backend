@@ -30,7 +30,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'GERENTE'), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await GastosSucursalController.getAll(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -62,7 +62,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE'), async (req: Request, res: Response) => {
   const result = await GastosSucursalController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });

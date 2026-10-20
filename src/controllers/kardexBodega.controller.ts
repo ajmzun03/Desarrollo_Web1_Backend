@@ -1,4 +1,5 @@
 import { KardexBodegaModel } from '../model/supabase/kardexBodega.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const KardexBodegaController = {
@@ -14,8 +15,8 @@ export const KardexBodegaController = {
       }
       return { data: movimientos, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get kardex-bodega:');
-      return { data: null, error: 'Error al obtener kardex de bodega', status: 500 };
+      logger.error({ err: error }, 'Error get kardex-bodega:');
+      return errorDb(error, 'Error al obtener kardex de bodega');
     }
   }
 };

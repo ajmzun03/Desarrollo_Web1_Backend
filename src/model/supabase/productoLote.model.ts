@@ -1,6 +1,6 @@
 import { db } from "./db.model.js"
 import { productoLoteTable, ordenTrabajoTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import type { IProductoLoteModel } from "../../types.js";
 import type { InsertProductoLote, SelectProductoLote, UpdateProductoLote } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const ProductoLoteModel: IProductoLoteModel = {
   async getAll(): Promise<SelectProductoLote[]> {
     const lotes = await db.select().from(productoLoteTable).limit(100).offset(0);
-    if (lotes.length === 0) {
-      logger.warn("No se encontraron lotes de producto");
-      throw new Error("No se encontraron lotes de producto");
-    }
     logger.info(`Se encontraron ${lotes.length} lotes de producto`);
     return lotes;
   },
@@ -40,6 +36,20 @@ export const ProductoLoteModel: IProductoLoteModel = {
     const lotes = rows.map(r => r.lote);
     logger.info(`Se encontraron ${lotes.length} lotes de producto para la sucursal ${sucursalId}`);
     return lotes;
+  },
+
+  async getDisponibilidad(sucursalId?: number): Promise<Array<{ producto_id: number; disponible: number }>> {
+    const condiciones = [eq(productoLoteTable.estado, 'VIGENTE' as any), gt(productoLoteTable.cantidad_actual, '0')];
+    const consulta = db.select({
+      producto_id: productoLoteTable.producto_id,
+      disponible: sql<string>`coalesce(sum(${productoLoteTable.cantidad_actual}), 0)`
+    }).from(productoLoteTable);
+    const filas = await (sucursalId
+      ? consulta.innerJoin(ordenTrabajoTable, eq(ordenTrabajoTable.id, productoLoteTable.orden_id))
+          .where(and(...condiciones, eq(ordenTrabajoTable.sucursal_id, sucursalId)))
+      : consulta.where(and(...condiciones))
+    ).groupBy(productoLoteTable.producto_id);
+    return filas.map(f => ({ producto_id: Number(f.producto_id), disponible: Number(f.disponible) }));
   },
 
   async create(data: InsertProductoLote): Promise<SelectProductoLote> {

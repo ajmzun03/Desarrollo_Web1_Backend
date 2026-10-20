@@ -1,4 +1,5 @@
 import { CajaModel } from '../model/supabase/caja.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const CajasController = {
@@ -12,8 +13,8 @@ export const CajasController = {
       if (error instanceof Error && error.message === 'No se encontraron cajas') {
         return { data: [], error: null, status: 200 };
       }
-      logger.error({ error }, 'Error get cajas:');
-      return { data: null, error: 'Error al obtener cajas', status: 500 };
+      logger.error({ err: error }, 'Error get cajas:');
+      return errorDb(error, 'Error al obtener cajas');
     }
   },
 
@@ -25,8 +26,8 @@ export const CajasController = {
       if (error instanceof Error && error.message === 'Caja no encontrada') {
         return { data: null, error: 'Caja no encontrada', status: 404 };
       }
-      logger.error({ error }, 'Error get caja:');
-      return { data: null, error: 'Error al obtener caja', status: 500 };
+      logger.error({ err: error }, 'Error get caja:');
+      return errorDb(error, 'Error al obtener caja');
     }
   },
 
@@ -38,8 +39,8 @@ export const CajasController = {
       const nuevaCaja = await CajaModel.create(data);
       return { data: nuevaCaja, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create caja:');
-      return { data: null, error: 'Error al crear caja', status: 500 };
+      logger.error({ err: error }, 'Error create caja:');
+      return errorDb(error, 'Error al crear caja');
     }
   },
 
@@ -51,8 +52,8 @@ export const CajasController = {
       if (error instanceof Error && error.message === 'Error al actualizar la caja') {
         return { data: null, error: 'Caja no encontrada', status: 404 };
       }
-      logger.error({ error }, 'Error update caja:');
-      return { data: null, error: 'Error al actualizar caja', status: 500 };
+      logger.error({ err: error }, 'Error update caja:');
+      return errorDb(error, 'Error al actualizar caja');
     }
   }
 };

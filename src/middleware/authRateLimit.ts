@@ -25,6 +25,8 @@ interface Opciones {
   limite: number;
   /** Si true, agrega el identificador del cuerpo a la clave */
   porIdentificador?: boolean;
+  /** Si true, TODAS las peticiones consumen cupo (p. ej. registro); por defecto solo cuentan los fallos */
+  contarAciertos?: boolean;
 }
 
 /**
@@ -34,13 +36,13 @@ interface Opciones {
  * - Clave por IP + identificador (opcional): evita que los fallos de un
  *   usuario bloqueen a otro detrás de la misma IP/sucursal.
  */
-export function crearAuthLimiter({ ventanaMinutos, limite, porIdentificador = false }: Opciones): RateLimitRequestHandler {
+export function crearAuthLimiter({ ventanaMinutos, limite, porIdentificador = false, contarAciertos = false }: Opciones): RateLimitRequestHandler {
   return rateLimit({
     windowMs: ventanaMinutos * 60 * 1000,
     limit: limite,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
-    skipSuccessfulRequests: true,
+    skipSuccessfulRequests: !contarAciertos,
     keyGenerator: porIdentificador ? claveIpMasIdentificador : clavePorIp,
     message: MENSAJE_BLOQUEO,
   });

@@ -4,7 +4,10 @@ import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { supabaseUrl } from '../../config.js';
 
-const client = postgres(supabaseUrl);
+// prepare:false es necesario con el pooler de Supabase en modo transacción (puerto 6543)
+const client = postgres(supabaseUrl, { prepare: false, max: 10, idle_timeout: 20 });
+
+export const sql = client;
 
 // Pasa 'client' dentro de un objeto
 export const db = drizzle({ client });

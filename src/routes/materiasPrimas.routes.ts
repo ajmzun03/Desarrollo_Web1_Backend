@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from 'express';
 import { MateriasPrimasController } from '../controllers/materiasPrimas.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
-import { schemaMateriaPrima } from '../schemas/materiaPrima.schema.js';
+import { schemaMateriaPrima, schemaMateriaPrimaUpdate } from '../schemas/materiaPrima.schema.js';
 
 const router: Router = Router();
 
@@ -64,7 +64,7 @@ router.get('/', cache('materias-primas', 300), async (_req: Request, res: Respon
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/criticas', authenticate, cache('materias-primas-criticas', 30), async (req: Request, res: Response) => {
+router.get('/criticas', authenticate, staffOnly, cache('materias-primas-criticas', 30), async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const dias = req.query.dias ? Number(req.query.dias) : undefined;
   const umbral = req.query.umbral ? Number(req.query.umbral) : undefined;
@@ -187,7 +187,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schem
  *       500:
  *         description: Error interno del servidor
  */
-router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schemaMateriaPrimaUpdate), async (req: Request, res: Response) => {
   const result = await MateriasPrimasController.update(Number(req.params.id), req.body);
   if (result.status < 300) await invalidateTags('materias-primas', 'materias-primas-criticas');
   res.status(result.status).json({ data: result.data, error: result.error });

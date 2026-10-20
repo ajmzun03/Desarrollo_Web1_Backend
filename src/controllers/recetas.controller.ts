@@ -1,4 +1,5 @@
 import { RecetaModel, RecetaDetalleModel } from '../model/supabase/receta.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 import { crearReceta } from '../services/recetas.service.js';
 
@@ -8,8 +9,8 @@ export const RecetasController = {
       const recetas = await RecetaModel.getAll();
       return { data: recetas, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get recetas:');
-      return { data: null, error: 'Error al obtener recetas', status: 500 };
+      logger.error({ err: error }, 'Error get recetas:');
+      return errorDb(error, 'Error al obtener recetas');
     }
   },
 
@@ -22,8 +23,8 @@ export const RecetasController = {
       const detalles = await RecetaDetalleModel.getByRecetaId(id);
       return { data: { ...receta, detalles }, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get receta:');
-      return { data: null, error: 'Error al obtener receta', status: 500 };
+      logger.error({ err: error }, 'Error get receta:');
+      return errorDb(error, 'Error al obtener receta');
     }
   },
 
@@ -35,8 +36,8 @@ export const RecetasController = {
       const nuevaReceta = await crearReceta(data);
       return { data: nuevaReceta, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create receta:');
-      return { data: null, error: 'Error al crear receta', status: 500 };
+      logger.error({ err: error }, 'Error create receta:');
+      return errorDb(error, 'Error al crear receta');
     }
   },
 
@@ -48,8 +49,8 @@ export const RecetasController = {
       }
       return { data: receta, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update receta:');
-      return { data: null, error: 'Error al actualizar receta', status: 500 };
+      logger.error({ err: error }, 'Error update receta:');
+      return errorDb(error, 'Error al actualizar receta');
     }
   }
 };

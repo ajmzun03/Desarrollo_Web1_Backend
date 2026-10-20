@@ -3,7 +3,7 @@ import { UnidadesMedidaController } from '../controllers/unidadesMedida.controll
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
-import { schemaUnidadMedida } from '../schemas/unidadMedida.schema.js';
+import { schemaUnidadMedida, schemaUnidadMedidaUpdate } from '../schemas/unidadMedida.schema.js';
 
 const router: Router = Router();
 
@@ -132,7 +132,7 @@ router.post('/', authenticate, requireRole('ADMIN'), validate(schemaUnidadMedida
  *       500:
  *         description: Error al actualizar unidad de medida
  */
-router.patch('/:id', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+router.patch('/:id', authenticate, requireRole('ADMIN'), validate(schemaUnidadMedidaUpdate), async (req: Request, res: Response) => {
   const result = await UnidadesMedidaController.update(Number(req.params.id), req.body);
   if (result.status < 300) await invalidateTags('unidades-medida');
   res.status(result.status).json({ data: result.data, error: result.error });
