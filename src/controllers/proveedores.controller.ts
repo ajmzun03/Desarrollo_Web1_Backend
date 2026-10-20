@@ -1,4 +1,5 @@
 import { ProveedorModel } from '../model/supabase/proveedor.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const ProveedoresController = {
@@ -7,8 +8,8 @@ export const ProveedoresController = {
       const proveedores = await ProveedorModel.getAll();
       return { data: proveedores, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get proveedores:');
-      return { data: null, error: 'Error al obtener proveedores', status: 500 };
+      logger.error({ err: error }, 'Error get proveedores:');
+      return errorDb(error, 'Error al obtener proveedores');
     }
   },
 
@@ -20,8 +21,8 @@ export const ProveedoresController = {
       }
       return { data: proveedor, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get proveedor:');
-      return { data: null, error: 'Error al obtener proveedor', status: 500 };
+      logger.error({ err: error }, 'Error get proveedor:');
+      return errorDb(error, 'Error al obtener proveedor');
     }
   },
 
@@ -33,8 +34,8 @@ export const ProveedoresController = {
       const nuevoProveedor = await ProveedorModel.create(data);
       return { data: nuevoProveedor, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create proveedor:');
-      return { data: null, error: 'Error al crear proveedor', status: 500 };
+      logger.error({ err: error }, 'Error create proveedor:');
+      return errorDb(error, 'Error al crear proveedor');
     }
   },
 
@@ -46,8 +47,8 @@ export const ProveedoresController = {
       }
       return { data: proveedor, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update proveedor:');
-      return { data: null, error: 'Error al actualizar proveedor', status: 500 };
+      logger.error({ err: error }, 'Error update proveedor:');
+      return errorDb(error, 'Error al actualizar proveedor');
     }
   }
 };

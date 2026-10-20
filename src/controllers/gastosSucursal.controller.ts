@@ -1,4 +1,5 @@
 import { GastosSucursalModel } from '../model/supabase/gastosSucursal.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const GastosSucursalController = {
@@ -12,8 +13,8 @@ export const GastosSucursalController = {
       }
       return { data: gastos, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get gastos-sucursal:');
-      return { data: null, error: 'Error al obtener gastos de sucursal', status: 500 };
+      logger.error({ err: error }, 'Error get gastos-sucursal:');
+      return errorDb(error, 'Error al obtener gastos de sucursal');
     }
   },
 
@@ -25,8 +26,8 @@ export const GastosSucursalController = {
       }
       return { data: gasto, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get gasto-sucursal:');
-      return { data: null, error: 'Error al obtener gasto de sucursal', status: 500 };
+      logger.error({ err: error }, 'Error get gasto-sucursal:');
+      return errorDb(error, 'Error al obtener gasto de sucursal');
     }
   },
 
@@ -47,8 +48,8 @@ export const GastosSucursalController = {
       });
       return { data: nuevoGasto, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create gasto-sucursal:');
-      return { data: null, error: 'Error al crear gasto de sucursal', status: 500 };
+      logger.error({ err: error }, 'Error create gasto-sucursal:');
+      return errorDb(error, 'Error al crear gasto de sucursal');
     }
   }
 };

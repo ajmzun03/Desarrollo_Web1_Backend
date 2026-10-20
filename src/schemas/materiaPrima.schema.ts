@@ -20,3 +20,6 @@ export const schemaMateriaPrima = z.object({
 export function validateMateriaPrima(object: any) {
     return schemaMateriaPrima.safeParse(object)
 }
+
+// PATCH: campos opcionales; se rechazan campos desconocidos (evita mass-assignment)
+export const schemaMateriaPrimaUpdate = schemaMateriaPrima.partial().strict()

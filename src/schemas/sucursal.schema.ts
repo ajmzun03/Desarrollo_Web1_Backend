@@ -14,3 +14,5 @@ export const schemaSucursal = z.object({
 export function validateSucursal(object: any) {
     return schemaSucursal.safeParse(object)
 }
+// PATCH: campos opcionales; se rechazan campos desconocidos (evita mass-assignment)
+export const schemaSucursalUpdate = schemaSucursal.partial().strict()

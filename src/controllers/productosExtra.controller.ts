@@ -1,4 +1,5 @@
 import { ProductoExtraModel } from '../model/supabase/productoExtra.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const ProductosExtraController = {
@@ -7,8 +8,8 @@ export const ProductosExtraController = {
       const extras = await ProductoExtraModel.getAll();
       return { data: extras, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error get extras:');
-      return { data: null, error: 'Error al obtener productos extra', status: 500 };
+      logger.error({ err: error }, 'Error get extras:');
+      return errorDb(error, 'Error al obtener productos extra');
     }
   },
 
@@ -20,8 +21,8 @@ export const ProductosExtraController = {
       }
       return { data: extra, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error get extra:');
-      return { data: null, error: 'Error al obtener producto extra', status: 500 };
+      logger.error({ err: error }, 'Error get extra:');
+      return errorDb(error, 'Error al obtener producto extra');
     }
   },
 
@@ -30,8 +31,8 @@ export const ProductosExtraController = {
       const extras = await ProductoExtraModel.getByProductoId(productoId);
       return { data: extras, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error get extras por producto:');
-      return { data: null, error: 'Error al obtener extras del producto', status: 500 };
+      logger.error({ err: error }, 'Error get extras por producto:');
+      return errorDb(error, 'Error al obtener extras del producto');
     }
   },
 
@@ -45,8 +46,8 @@ export const ProductosExtraController = {
       });
       return { data: nuevoExtra, error: null, status: 201 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error create extra:');
-      return { data: null, error: 'Error al crear producto extra', status: 500 };
+      logger.error({ err: error }, 'Error create extra:');
+      return errorDb(error, 'Error al crear producto extra');
     }
   },
 
@@ -64,8 +65,8 @@ export const ProductosExtraController = {
       }
       return { data: actualizado, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error update extra:');
-      return { data: null, error: 'Error al actualizar producto extra', status: 500 };
+      logger.error({ err: error }, 'Error update extra:');
+      return errorDb(error, 'Error al actualizar producto extra');
     }
   },
 
@@ -77,8 +78,8 @@ export const ProductosExtraController = {
       }
       return { data: { message: 'Producto extra desactivado exitosamente' }, error: null, status: 200 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error delete extra:');
-      return { data: null, error: 'Error al desactivar producto extra', status: 500 };
+      logger.error({ err: error }, 'Error delete extra:');
+      return errorDb(error, 'Error al desactivar producto extra');
     }
   }
 };

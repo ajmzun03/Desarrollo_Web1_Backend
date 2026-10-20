@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const CajaModel: ICajaModel = {
   async getAll(): Promise<SelectCaja[]> {
     const cajas = await db.select().from(cajaTable).limit(100).offset(0);
-    if (cajas.length === 0) {
-      logger.warn("No se encontraron cajas");
-      throw new Error("No se encontraron cajas");
-    }
     logger.info(`Se encontraron ${cajas.length} cajas`);
     return cajas;
   },

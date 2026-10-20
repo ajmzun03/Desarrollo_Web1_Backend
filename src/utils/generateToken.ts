@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import jwt, { type Secret, type SignOptions } from 'jsonwebtoken'
 import { SECRET_KEY } from '../config.js'
 import type { DecodedToken } from '../jwt.js'
@@ -14,6 +15,8 @@ export function generarToken (userData: Record<string, any> | string, time = '1d
   // Add a high-resolution nonce to guarantee token uniqueness even when called
   // multiple times within the same second for the same user
   cleanPayload._nonce = Date.now()
+  // jti permite revocar un token concreto (logout)
+  cleanPayload.jti = randomUUID()
 
   return jwt.sign(cleanPayload, SECRET_KEY as Secret, { expiresIn: time } as SignOptions)
 }

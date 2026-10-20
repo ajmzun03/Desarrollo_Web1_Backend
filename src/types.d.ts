@@ -254,7 +254,9 @@ export type MateriaPrima = {
 export interface IPedidoModel {
   getAll: () => Promise<SelectPedido[]>
   getByEstado: (estado: string) => Promise<SelectPedido[]>
-  getPedidosCliente: (id: number) => Promise<SelectPedido[] | null>
+  getPaginado: (opts: { limit: number; offset: number; estado?: string | undefined }) => Promise<SelectPedido[]>
+  getByClienteId: (id: number) => Promise<SelectPedido[]>
+  marcarPagado: (id: number, stripePaymentId: string) => Promise<SelectPedido | null>
   getPedidoId: (id: number) => Promise<SelectPedido | null>
   createPedido: (data: InsertPedido, executor?: Tx) => Promise<SelectPedido>
   updatePedido: (id: number, data: UpdatePedido) => Promise<SelectPedido | null>
@@ -352,6 +354,7 @@ export interface IProductoLoteModel {
   getById: (id: number) => Promise<SelectProductoLote | null>
   getByOrdenId: (ordenId: number) => Promise<SelectProductoLote[]>
   getBySucursalId: (sucursalId: number) => Promise<SelectProductoLote[]>
+  getDisponibilidad: (sucursalId?: number) => Promise<Array<{ producto_id: number; disponible: number }>>
   create: (data: InsertProductoLote) => Promise<SelectProductoLote>
   update: (id: number, data: UpdateProductoLote) => Promise<SelectProductoLote | null>
 }
@@ -359,7 +362,7 @@ export interface IProductoLoteModel {
 // ========== LOTE MATERIA PRIMA ==========
 export interface ILoteMateriaPrimaModel {
   getAll: () => Promise<SelectLoteMateriaPrima[]>
-  getById: (id: number, executor?: Tx) => Promise<SelectLoteMateriaPrima | null>
+  getById: (id: number, executor?: Tx, bloquear?: boolean) => Promise<SelectLoteMateriaPrima | null>
   getByMateriaPrimaId: (materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>
   getByBodegaId: (bodegaId: number) => Promise<SelectLoteMateriaPrima[]>
   getFEFO: (bodegaId: number, materiaPrimaId: number) => Promise<SelectLoteMateriaPrima[]>

@@ -14,3 +14,6 @@ export const schemaCategoria = z.object({
 export function validateCategoria(object: unknown) {
     return schemaCategoria.safeParse(object)
 }
+
+// PATCH: campos opcionales; se rechazan campos desconocidos (evita mass-assignment)
+export const schemaCategoriaUpdate = schemaCategoria.partial().strict()

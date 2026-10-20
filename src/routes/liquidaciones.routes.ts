@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { LiquidacionesController } from '../controllers/liquidaciones.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, requireRole, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaLiquidacion } from '../schemas/liquidacion.schema.js';
 
@@ -30,7 +30,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR'), async (req: Request, res: Response) => {
   const turnoId = req.query.turno_id ? Number(req.query.turno_id) : undefined;
   const result = await LiquidacionesController.getAll(turnoId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -62,7 +62,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR'), async (req: Request, res: Response) => {
   const result = await LiquidacionesController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -82,7 +82,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [turno_id, repartidor_id]
+ *             required: [turno_id]
  *             properties:
  *               turno_id:
  *                 type: integer
@@ -111,8 +111,8 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/', authenticate, requireRole('REPARTIDOR', 'ADMIN'), validate(schemaLiquidacion), async (req: Request, res: Response) => {
-  const result = await LiquidacionesController.create(req.body);
+router.post('/', authenticate, requireRole('REPARTIDOR', 'ADMIN'), validate(schemaLiquidacion), async (req: AuthRequest, res: Response) => {
+  const result = await LiquidacionesController.create(req.body, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

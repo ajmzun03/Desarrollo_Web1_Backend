@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { BodegasController } from '../controllers/bodegas.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaBodega, schemaBodegaUpdate } from '../schemas/bodega.js';
 
@@ -29,7 +29,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener bodegas
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, staffOnly, async (req: Request, res: Response) => {
   const sucursalId = req.query.sucursal_id ? Number(req.query.sucursal_id) : undefined;
   const result = await BodegasController.getAll(sucursalId);
   res.status(result.status).json({ data: result.data, error: result.error });
@@ -60,7 +60,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  *       500:
  *         description: Error al obtener bodega
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, staffOnly, async (req: Request, res: Response) => {
   const result = await BodegasController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });

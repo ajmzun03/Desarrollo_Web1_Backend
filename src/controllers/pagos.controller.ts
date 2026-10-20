@@ -1,7 +1,7 @@
 import type Stripe from 'stripe';
 import { stripe, testTokenParaTarjeta } from '../config/stripe.js';
 import { PedidoModel } from '../model/supabase/pedido.model.js';
-import { STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL, IS_PROD } from '../config.js';
+import { STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL, STRIPE_WEBHOOK_SECRET, IS_PROD } from '../config.js';
 import type { DecodedToken } from '../jwt.js';
 import logger from '../config/logger.js';
 
@@ -25,6 +25,20 @@ async function verificarPedidoPropio(pedidoId: number, user: DecodedToken) {
   return { pedido };
 }
 
+/** Reglas para poder cobrar: pedido vigente, sin pagar y con método TARJETA. */
+function verificarCobrable(pedido: { estado?: string; pagado?: boolean; metodo_pago?: string }) {
+  if (pedido.estado === 'ANULADO' || pedido.estado === 'ENTREGADO') {
+    return { data: null, error: `No se puede pagar un pedido ${pedido.estado}`, status: 409 } as const;
+  }
+  if (pedido.pagado) {
+    return { data: null, error: 'El pedido ya fue pagado', status: 409 } as const;
+  }
+  if (pedido.metodo_pago !== 'TARJETA') {
+    return { data: null, error: 'El pedido no está configurado para pago con tarjeta', status: 409 } as const;
+  }
+  return null;
+}
+
 /** Convierte el total del pedido (numeric de Drizzle → string) a centavos enteros. */
 function totalCentavosDelPedido(pedido: { total: unknown }): number {
   const total = Number(pedido.total);
@@ -38,8 +52,9 @@ function totalCentavosDelPedido(pedido: { total: unknown }): number {
  * Idempotencia por pedido: reintentar el mismo pedido devuelve el mismo
  * PaymentIntent (evita cobros dobles ante reintentos de red).
  */
-function idempotencyKey(pedidoId: number): string {
-  return `pagar-pedido:${pedidoId}`;
+// Incluye el monto: si el total del pedido cambia, Stripe no rechaza el reintento por parámetros distintos.
+function idempotencyKey(pedidoId: number, centavos: number): string {
+  return `pagar-pedido:${pedidoId}:${centavos}`;
 }
 
 export const PagosController = {
@@ -47,6 +62,9 @@ export const PagosController = {
     try {
       const { error, pedido } = await verificarPedidoPropio(data.pedido_id, user);
       if (error) return { ...error };
+
+      const noCobrable = verificarCobrable(pedido!);
+      if (noCobrable) return { ...noCobrable };
 
       // El monto sale SIEMPRE del servidor; los montos del cliente se ignoran.
       const totalCentavos = totalCentavosDelPedido(pedido!);
@@ -69,7 +87,7 @@ export const PagosController = {
           cancel_url: STRIPE_CANCEL_URL || 'http://localhost:3000/pagos/cancel',
           metadata: { pedido_id: String(data.pedido_id) },
         },
-        { idempotencyKey: idempotencyKey(data.pedido_id) }
+        { idempotencyKey: idempotencyKey(data.pedido_id, totalCentavos) }
       );
 
       return {
@@ -78,7 +96,7 @@ export const PagosController = {
         status: 201
       };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error crear checkout');
+      logger.error({ err: error }, 'Error crear checkout');
       return { data: null, error: 'Error al crear el pago', status: 500 };
     }
   },
@@ -95,6 +113,9 @@ export const PagosController = {
     try {
       const { error, pedido } = await verificarPedidoPropio(data.pedido_id, user);
       if (error) return { ...error };
+
+      const noCobrable = verificarCobrable(pedido!);
+      if (noCobrable) return { ...noCobrable };
 
       // El monto sale SIEMPRE del servidor; los montos del cliente se ignoran.
       const amount = totalCentavosDelPedido(pedido!);
@@ -151,13 +172,22 @@ export const PagosController = {
           automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
           metadata: { pedido_id: String(data.pedido_id) },
         },
-        { idempotencyKey: idempotencyKey(data.pedido_id) }
+        { idempotencyKey: idempotencyKey(data.pedido_id, amount) }
       );
+
+      // Cobro confirmado de forma síncrona: se registra ya (el webhook es idempotente).
+      if (paymentIntent.status === 'succeeded') {
+        await PedidoModel.marcarPagado(data.pedido_id, paymentIntent.id);
+      }
 
       return { data: { id: paymentIntent.id, status: paymentIntent.status }, error: null, status: 201 };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error crear PaymentIntent');
-      return { data: null, error: error.message, status: 500 };
+      logger.error({ err: error }, 'Error crear PaymentIntent');
+      // Errores de tarjeta (rechazada, fondos, etc.) son accionables para el cliente; el resto no se expone.
+      if (error?.type === 'StripeCardError') {
+        return { data: null, error: error.message, status: 402 };
+      }
+      return { data: null, error: 'Error al procesar el pago', status: 500 };
     }
   },
 
@@ -187,8 +217,71 @@ export const PagosController = {
         status: 200,
       };
     } catch (error: any) {
-      logger.error({ error: error.message }, 'Error get PaymentIntent');
+      logger.error({ err: error }, 'Error get PaymentIntent');
       return { data: null, error: 'PaymentIntent no encontrado', status: 404 };
+    }
+  },
+
+  /**
+   * Webhook de Stripe. Recibe el cuerpo CRUDO (Buffer) y valida la firma.
+   * Marca el pedido como pagado solo si el monto cobrado coincide con pedido.total.
+   * Responde 200 aun cuando ignora el evento; 400 si la firma es inválida; 5xx para que Stripe reintente.
+   */
+  async procesarWebhook(rawBody: Buffer, signature: string | undefined) {
+    if (!STRIPE_WEBHOOK_SECRET) {
+      logger.error('STRIPE_WEBHOOK_SECRET no configurado; webhook rechazado');
+      return { data: null, error: 'Webhook no configurado', status: 503 };
+    }
+    if (!signature) {
+      return { data: null, error: 'Falta la firma de Stripe', status: 400 };
+    }
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SECRET);
+    } catch (err: any) {
+      logger.warn({ err: err?.message }, 'Firma de webhook inválida');
+      return { data: null, error: 'Firma inválida', status: 400 };
+    }
+
+    try {
+      let pedidoId: number | undefined;
+      let paymentId: string | undefined;
+      let montoCentavos: number | null | undefined;
+
+      if (event.type === 'payment_intent.succeeded') {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        pedidoId = Number(pi.metadata?.pedido_id);
+        paymentId = pi.id;
+        montoCentavos = pi.amount_received;
+      } else if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.payment_status === 'paid') {
+          pedidoId = Number(session.metadata?.pedido_id);
+          paymentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.id;
+          montoCentavos = session.amount_total;
+        }
+      }
+
+      if (!pedidoId || !Number.isInteger(pedidoId) || !paymentId) {
+        return { data: { recibido: true }, error: null, status: 200 };
+      }
+
+      const pedido = await PedidoModel.getPedidoId(pedidoId);
+      if (!pedido) {
+        logger.error({ pedidoId, paymentId }, 'Webhook de pago para un pedido inexistente');
+        return { data: { recibido: true }, error: null, status: 200 };
+      }
+      if (montoCentavos !== totalCentavosDelPedido(pedido)) {
+        logger.error({ pedidoId, paymentId, montoCentavos }, 'Monto cobrado distinto del total del pedido; no se marca como pagado');
+        return { data: { recibido: true }, error: null, status: 200 };
+      }
+
+      await PedidoModel.marcarPagado(pedidoId, paymentId);
+      return { data: { recibido: true }, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ err: error }, 'Error procesando webhook de Stripe');
+      return { data: null, error: 'Error procesando el webhook', status: 500 };
     }
   }
 };

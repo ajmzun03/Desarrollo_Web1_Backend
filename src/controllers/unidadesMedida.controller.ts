@@ -1,4 +1,5 @@
 import { UnidadMedidaModel } from '../model/supabase/unidadMedida.model.js';
+import { errorDb } from '../utils/errors.js';
 import logger from '../config/logger.js';
 
 export const UnidadesMedidaController = {
@@ -7,8 +8,8 @@ export const UnidadesMedidaController = {
       const unidades = await UnidadMedidaModel.getAll();
       return { data: unidades, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get unidades-medida:');
-      return { data: null, error: 'Error al obtener unidades de medida', status: 500 };
+      logger.error({ err: error }, 'Error get unidades-medida:');
+      return errorDb(error, 'Error al obtener unidades de medida');
     }
   },
 
@@ -20,8 +21,8 @@ export const UnidadesMedidaController = {
       }
       return { data: unidad, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error get unidad-medida:');
-      return { data: null, error: 'Error al obtener unidad de medida', status: 500 };
+      logger.error({ err: error }, 'Error get unidad-medida:');
+      return errorDb(error, 'Error al obtener unidad de medida');
     }
   },
 
@@ -33,8 +34,8 @@ export const UnidadesMedidaController = {
       const nuevaUnidad = await UnidadMedidaModel.create(data);
       return { data: nuevaUnidad, error: null, status: 201 };
     } catch (error) {
-      logger.error({ error }, 'Error create unidad-medida:');
-      return { data: null, error: 'Error al crear unidad de medida', status: 500 };
+      logger.error({ err: error }, 'Error create unidad-medida:');
+      return errorDb(error, 'Error al crear unidad de medida');
     }
   },
 
@@ -46,8 +47,8 @@ export const UnidadesMedidaController = {
       }
       return { data: unidad, error: null, status: 200 };
     } catch (error) {
-      logger.error({ error }, 'Error update unidad-medida:');
-      return { data: null, error: 'Error al actualizar unidad de medida', status: 500 };
+      logger.error({ err: error }, 'Error update unidad-medida:');
+      return errorDb(error, 'Error al actualizar unidad de medida');
     }
   }
 };

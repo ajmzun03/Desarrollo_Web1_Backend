@@ -5,6 +5,8 @@ const {
   DATABASE_URL: supabaseUrl = '',
   DB_API_KEY: supabaseKey = '',
   STRIPE_SECRET_KEY = '',
+  STRIPE_WEBHOOK_SECRET = '',
+  ENABLE_DOCS = '',
   REDIS_URL = 'redis://localhost:6379',
   NODE_ENV = 'development',
   AWS_REGION = '',
@@ -26,6 +28,9 @@ const {
 
 // Secretos SIN defaults inseguros: vacíos si no están en el entorno
 const SECRET_KEY = process.env.SECRET_KEY ?? ''
+
+// Límite global de peticiones por IP en 15 min (una sucursal comparte IP y las apps hacen polling)
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX) || 600
 
 // Coerción robusta: si la env var no es un número válido, usa 10
 const SALT_ROUND = Number(process.env.SALT_ROUND) || 10
@@ -65,12 +70,18 @@ if (IS_PROD) {
   }
 }
 
+// Swagger UI: siempre en desarrollo; en producción solo si ENABLE_DOCS=true
+const DOCS_HABILITADAS = IS_DEV || ENABLE_DOCS.trim().toLowerCase() === 'true'
+
 export {
   supabaseUrl,
   supabaseKey,
   SALT_ROUND,
+  RATE_LIMIT_MAX,
+  DOCS_HABILITADAS,
   SECRET_KEY,
   STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET,
   REDIS_URL,
   NODE_ENV,
   IS_PROD,

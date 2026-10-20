@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const DepartamentoModel: IDepartamentoModel = {
     async getAll(): Promise<SelectDepartamento[]> {
         const departamentos = await db.select().from(departamentoTable).limit(100).offset(0);
-        if (departamentos.length === 0) {
-            logger.warn("No se encontraron departamentos");
-            throw new Error("No se encontraron departamentos");
-        }
         logger.info(`Se encontraron ${departamentos.length} departamentos`);
         return departamentos;
     },

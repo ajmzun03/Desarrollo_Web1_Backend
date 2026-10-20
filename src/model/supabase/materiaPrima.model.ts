@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const MateriaPrimaModel: IMateriaPrimaModel = {
     async getAll(): Promise<SelectMateriaPrima[]> {
         const materiasPrimas = await db.select().from(materiaPrimaTable).limit(100).offset(0);
-        if (materiasPrimas.length === 0) {
-            logger.warn("No se encontraron materias primas");
-            throw new Error("No se encontraron materias primas");
-        }
         logger.info(`Se encontraron ${materiasPrimas.length} materias primas`);
         return materiasPrimas;
     },

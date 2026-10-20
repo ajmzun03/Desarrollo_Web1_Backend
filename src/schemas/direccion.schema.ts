@@ -1,9 +1,11 @@
 import z from 'zod'
 
+// cliente_id lo envía solo el personal; un cliente final siempre usa su propio id.
 export const schemaDireccion = z.object({
     cliente_id: z.number()
         .int("El ID del cliente debe ser un número entero")
-        .positive("El ID del cliente debe ser un número positivo"),
+        .positive("El ID del cliente debe ser un número positivo")
+        .optional(),
     municipio_id: z.number()
         .int("El ID del municipio debe ser un número entero")
         .positive("El ID del municipio debe ser un número positivo"),
@@ -17,7 +19,8 @@ export const schemaDireccion = z.object({
         .max(100, "La dirección secundaria no puede tener más de 100 caracteres")
 })
 
-export const schemaDireccionUpdate = schemaDireccion.partial().strict()
+// No se permite cambiar el dueño de una dirección.
+export const schemaDireccionUpdate = schemaDireccion.omit({ cliente_id: true }).partial().strict()
 
 export function validateDireccion(object: unknown) {
     return schemaDireccion.safeParse(object)

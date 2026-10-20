@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const GastosSucursalModel: IGastosSucursalModel = {
   async getAll(): Promise<SelectGastosSucursal[]> {
     const gastos = await db.select().from(gastosSucursalTable).limit(100).offset(0);
-    if (gastos.length === 0) {
-      logger.warn("No se encontraron gastos de sucursal");
-      throw new Error("No se encontraron gastos de sucursal");
-    }
     logger.info(`Se encontraron ${gastos.length} gastos de sucursal`);
     return gastos;
   },

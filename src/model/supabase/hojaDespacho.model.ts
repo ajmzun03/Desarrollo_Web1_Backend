@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const HojaDespachoModel: IHojaDespachoModel = {
   async getAll(): Promise<SelectHojaDespacho[]> {
     const hojas = await db.select().from(hojaDespachoTable).limit(100).offset(0);
-    if (hojas.length === 0) {
-      logger.warn("No se encontraron hojas de despacho");
-      throw new Error("No se encontraron hojas de despacho");
-    }
     logger.info(`Se encontraron ${hojas.length} hojas de despacho`);
     return hojas;
   },

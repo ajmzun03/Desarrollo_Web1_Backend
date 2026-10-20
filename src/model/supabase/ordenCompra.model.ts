@@ -8,10 +8,6 @@ import logger from "../../config/logger.js";
 export const OrdenCompraModel: IOrdenCompraModel = {
   async getAll(): Promise<SelectOrdenCompra[]> {
     const ordenes = await db.select().from(ordenCompraTable).limit(100).offset(0);
-    if (ordenes.length === 0) {
-      logger.warn("No se encontraron órdenes de compra");
-      throw new Error("No se encontraron órdenes de compra");
-    }
     logger.info(`Se encontraron ${ordenes.length} órdenes de compra`);
     return ordenes;
   },
