@@ -1,6 +1,7 @@
 import { Vonage } from '@vonage/server-sdk'
 import { Auth } from '@vonage/auth'
-import { SMS, SMS_SECRET, APP_NAME } from '../config.js'
+import { SMS, SMS_SECRET, APP_NAME, SMS_DESTINO_PRUEBAS, IS_PROD } from '../config.js'
+import { normalizarTelefonoGT } from '../utils/telefono.js'
 import logger from '../config/logger.js'
 
 interface Props {
@@ -32,12 +33,19 @@ async function send({ to, from, text }: Props): Promise<boolean> {
 }
 
 /**
- * Envía un SMS con un código de verificación a un número de Guatemala (502).
+ * Envía un SMS con un código de verificación (por defecto a un número de Guatemala, 502).
+ * Fuera de producción, si SMS_DESTINO_PRUEBAS está definido, TODOS los códigos van a ese número
+ * (permite probar el login de cualquier rol con un solo teléfono). En producción se ignora.
  * Devuelve true si se envió, false si falló. No lanza excepciones.
  */
 export async function sendSMS({ phoneNumber, code }: SMSProps): Promise<boolean> {
   const from = APP_NAME
-  const to = `502${phoneNumber}`
+  const destino = !IS_PROD && SMS_DESTINO_PRUEBAS ? SMS_DESTINO_PRUEBAS : phoneNumber
+  const to = normalizarTelefonoGT(destino)
+  if (!to) {
+    logger.warn('Teléfono inválido; no se envía el SMS')
+    return false
+  }
   const text = `Tu código de verificación para ${APP_NAME} es: ${code}. Válido por 5 minutos.`
   return send({ to, from, text })
 }

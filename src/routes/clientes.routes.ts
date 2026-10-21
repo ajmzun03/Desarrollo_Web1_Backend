@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { ClientesController } from '../controllers/clientes.controller.js';
-import { authenticate, requireRole, propioORoles } from '../middleware/auth.js';
+import { authenticate, requireRole, propioORoles, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { schemaCliente, schemaClienteUpdate } from '../schemas/cliente.schema.js';
 
@@ -62,8 +62,8 @@ router.get('/', authenticate, requireRole('ADMIN', 'CAJERO', 'DESPACHADOR', 'GER
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, propioORoles('id', 'ADMIN', 'CAJERO', 'DESPACHADOR', 'GERENTE'), async (req: Request, res: Response) => {
-  const result = await ClientesController.getById(Number(req.params.id));
+router.get('/:id', authenticate, propioORoles('id', 'ADMIN', 'CAJERO', 'DESPACHADOR', 'GERENTE', 'REPARTIDOR'), async (req: AuthRequest, res: Response) => {
+  const result = await ClientesController.getById(Number(req.params.id), req.user);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

@@ -2,6 +2,7 @@ import { DireccionModel } from '../model/supabase/direccion.model.js';
 import logger from '../config/logger.js';
 import { errorDb, ErrorNegocio } from '../utils/errors.js';
 import { esCliente } from '../middleware/auth.js';
+import { asignacionesDe, exigirAsignado, esRepartidor, tieneDireccion } from '../services/asignaciones.service.js';
 import type { DecodedToken } from '../jwt.js';
 
 /** Un cliente solo accede a sus direcciones; si no es suya se responde como inexistente. */
@@ -20,12 +21,27 @@ function verificarEscritura(user: DecodedToken) {
   }
 }
 
+const ROLES_LECTURA = ['ADMIN', 'CAJERO', 'DESPACHADOR', 'GERENTE', 'REPARTIDOR'];
+
+/** Leer direcciones: el cliente las suyas; del personal solo los roles que atienden pedidos. */
+function verificarLectura(user: DecodedToken) {
+  if (!esCliente(user) && !ROLES_LECTURA.includes(user.rol ?? '')) {
+    throw new ErrorNegocio('Tu rol no puede consultar direcciones', 403);
+  }
+}
+
 export const DireccionesController = {
   async getAll(user: DecodedToken, clienteIdSolicitado?: number) {
     try {
+      verificarLectura(user);
       const clienteId = esCliente(user) ? Number(user.id) : clienteIdSolicitado;
       const direcciones = await DireccionModel.getAll();
-      const filtradas = clienteId ? direcciones.filter(d => Number(d.cliente_id) === clienteId) : direcciones;
+      let filtradas = clienteId ? direcciones.filter(d => Number(d.cliente_id) === clienteId) : direcciones;
+      // El repartidor solo ve las direcciones de sus pedidos asignados
+      if (esRepartidor(user)) {
+        const asignaciones = await asignacionesDe(Number(user.id));
+        filtradas = filtradas.filter(d => tieneDireccion(asignaciones, Number(d.id)));
+      }
       return { data: filtradas, error: null, status: 200 };
     } catch (error) {
       if (error instanceof Error && error.message === 'No se encontraron direcciones') {
@@ -38,8 +54,10 @@ export const DireccionesController = {
 
   async getById(id: number, user: DecodedToken) {
     try {
+      verificarLectura(user);
       const direccion = await DireccionModel.getById(id);
       verificarDueno(direccion, user);
+      await exigirAsignado(user, 'direccion', id);
       return { data: direccion, error: null, status: 200 };
     } catch (error) {
       if (error instanceof Error && error.message === 'Direccion no encontrada') {
