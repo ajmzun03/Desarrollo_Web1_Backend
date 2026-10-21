@@ -1,6 +1,7 @@
 import { Vonage } from '@vonage/server-sdk'
 import { Auth } from '@vonage/auth'
-import { SMS, SMS_SECRET, APP_NAME, SMS_DESTINO_PRUEBAS, IS_PROD } from '../config.js'
+import { SMS, SMS_SECRET, APP_NAME, SMS_DESTINO_PRUEBAS, SMS_FROM, IS_PROD } from '../config.js'
+import { evaluarRespuestaVonage } from '../utils/vonage.js'
 import { normalizarTelefonoGT } from '../utils/telefono.js'
 import logger from '../config/logger.js'
 
@@ -24,7 +25,16 @@ const vonage = new Vonage(auth)
 
 async function send({ to, from, text }: Props): Promise<boolean> {
   try {
-    await vonage.sms.send({ to, from, text })
+    const respuesta = await vonage.sms.send({ to, from, text })
+    // Vonage responde 200 aunque rechace el mensaje: hay que revisar messages[].status
+    const { ok, detalle } = evaluarRespuestaVonage(respuesta as never)
+    const primero = (respuesta as { messages?: Array<Record<string, unknown>> }).messages?.[0]
+    if (!ok) {
+      logger.error({ to, from, detalle }, 'Vonage rechazó el SMS')
+      return false
+    }
+    // El id permite buscar el mensaje en el panel de Vonage (Logs) y ver si la operadora lo entregó
+    logger.info({ to, from, messageId: primero?.['message-id'], red: primero?.network }, 'SMS aceptado por Vonage')
     return true
   } catch (error) {
     logger.error(error, 'Error enviando el mensaje SMS')
@@ -39,7 +49,9 @@ async function send({ to, from, text }: Props): Promise<boolean> {
  * Devuelve true si se envió, false si falló. No lanza excepciones.
  */
 export async function sendSMS({ phoneNumber, code }: SMSProps): Promise<boolean> {
-  const from = APP_NAME
+  // Remitente: alfanumérico (APP_NAME) por defecto. Algunas operadoras (p. ej. Guatemala) lo filtran;
+  // en ese caso define SMS_FROM con un número de Vonage o un remitente registrado.
+  const from = SMS_FROM || APP_NAME
   const destino = !IS_PROD && SMS_DESTINO_PRUEBAS ? SMS_DESTINO_PRUEBAS : phoneNumber
   const to = normalizarTelefonoGT(destino)
   if (!to) {
