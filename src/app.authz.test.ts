@@ -132,6 +132,22 @@ describe('autorización — por rol de personal', () => {
   });
 });
 
+describe('autorización — vistas del repartidor y roles sin acceso a datos de clientes', () => {
+  it('un COCINERO no lee clientes ni direcciones', async () => {
+    expect(await llamar('GET', '/clientes/1', tokens.cocinero)).toBe(403);
+    expect(await llamar('GET', '/direcciones', tokens.cocinero)).toBe(403);
+    expect(await llamar('GET', '/direcciones/1', tokens.cocinero)).toBe(403);
+  });
+
+  it('un REPARTIDOR no lista clientes, no ve hojas de despacho ni cajas, y no administra nada', async () => {
+    for (const [m, r] of [['GET', '/clientes'], ['GET', '/hojas-despacho'], ['GET', '/cajas'], ['GET', '/usuarios'], ['GET', '/reportes/utilidad-diaria']] as const) {
+      expect(await llamar(m, r, tokens.repartidor), m + ' ' + r).toBe(403);
+    }
+    // crear pedidos: con cuerpo válido, el rol REPARTIDOR no puede
+    expect(await llamar('POST', '/pedidos', tokens.repartidor, { cliente_id: 1, items: [{ producto_id: 1, cantidad: 1 }] })).toBe(403);
+  });
+});
+
 describe('rutas públicas y manejo de errores', () => {
   it('/health responde sin autenticación', async () => {
     expect(await llamar('GET', '/health')).toBe(200);

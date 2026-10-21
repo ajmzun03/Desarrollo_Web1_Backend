@@ -6,6 +6,7 @@ import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGen
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
 import { IS_PROD } from '../config.js';
 import logger from '../config/logger.js';
+import { vistasDe } from '../config/vistas.js';
 import { revocarToken, revocarSesionesDe } from '../services/sesiones.service.js';
 import type { DecodedToken } from '../jwt.js';
 
@@ -49,7 +50,8 @@ export const UsuarioClienteController = {
       return {
         data: {
           cliente: resultado.cliente,
-          token
+          token,
+          vistas: vistasDe('CLIENTE')
         },
         error: null,
         status: 201
@@ -102,7 +104,7 @@ export const UsuarioClienteController = {
           tipo: 'cliente'
         });
         return {
-          data: { cliente: registro.cliente, token, twoFactor: false },
+          data: { cliente: registro.cliente, token, twoFactor: false, vistas: vistasDe('CLIENTE') },
           error: null,
           status: 200
         };
@@ -188,7 +190,7 @@ export const UsuarioClienteController = {
         return { data: null, error: 'Cliente no encontrado', status: 404 };
       }
 
-      return { data: { cliente, token }, error: null, status: 200 };
+      return { data: { cliente, token, vistas: vistasDe('CLIENTE') }, error: null, status: 200 };
     } catch (error: any) {
       logger.error({ err: error }, 'Error al verificar código cliente:');
       return { data: null, error: 'Error al verificar el código', status: 500 };
@@ -293,7 +295,7 @@ export const UsuarioClienteController = {
         return { data: null, error: 'Cliente no encontrado', status: 404 };
       }
 
-      return { data: cliente, error: null, status: 200 };
+      return { data: { ...cliente, vistas: vistasDe('CLIENTE') }, error: null, status: 200 };
     } catch (error: any) {
       logger.error({ err: error }, 'Error al obtener perfil de cliente:');
       return { data: null, error: 'Error al obtener datos del cliente', status: 500 };

@@ -4,11 +4,15 @@ import logger from '../config/logger.js';
 import type { DecodedToken } from '../jwt.js';
 
 export const LiquidacionesController = {
-  async getAll(turnoId?: number) {
+  async getAll(turnoId: number | undefined, user: DecodedToken) {
     try {
-      const liquidaciones = turnoId
+      let liquidaciones = turnoId
         ? await LiquidacionRepartidorModel.getByTurnoId(turnoId)
         : await LiquidacionRepartidorModel.getAll();
+      // Un repartidor solo ve sus propias liquidaciones
+      if (user.rol === 'REPARTIDOR') {
+        liquidaciones = liquidaciones.filter(l => Number(l.repartidor_id) === Number(user.id));
+      }
       return { data: liquidaciones, error: null, status: 200 };
     } catch (error) {
       if (error instanceof Error && error.message === 'No se encontraron liquidaciones de repartidor') {
@@ -19,9 +23,12 @@ export const LiquidacionesController = {
     }
   },
 
-  async getById(id: number) {
+  async getById(id: number, user: DecodedToken) {
     try {
       const liquidacion = await LiquidacionRepartidorModel.getById(id);
+      if (user.rol === 'REPARTIDOR' && Number(liquidacion?.repartidor_id) !== Number(user.id)) {
+        return { data: null, error: 'Liquidación de repartidor no encontrada', status: 404 };
+      }
       return { data: liquidacion, error: null, status: 200 };
     } catch (error) {
       if (error instanceof Error && error.message === 'Liquidación de repartidor no encontrada') {

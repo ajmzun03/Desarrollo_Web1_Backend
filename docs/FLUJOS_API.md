@@ -61,3 +61,28 @@ Códigos habituales: `400` datos inválidos · `401` sin sesión / sesión cerra
 | COCINERO / JEFE_COCINA | Órdenes de trabajo (iniciar/terminar), solicitudes de insumo, mermas de alacena |
 | COMPRAS / GERENTE | Lectura de compras y reportes |
 | ADMIN | Todo, incluida la gestión de usuarios (`activo: false` desactiva y cierra sus sesiones) |
+
+## 7. Vistas por rol (qué pantallas mostrar)
+`GET /auth/me`, `POST /auth/verificar` (y `/cliente/auth/*`) devuelven **`vistas`**: la lista de pantallas a las que puede entrar el usuario. El frontend debe armar el menú y proteger sus rutas con esa lista (el rol se toma de la base de datos, no del token). Aun así, cada endpoint valida el permiso: ocultar una vista no es seguridad, el `403` del API sí.
+
+| Rol | `vistas` |
+|---|---|
+| ADMIN | todas (dashboard, usuarios, clientes, pedidos, pos, despacho, repartidores, turnos, cajas, liquidaciones, facturas, gastos, reportes, catálogos, compras, inventario, cocina…) |
+| GERENTE | dashboard, reportes, pedidos, clientes, facturas-venta, facturas-compra, gastos, ordenes-compra, inventario, turnos, cajas, liquidaciones |
+| CAJERO | pos, pedidos, clientes, facturas-venta, turnos, cajas |
+| DESPACHADOR | despacho, pedidos, clientes, repartidores, turnos, cajas, liquidaciones |
+| REPARTIDOR | repartidor, pedidos-asignados, liquidaciones |
+| BODEGUERO | inventario, bodegas, alacenas, recepcion, traslados, stock, kardex, solicitudes-insumo, ordenes-compra, materias-primas, productos |
+| COMPRAS | compras, ordenes-compra, facturas-compra, proveedores, materias-primas |
+| COCINERO / JEFE_COCINA | cocina, ordenes-trabajo, recetas, solicitudes-insumo, alacenas |
+| CLIENTE | menu, mis-pedidos, mis-direcciones, perfil |
+
+La fuente es `src/config/vistas.ts`.
+
+### Qué datos puede leer el REPARTIDOR
+Solo lo que pertenece a pedidos que tiene asignados (hoja de despacho con su `repartidor_id`); lo demás responde `404`:
+`GET /pedidos` y `/pedidos/:id`, `GET /clientes/:id`, `GET /direcciones` y `/direcciones/:id`, `GET /repartidor/pedidos`. Además `GET /liquidaciones` (solo las suyas) y `GET /turnos` (solo turnos abiertos, para liquidar). **No** puede listar clientes ni ver hojas de despacho, cajas, facturas, gastos ni reportes.
+> Para que un pedido aparezca en su vista, el despachador debe asignarlo al crear la hoja de despacho (`repartidor_id`).
+
+## 8. SMS de verificación
+Los teléfonos se guardan a 8 dígitos (Guatemala); el backend antepone `502` (y no lo duplica si ya viene). En desarrollo, `SMS_DESTINO_PRUEBAS=58493915` envía TODOS los códigos a ese número (se ignora en producción).
