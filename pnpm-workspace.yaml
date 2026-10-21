@@ -2,3 +2,6 @@ allowBuilds:
   bcrypt: true
   esbuild: false
   "@scarf/scarf": false
+overrides:
+  ip-address: ">=10.7.1"
+  qs: ">=6.16.0"

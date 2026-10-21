@@ -64,7 +64,7 @@ router.post('/registro', registroLimiter, validate(schemaClienteRegistro), async
  * @openapi
  * /cliente/auth/login:
  *   post:
- *     summary: Login de cliente final (paso 1: valida contraseña y envía código 2FA)
+ *     summary: "Login de cliente final (paso 1: valida contraseña y envía código 2FA)"
  *     tags: [Cliente Auth]
  *     requestBody:
  *       required: true

@@ -136,6 +136,11 @@ router.get('/:id', cache('productos', 300), async (req: Request, res: Response) 
  *               precio:
  *                 type: number
  *                 example: 15.5
+ *               imagen_url:
+ *                 type: string
+ *                 nullable: true
+ *                 description: URL https de la imagen (obtenida con POST /archivos/upload-url)
+ *                 example: https://bucket.s3.us-east-1.amazonaws.com/uploads/tortilla.png
  *     responses:
  *       201:
  *         description: Producto creado
@@ -184,6 +189,11 @@ router.post('/', authenticate, requireRole('ADMIN', 'BODEGUERO'), validate(schem
  *                 type: string
  *               precio:
  *                 type: number
+ *               imagen_url:
+ *                 type: string
+ *                 nullable: true
+ *                 description: URL https de la imagen (obtenida con POST /archivos/upload-url)
+ *                 example: https://bucket.s3.us-east-1.amazonaws.com/uploads/tortilla.png
  *     responses:
  *       200:
  *         description: Producto actualizado
