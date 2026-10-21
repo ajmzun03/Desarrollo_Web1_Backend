@@ -1,6 +1,6 @@
 import { sendSMS } from './sendSMS.js'
 import { sendEmail } from './sendMail.js'
-import { APP_NAME, OTP_CANALES_AMBOS } from '../config.js'
+import { APP_NAME, OTP_CANALES_AMBOS, OTP_EN_LOG } from '../config.js'
 import logger from '../config/logger.js'
 
 export interface DestinoCodigo {
@@ -36,6 +36,19 @@ function plantillaHTML(codigo: string, contexto: 'login' | 'reset'): string {
  * Devuelve el canal usado ('sms' | 'email' | 'ambos') o null si todos fallan.
  */
 export async function enviarCodigo(
+  destino: DestinoCodigo,
+  codigo: string,
+  contexto: 'login' | 'reset'
+): Promise<'sms' | 'email' | 'ambos' | 'log' | null> {
+  // Solo desarrollo: deja el código en el log para poder probar sin que SMS/correo funcionen
+  if (OTP_EN_LOG) {
+    logger.warn({ contexto, codigo }, 'OTP (solo desarrollo, OTP_MOSTRAR_EN_LOG=true)')
+  }
+  const canal = await enviarPorCanales(destino, codigo, contexto)
+  return canal ?? (OTP_EN_LOG ? 'log' : null)
+}
+
+async function enviarPorCanales(
   destino: DestinoCodigo,
   codigo: string,
   contexto: 'login' | 'reset'
