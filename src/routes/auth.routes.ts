@@ -19,7 +19,7 @@ const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, po
  * @openapi
  * /auth/login:
  *   post:
- *     summary: Iniciar sesión (paso 1: valida contraseña y envía código 2FA)
+ *     summary: "Iniciar sesión (paso 1: valida contraseña y envía código 2FA)"
  *     tags: [Auth]
  *     requestBody:
  *       required: true

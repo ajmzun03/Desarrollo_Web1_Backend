@@ -55,7 +55,7 @@ export const ProductosController = {
     }
   },
 
-  async create(data: { categoria_id: number; unidad_medida_id: number; producto: string; precio: number }) {
+  async create(data: { categoria_id: number; unidad_medida_id: number; producto: string; precio: number; imagen_url?: string | null | undefined }) {
     try {
       if (!data.categoria_id || !data.unidad_medida_id || !data.producto || !data.precio) {
         return { data: null, error: 'categoria_id, unidad_medida_id, producto y precio son requeridos', status: 400 };
