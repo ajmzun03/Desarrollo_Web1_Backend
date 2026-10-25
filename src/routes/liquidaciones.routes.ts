@@ -30,9 +30,9 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR'), async (req: Request, res: Response) => {
+router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'REPARTIDOR'), async (req: AuthRequest, res: Response) => {
   const turnoId = req.query.turno_id ? Number(req.query.turno_id) : undefined;
-  const result = await LiquidacionesController.getAll(turnoId);
+  const result = await LiquidacionesController.getAll(turnoId, req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -62,8 +62,8 @@ router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR'), as
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR'), async (req: Request, res: Response) => {
-  const result = await LiquidacionesController.getById(Number(req.params.id));
+router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'REPARTIDOR'), async (req: AuthRequest, res: Response) => {
+  const result = await LiquidacionesController.getById(Number(req.params.id), req.user!);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

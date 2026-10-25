@@ -24,8 +24,8 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'CAJERO'), async (_req: Request, res: Response) => {
-  const result = await TurnosController.getAll();
+router.get('/', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'CAJERO', 'REPARTIDOR'), async (req: AuthRequest, res: Response) => {
+  const result = await TurnosController.getAll(req.user);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
@@ -79,8 +79,8 @@ router.get('/pendientes-validacion', authenticate, requireRole('ADMIN'), async (
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'CAJERO'), async (req: Request, res: Response) => {
-  const result = await TurnosController.getById(Number(req.params.id));
+router.get('/:id', authenticate, requireRole('ADMIN', 'GERENTE', 'DESPACHADOR', 'CAJERO', 'REPARTIDOR'), async (req: AuthRequest, res: Response) => {
+  const result = await TurnosController.getById(Number(req.params.id), req.user);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

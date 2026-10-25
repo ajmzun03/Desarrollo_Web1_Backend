@@ -6,6 +6,7 @@ import { crearPedido, type CrearPedidoInput } from '../services/pedidos.service.
 import { errorDb, ErrorNegocio } from '../utils/errors.js';
 import { TRANSICIONES_PEDIDO, validarTransicion } from '../utils/transiciones.js';
 import { esCliente } from '../middleware/auth.js';
+import { exigirAsignado, esRepartidor } from '../services/asignaciones.service.js';
 import { stripe } from '../config/stripe.js';
 import type { DecodedToken } from '../jwt.js';
 
@@ -39,6 +40,8 @@ async function obtenerPedido(id: number) {
 export const PedidosController = {
   async getAll(user: DecodedToken, opts: { limit: number; offset: number; estado?: string | undefined }) {
     try {
+      // Cada rol ve solo lo suyo: el cliente sus pedidos, el repartidor los que tiene asignados
+      if (esRepartidor(user)) return await PedidosController.getPedidosRepartidor(Number(user.id), false);
       const pedidos = esCliente(user)
         ? await PedidoModel.getByClienteId(Number(user.id))
         : await PedidoModel.getPaginado(opts);
@@ -63,6 +66,7 @@ export const PedidosController = {
     try {
       const pedido = await obtenerPedido(id);
       verificarAcceso(pedido, user);
+      await exigirAsignado(user, 'pedido', id);
       const detalles = await DetallePedidoModel.getByPedidoId(id);
       return { data: { ...pedido, detalles }, error: null, status: 200 };
     } catch (error) {

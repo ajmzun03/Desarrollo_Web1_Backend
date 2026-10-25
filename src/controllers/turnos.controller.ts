@@ -5,9 +5,11 @@ import { ErrorNegocio } from '../utils/errors.js';
 import type { DecodedToken } from '../jwt.js';
 
 export const TurnosController = {
-  async getAll() {
+  async getAll(user?: DecodedToken) {
     try {
-      const turnos = await TurnoDespachadorModel.getAll();
+      let turnos = await TurnoDespachadorModel.getAll();
+      // El repartidor solo necesita los turnos ABIERTOS (para liquidar dentro de uno)
+      if (user?.rol === 'REPARTIDOR') turnos = turnos.filter(t => !t.cerrado_en);
       return { data: turnos, error: null, status: 200 };
     } catch (error) {
       logger.error({ err: error }, 'Error get turnos:');
@@ -26,10 +28,10 @@ export const TurnosController = {
     }
   },
 
-  async getById(id: number) {
+  async getById(id: number, user?: DecodedToken) {
     try {
       const turno = await TurnoDespachadorModel.getById(id);
-      if (!turno) {
+      if (!turno || (user?.rol === 'REPARTIDOR' && turno.cerrado_en)) {
         return { data: null, error: 'Turno no encontrado', status: 404 };
       }
       return { data: turno, error: null, status: 200 };

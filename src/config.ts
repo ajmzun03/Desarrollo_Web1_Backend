@@ -15,6 +15,10 @@ const {
   S3_BUCKET_NAME = '',
   SMS = '',
   SMS_SECRET = '',
+  SMS_DESTINO_PRUEBAS = '',
+  SMS_FROM = '',
+  OTP_ENVIAR_AMBOS = '',
+  OTP_MOSTRAR_EN_LOG = '',
   SMTP_HOST = '',
   SMTP_PORT = '587',
   SMTP_FROM = '"Mc restaurant" <mail@example.com>',
@@ -70,6 +74,14 @@ if (IS_PROD) {
   }
 }
 
+// Si es true, el código 2FA se envía por SMS Y por correo a la vez (el SMS puede ser aceptado por el
+// proveedor y aun así no llegar; el correo asegura una vía de entrega)
+const OTP_CANALES_AMBOS = OTP_ENVIAR_AMBOS.trim().toLowerCase() === 'true'
+
+// SOLO DESARROLLO: escribe el código 2FA en el log del servidor (para probar sin SMS ni correo).
+// En producción se ignora siempre, aunque la variable esté en true.
+const OTP_EN_LOG = !IS_PROD && OTP_MOSTRAR_EN_LOG.trim().toLowerCase() === 'true'
+
 // Swagger UI: siempre en desarrollo; en producción solo si ENABLE_DOCS=true
 const DOCS_HABILITADAS = IS_DEV || ENABLE_DOCS.trim().toLowerCase() === 'true'
 
@@ -79,6 +91,8 @@ export {
   SALT_ROUND,
   RATE_LIMIT_MAX,
   DOCS_HABILITADAS,
+  OTP_CANALES_AMBOS,
+  OTP_EN_LOG,
   SECRET_KEY,
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
@@ -92,6 +106,8 @@ export {
   S3_BUCKET_NAME,
   SMS,
   SMS_SECRET,
+  SMS_DESTINO_PRUEBAS,
+  SMS_FROM,
   SMTP_HOST,
   SMTP_PORT,
   SMTP_FROM,

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('../config.js', () => ({ APP_NAME: 'COPAC', OTP_CANALES_AMBOS: false, OTP_EN_LOG: false }));
 vi.mock('./sendSMS.js', () => ({ sendSMS: vi.fn() }));
 vi.mock('./sendMail.js', () => ({ sendEmail: vi.fn() }));
 
