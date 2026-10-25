@@ -1,6 +1,6 @@
 import { sendSMS } from './sendSMS.js'
 import { sendEmail } from './sendMail.js'
-import { APP_NAME } from '../config.js'
+import { APP_NAME, OTP_CANALES_AMBOS, OTP_EN_LOG } from '../config.js'
 import logger from '../config/logger.js'
 
 export interface DestinoCodigo {
@@ -32,14 +32,40 @@ function plantillaHTML(codigo: string, contexto: 'login' | 'reset'): string {
 
 /**
  * Envía el código de verificación por SMS; si no hay teléfono o el SMS
- * falla, hace fallback a correo. Devuelve el canal usado ('sms' | 'email')
- * o null si ambos fallan.
+ * falla, hace fallback a correo. Con OTP_ENVIAR_AMBOS=true lo envía por los dos canales.
+ * Devuelve el canal usado ('sms' | 'email' | 'ambos') o null si todos fallan.
  */
 export async function enviarCodigo(
   destino: DestinoCodigo,
   codigo: string,
   contexto: 'login' | 'reset'
-): Promise<'sms' | 'email' | null> {
+): Promise<'sms' | 'email' | 'ambos' | 'log' | null> {
+  // Solo desarrollo: deja el código en el log para poder probar sin que SMS/correo funcionen
+  if (OTP_EN_LOG) {
+    logger.warn({ contexto, codigo }, 'OTP (solo desarrollo, OTP_MOSTRAR_EN_LOG=true)')
+  }
+  const canal = await enviarPorCanales(destino, codigo, contexto)
+  return canal ?? (OTP_EN_LOG ? 'log' : null)
+}
+
+async function enviarPorCanales(
+  destino: DestinoCodigo,
+  codigo: string,
+  contexto: 'login' | 'reset'
+): Promise<'sms' | 'email' | 'ambos' | null> {
+  if (OTP_CANALES_AMBOS && destino.telefono && destino.correo) {
+    const [sms, correo] = await Promise.all([
+      sendSMS({ phoneNumber: destino.telefono, code: codigo }),
+      sendEmail(destino.correo, asunto(contexto), plantillaHTML(codigo, contexto))
+    ])
+    logger.info({ contexto, sms, correo }, 'Código OTP enviado por SMS y correo')
+    if (sms && correo) return 'ambos'
+    if (sms) return 'sms'
+    if (correo) return 'email'
+    logger.error({ contexto }, 'No se pudo enviar el código por ningún canal')
+    return null
+  }
+
   if (destino.telefono) {
     const enviado = await sendSMS({ phoneNumber: destino.telefono, code: codigo })
     if (enviado) {

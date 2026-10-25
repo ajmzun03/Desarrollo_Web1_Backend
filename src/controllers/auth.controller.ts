@@ -5,6 +5,7 @@ import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGen
 import { enviarCodigo } from '../services/notificarCodigo.service.js';
 import { IS_PROD } from '../config.js';
 import logger from '../config/logger.js';
+import { vistasDe } from '../config/vistas.js';
 import { revocarToken, revocarSesionesDe } from '../services/sesiones.service.js';
 import type { DecodedToken } from '../jwt.js';
 
@@ -54,7 +55,7 @@ export const AuthController = {
         return { data: null, error: 'Error al generar token', status: 500 };
       }
       const { contrasenia: _, ...userWithoutPassword } = user;
-      return { data: { usuario: userWithoutPassword, token, twoFactor: false }, error: null, status: 200 };
+      return { data: { usuario: userWithoutPassword, token, twoFactor: false, vistas: vistasDe(user.rol) }, error: null, status: 200 };
     }
 
     const canal = await enviarCodigo(
@@ -127,7 +128,7 @@ export const AuthController = {
       return { data: null, error: 'Credenciales inválidas', status: 401 };
     }
 
-    return { data: { usuario: user, token }, error: null, status: 200 };
+    return { data: { usuario: user, token, vistas: vistasDe(user.rol) }, error: null, status: 200 };
   },
 
   /**
@@ -221,6 +222,6 @@ export const AuthController = {
       return { data: null, error: 'Usuario no encontrado', status: 404 };
     }
 
-    return { data: usuario, error: null, status: 200 };
+    return { data: { ...usuario, vistas: vistasDe(usuario.rol) }, error: null, status: 200 };
   }
 };
