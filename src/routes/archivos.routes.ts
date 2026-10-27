@@ -54,7 +54,7 @@ router.get('/imagen', async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [fileName, fileType]
+ *             required: [fileName, fileType, fileSize]
  *             properties:
  *               fileName:
  *                 type: string
@@ -63,6 +63,10 @@ router.get('/imagen', async (req: Request, res: Response) => {
  *                 type: string
  *                 enum: [image/png, image/jpeg, image/jpg, image/gif, image/webp]
  *                 example: image/png
+ *               fileSize:
+ *                 type: integer
+ *                 description: Tamaño en bytes (máx. 5 MB). Se firma en la URL.
+ *                 example: 204800
  *     responses:
  *       200:
  *         description: URL prefirmada generada con éxito

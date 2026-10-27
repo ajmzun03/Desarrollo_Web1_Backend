@@ -12,7 +12,15 @@ export const schemaProducto = z.object({
         .min(2, "El nombre del producto debe tener al menos 2 caracteres")
         .max(150, "El nombre del producto no puede tener más de 150 caracteres"),
     precio: z.number()
-        .positive("El precio debe ser un número positivo")
+        .positive("El precio debe ser un número positivo"),
+    // URL pública de la imagen (se obtiene subiendo el archivo con POST /archivos/upload-url)
+    imagen_url: z.string()
+        .trim()
+        .url("La imagen debe ser una URL válida")
+        .max(255, "La URL de la imagen no puede tener más de 255 caracteres")
+        .refine(u => u.startsWith("https://"), "La URL de la imagen debe usar https")
+        .nullable()
+        .optional()
 })
 
 export const schemaProductoUpdate = schemaProducto.partial().strict()

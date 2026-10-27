@@ -39,6 +39,17 @@ function verificarCobrable(pedido: { estado?: string; pagado?: boolean; metodo_p
   return null;
 }
 
+/** Agrega ?pedido_id=<id> a la URL de retorno de Stripe para que el frontend sepa a qué pedido volver. */
+function urlRetorno(base: string, pedidoId: number): string {
+  try {
+    const url = new URL(base);
+    url.searchParams.set('pedido_id', String(pedidoId));
+    return url.toString();
+  } catch {
+    return base;
+  }
+}
+
 /** Convierte el total del pedido (numeric de Drizzle → string) a centavos enteros. */
 function totalCentavosDelPedido(pedido: { total: unknown }): number {
   const total = Number(pedido.total);
@@ -85,8 +96,8 @@ export const PagosController = {
             },
           ],
           payment_method_types: ['card'],
-          success_url: STRIPE_SUCCESS_URL || 'http://localhost:3000/pagos/success',
-          cancel_url: STRIPE_CANCEL_URL || 'http://localhost:3000/pagos/cancel',
+          success_url: urlRetorno(STRIPE_SUCCESS_URL || 'http://localhost:5173/pago/exito', data.pedido_id),
+          cancel_url: urlRetorno(STRIPE_CANCEL_URL || 'http://localhost:5173/pago/cancelado', data.pedido_id),
           metadata: { pedido_id: String(data.pedido_id) },
         },
         { idempotencyKey: idempotencyKey(data.pedido_id, totalCentavos) }
