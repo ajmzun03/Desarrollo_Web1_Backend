@@ -61,15 +61,18 @@ app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: RATE_LIMIT_MAX,
+  // En desarrollo el panel dispara muchas peticiones por pantalla: se afloja para no bloquear al equipo
+  limit: IS_PROD ? RATE_LIMIT_MAX : Math.max(RATE_LIMIT_MAX, 5000),
   legacyHeaders: false,
   // El health check de la plataforma y los webhooks de Stripe no deben consumir cupo
-  skip: (req) => req.path === '/health' || req.path === '/pagos/webhook',
-  message: { message: 'Demasiadas request, Por favor intenta más tarde.' }
+  // Los preflight OPTIONS de CORS no son uso real de la API
+  skip: (req) => req.method === 'OPTIONS' || req.path === '/health' || req.path === '/pagos/webhook',
+  message: { data: null, error: 'Demasiadas solicitudes. Espera unos minutos e intenta de nuevo.' }
 })
 
-app.use(limiter)
+// CORS va primero: así el navegador también puede leer la respuesta 429 (si no, la muestra como "sin conexión")
 app.use(corsMiddleware())
+app.use(limiter)
 // Webhook de Stripe: necesita el cuerpo CRUDO para validar la firma, así que va ANTES de express.json()
 app.post('/pagos/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
   const firma = req.headers['stripe-signature'];
