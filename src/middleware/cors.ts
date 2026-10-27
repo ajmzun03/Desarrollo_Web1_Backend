@@ -16,4 +16,6 @@ export const corsMiddleware = ({ acceptedOrigins = ACCEPTED_ORIGINS } = {}) =>
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], 
     allowedHeaders: ["Content-Type", "Authorization"], 
     credentials: true,
+    // El navegador reutiliza el preflight 10 min en vez de repetirlo en cada petición
+    maxAge: 600,
   });
