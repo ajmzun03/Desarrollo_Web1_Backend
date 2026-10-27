@@ -1,13 +1,13 @@
 import { db, type Tx } from "./db.model.js"
 import { gastosSucursalTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IGastosSucursalModel } from "../../types.js";
 import type { InsertGastosSucursal, SelectGastosSucursal } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const GastosSucursalModel: IGastosSucursalModel = {
   async getAll(): Promise<SelectGastosSucursal[]> {
-    const gastos = await db.select().from(gastosSucursalTable).limit(100).offset(0);
+    const gastos = await db.select().from(gastosSucursalTable).orderBy(asc(gastosSucursalTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${gastos.length} gastos de sucursal`);
     return gastos;
   },

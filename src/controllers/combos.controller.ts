@@ -71,7 +71,10 @@ export const CombosController = {
 
       // Reemplazar los detalles debe ser atómico: si falla a medias no se pierde la composición del combo
       const actualizado = await db.transaction(async (tx) => {
-        const resultado = await ComboModel.update(id, updateData, tx);
+        // Si solo cambian los productos no hay columnas que actualizar (un UPDATE vacío falla)
+        const resultado = Object.keys(updateData).length > 0
+          ? await ComboModel.update(id, updateData, tx)
+          : combo;
         if (data.items) {
           await ComboModel.deleteDetalles(id, tx);
           for (const item of data.items) {

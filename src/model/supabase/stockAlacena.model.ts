@@ -2,12 +2,12 @@ import type { IStockAlacenaModel } from "../../types.js";
 import { stockAlacenaTable, type SelectStockAlacena } from "../../schemas/index.schema.js";
 import logger from "../../config/logger.js";
 import { db } from "./db.model.js";
-import { and, eq } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 
 export const StockAlacenaModel: IStockAlacenaModel = {
   async getAll(): Promise<SelectStockAlacena[]> {
     try {
-      const stocks = await db.select().from(stockAlacenaTable).limit(100).offset(0);
+      const stocks = await db.select().from(stockAlacenaTable).orderBy(asc(stockAlacenaTable.id)).limit(100).offset(0);
       logger.info(`Se encontraron ${stocks.length} registros de stock alacena`);
       return stocks;
     } catch (error) {

@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { hojaDespachoTable, hojaDespachoDetalleTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IHojaDespachoModel, IHojaDespachoDetalleModel } from "../../types.js";
 import type { InsertHojaDespacho, SelectHojaDespacho, InsertHojaDespachoDetalle, SelectHojaDespachoDetalle } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const HojaDespachoModel: IHojaDespachoModel = {
   async getAll(): Promise<SelectHojaDespacho[]> {
-    const hojas = await db.select().from(hojaDespachoTable).limit(100).offset(0);
+    const hojas = await db.select().from(hojaDespachoTable).orderBy(asc(hojaDespachoTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${hojas.length} hojas de despacho`);
     return hojas;
   },

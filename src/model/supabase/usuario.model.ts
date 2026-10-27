@@ -1,6 +1,6 @@
 import { db } from "./db.model.js"
 import { usuarioTable } from "../../schemas/db.schema.js";
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql, asc } from "drizzle-orm";
 import type { IUsuarioModel } from "../../types.js";
 import type { InsertUsuario, SelectUsuario, UpdateUsuario } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
@@ -18,7 +18,7 @@ const columnasSeguras = {
 
 export const UsuarioModel: IUsuarioModel = {
     async getAll(): Promise<Omit<SelectUsuario, 'contrasenia'>[]> {
-        const usuarios = await db.select(columnasSeguras).from(usuarioTable).limit(100).offset(0);
+        const usuarios = await db.select(columnasSeguras).from(usuarioTable).orderBy(asc(usuarioTable.id)).limit(100).offset(0);
         logger.info(`Se encontraron ${usuarios.length} usuarios`);
         return usuarios;
     },
@@ -34,10 +34,10 @@ export const UsuarioModel: IUsuarioModel = {
     async getByUsuario(usuario: string): Promise<SelectUsuario | null> {
         const usuarios = await db.select().from(usuarioTable).where(eq(usuarioTable.usuario, usuario)).limit(1);
         if (!usuarios[0]) {
-            logger.warn(`Usuario con nombre ${usuario} no encontrado`);
+            logger.warn("Usuario no encontrado por nombre de usuario");
             return null;
         }
-        logger.info(`Usuario con nombre ${usuario} encontrado`);
+        logger.info("Usuario encontrado por nombre de usuario");
         return usuarios[0];
     },
     async getByUsuarioOrCorreo(identificador: string): Promise<SelectUsuario | null> {
@@ -45,11 +45,18 @@ export const UsuarioModel: IUsuarioModel = {
             .where(or(eq(usuarioTable.usuario, identificador), eq(usuarioTable.correo_electronico, identificador)))
             .limit(1);
         if (!usuarios[0]) {
-            logger.warn(`Usuario con identificador ${identificador} no encontrado`);
+            logger.warn("Usuario no encontrado por identificador");
             return null;
         }
-        logger.info(`Usuario con identificador ${identificador} encontrado`);
+        logger.info("Usuario encontrado por identificador");
         return usuarios[0];
+    },
+    // Busqueda por correo sin distinguir mayusculas (el correo verificado por Supabase viene en minusculas)
+    async getByCorreo(correo: string): Promise<SelectUsuario | null> {
+        const usuarios = await db.select().from(usuarioTable)
+            .where(eq(sql`lower(${usuarioTable.correo_electronico})`, correo.trim().toLowerCase()))
+            .limit(1);
+        return usuarios[0] ?? null;
     },
     async getByRol(rol: string): Promise<Omit<SelectUsuario, 'contrasenia'>[]> {
         const usuarios = await db.select(columnasSeguras).from(usuarioTable).where(eq(usuarioTable.rol, rol as any));

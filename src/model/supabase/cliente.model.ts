@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { clienteTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IClienteModel } from "../../types.js";
 import type { SelectCliente, InsertCliente, UpdateCliente } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const ClienteModel: IClienteModel = {
   async getAll(): Promise<SelectCliente[]> {
-    const clientes = await db.select().from(clienteTable).limit(100).offset(0);
+    const clientes = await db.select().from(clienteTable).orderBy(asc(clienteTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${clientes.length} clientes`);
     return clientes;
   },

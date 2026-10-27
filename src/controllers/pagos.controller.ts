@@ -53,8 +53,10 @@ function totalCentavosDelPedido(pedido: { total: unknown }): number {
  * PaymentIntent (evita cobros dobles ante reintentos de red).
  */
 // Incluye el monto: si el total del pedido cambia, Stripe no rechaza el reintento por parámetros distintos.
-function idempotencyKey(pedidoId: number, centavos: number): string {
-  return `pagar-pedido:${pedidoId}:${centavos}`;
+function idempotencyKey(pedidoId: number, centavos: number, metodoPago?: string): string {
+  // El metodo de pago forma parte de la llave: si una tarjeta es rechazada y el cliente prueba otra,
+  // Stripe no rechaza el reintento por "parametros distintos con la misma llave".
+  return metodoPago ? `pagar-pedido:${pedidoId}:${centavos}:${metodoPago}` : `pagar-pedido:${pedidoId}:${centavos}`;
 }
 
 export const PagosController = {
@@ -172,7 +174,7 @@ export const PagosController = {
           automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
           metadata: { pedido_id: String(data.pedido_id) },
         },
-        { idempotencyKey: idempotencyKey(data.pedido_id, amount) }
+        { idempotencyKey: idempotencyKey(data.pedido_id, amount, paymentMethodId) }
       );
 
       // Cobro confirmado de forma síncrona: se registra ya (el webhook es idempotente).

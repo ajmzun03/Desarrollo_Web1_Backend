@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { unidadMedidaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IUnidadMedidaModel } from "../../types.js";
 import type { InsertUnidadMedida, SelectUnidadMedida, UpdateUnidadMedida } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const UnidadMedidaModel: IUnidadMedidaModel = {
     async getAll(): Promise<SelectUnidadMedida[]> {
-        const unidadesMedida = await db.select().from(unidadMedidaTable).limit(100).offset(0);
+        const unidadesMedida = await db.select().from(unidadMedidaTable).orderBy(asc(unidadMedidaTable.id)).limit(100).offset(0);
         logger.info(`Se encontraron ${unidadesMedida.length} unidades de medida`);
         return unidadesMedida;
     },

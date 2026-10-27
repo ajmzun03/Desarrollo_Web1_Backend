@@ -15,8 +15,12 @@ export const schemaRecuperar = z.object({
   identificador: z.string().trim().min(3, 'Usuario o correo requerido').max(255)
 })
 
+export const schemaMfaEnrolar = z.object({
+  tmpToken: z.string().min(1, 'tmpToken es requerido')
+})
+
+// tokenHash: el token_hash del enlace que Supabase envía por correo
 export const schemaRestablecer = z.object({
-  identificador: z.string().trim().min(3, 'Usuario o correo requerido').max(255),
-  codigo: codigo6,
+  tokenHash: z.string().trim().min(8, 'tokenHash inválido').max(512, 'tokenHash inválido'),
   nuevaContrasenia: contraseniaNueva
 })

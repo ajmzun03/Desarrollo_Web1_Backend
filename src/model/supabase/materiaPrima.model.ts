@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { materiaPrimaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IMateriaPrimaModel } from "../../types.js";
 import type { InsertMateriaPrima, SelectMateriaPrima, UpdateMateriaPrima } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const MateriaPrimaModel: IMateriaPrimaModel = {
     async getAll(): Promise<SelectMateriaPrima[]> {
-        const materiasPrimas = await db.select().from(materiaPrimaTable).limit(100).offset(0);
+        const materiasPrimas = await db.select().from(materiaPrimaTable).orderBy(asc(materiaPrimaTable.id)).limit(100).offset(0);
         logger.info(`Se encontraron ${materiasPrimas.length} materias primas`);
         return materiasPrimas;
     },

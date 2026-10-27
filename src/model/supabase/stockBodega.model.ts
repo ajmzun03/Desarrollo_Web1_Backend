@@ -1,13 +1,13 @@
 import { db, type Tx } from "./db.model.js"
 import { stockBodegaTable } from "../../schemas/db.schema.js";
-import { and, eq } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 import type { IStockBodegaModel } from "../../types.js";
 import type { InsertStockBodega, SelectStockBodega } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const StockBodegaModel: IStockBodegaModel = {
   async getAll(): Promise<SelectStockBodega[]> {
-    const stocks = await db.select().from(stockBodegaTable).limit(100).offset(0);
+    const stocks = await db.select().from(stockBodegaTable).orderBy(asc(stockBodegaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${stocks.length} registros de stock bodega`);
     return stocks;
   },

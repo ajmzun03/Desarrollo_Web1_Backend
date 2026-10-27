@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { cajaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { ICajaModel } from "../../types.js";
 import type { InsertCaja, SelectCaja, UpdateCaja } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const CajaModel: ICajaModel = {
   async getAll(): Promise<SelectCaja[]> {
-    const cajas = await db.select().from(cajaTable).limit(100).offset(0);
+    const cajas = await db.select().from(cajaTable).orderBy(asc(cajaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${cajas.length} cajas`);
     return cajas;
   },

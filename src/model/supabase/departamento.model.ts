@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { departamentoTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IDepartamentoModel } from "../../types.js";
 import type { InsertDepartamento, SelectDepartamento } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const DepartamentoModel: IDepartamentoModel = {
     async getAll(): Promise<SelectDepartamento[]> {
-        const departamentos = await db.select().from(departamentoTable).limit(100).offset(0);
+        const departamentos = await db.select().from(departamentoTable).orderBy(asc(departamentoTable.id)).limit(100).offset(0);
         logger.info(`Se encontraron ${departamentos.length} departamentos`);
         return departamentos;
     },

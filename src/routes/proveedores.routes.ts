@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { ProveedoresController } from '../controllers/proveedores.controller.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, staffOnly, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { cache, invalidateTags } from '../middleware/cache.js';
 import { schemaProveedor, schemaProveedorUpdate } from '../schemas/proveedor.schema.js';
@@ -20,7 +20,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', cache('proveedores', 300), async (_req: Request, res: Response) => {
+router.get('/', authenticate, staffOnly, cache('proveedores', 300), async (_req: Request, res: Response) => {
   const result = await ProveedoresController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -46,7 +46,7 @@ router.get('/', cache('proveedores', 300), async (_req: Request, res: Response) 
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', cache('proveedores', 300), async (req: Request, res: Response) => {
+router.get('/:id', authenticate, staffOnly, cache('proveedores', 300), async (req: Request, res: Response) => {
   const result = await ProveedoresController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });

@@ -163,3 +163,27 @@ describe('middleware/cache.invalidateTags', () => {
     expect(mockRedis.scanIterator).not.toHaveBeenCalled();
   });
 });
+
+describe('middleware/cache — límites de la clave', () => {
+  beforeEach(() => mockRedis.get.mockClear());
+
+  const peticion = (url: string, query: Record<string, string> = {}) =>
+    ({ method: 'GET', originalUrl: url, query }) as never;
+
+  it('no cachea una URL demasiado larga (evita llenar Redis con claves arbitrarias)', async () => {
+    const next = vi.fn();
+    cache('catalogo', 60)(peticion('/x?' + 'a'.repeat(300)), {} as never, next);
+    await Promise.resolve();
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(mockRedis.get).not.toHaveBeenCalled(); // pasó directo, sin consultar Redis
+  });
+
+  it('no cachea una URL con demasiados parámetros', async () => {
+    const next = vi.fn();
+    const query = Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`p${i}`, '1']));
+    cache('catalogo', 60)(peticion('/x?p0=1&p1=1&p2=1&p3=1&p4=1&p5=1', query), {} as never, next);
+    await Promise.resolve();
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(mockRedis.get).not.toHaveBeenCalled(); // pasó directo, sin consultar Redis
+  });
+});

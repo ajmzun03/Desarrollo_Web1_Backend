@@ -6,7 +6,6 @@ import { crearAuthLimiter } from '../middleware/authRateLimit.js';
 import {
   schemaClienteRegistro,
   schemaClienteLogin,
-  schemaClienteVerificar,
   schemaClienteRecuperar,
   schemaClienteRestablecer
 } from '../schemas/usuarioCliente.schema.js';
@@ -17,7 +16,6 @@ const router: Router = Router();
 // Registro: cada intento cuenta (aunque tenga éxito) para frenar la creación masiva de cuentas
 const registroLimiter = crearAuthLimiter({ ventanaMinutos: 60, limite: 10, contarAciertos: true });
 const loginLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
-const verificarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 15 });
 const recuperarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 5, porIdentificador: true });
 const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
 
@@ -64,7 +62,7 @@ router.post('/registro', registroLimiter, validate(schemaClienteRegistro), async
  * @openapi
  * /cliente/auth/login:
  *   post:
- *     summary: Login de cliente final (paso 1: valida contraseña y envía código 2FA)
+ *     summary: Login de cliente final (correo y contraseña, sin segundo factor)
  *     tags: [Cliente Auth]
  *     requestBody:
  *       required: true
@@ -81,8 +79,8 @@ router.post('/registro', registroLimiter, validate(schemaClienteRegistro), async
  *                 type: string
  *                 format: password
  *     responses:
- *       202:
- *         description: Contraseña válida; se envió código 2FA. Devuelve tmpToken.
+ *       200:
+ *         description: Credenciales válidas; devuelve cliente + token (los clientes no usan segundo factor)
  *       401:
  *         description: Credenciales inválidas
  */
@@ -94,39 +92,9 @@ router.post('/login', loginLimiter, validate(schemaClienteLogin), async (req: Re
 
 /**
  * @openapi
- * /cliente/auth/verificar:
- *   post:
- *     summary: Verificar código 2FA y obtener token de sesión (paso 2)
- *     tags: [Cliente Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [tmpToken, codigo]
- *             properties:
- *               tmpToken:
- *                 type: string
- *               codigo:
- *                 type: string
- *     responses:
- *       200:
- *         description: Código correcto; devuelve cliente + token
- *       401:
- *         description: Código incorrecto, expirado o token temporal inválido
- */
-router.post('/verificar', verificarLimiter, validate(schemaClienteVerificar), async (req: Request, res: Response) => {
-  const { tmpToken, codigo } = req.body;
-  const result = await UsuarioClienteController.verificarCodigo(tmpToken, codigo);
-  res.status(result.status).json({ data: result.data, error: result.error });
-});
-
-/**
- * @openapi
  * /cliente/auth/recuperar:
  *   post:
- *     summary: Solicitar código de recuperación de contraseña
+ *     summary: Solicitar el correo de recuperación de contraseña
  *     tags: [Cliente Auth]
  *     requestBody:
  *       required: true
@@ -141,7 +109,7 @@ router.post('/verificar', verificarLimiter, validate(schemaClienteVerificar), as
  *                 format: email
  *     responses:
  *       202:
- *         description: Si el correo existe, se envió un código (respuesta genérica)
+ *         description: Si el correo existe, Supabase envía un enlace con token_hash (respuesta genérica)
  */
 router.post('/recuperar', recuperarLimiter, validate(schemaClienteRecuperar), async (req: Request, res: Response) => {
   const { correo_electronico } = req.body;
@@ -153,7 +121,7 @@ router.post('/recuperar', recuperarLimiter, validate(schemaClienteRecuperar), as
  * @openapi
  * /cliente/auth/restablecer:
  *   post:
- *     summary: Restablecer contraseña con código de recuperación
+ *     summary: Restablecer contraseña con el token_hash del enlace del correo
  *     tags: [Cliente Auth]
  *     requestBody:
  *       required: true
@@ -161,13 +129,11 @@ router.post('/recuperar', recuperarLimiter, validate(schemaClienteRecuperar), as
  *         application/json:
  *           schema:
  *             type: object
- *             required: [correo_electronico, codigo, nuevaContrasenia]
+ *             required: [tokenHash, nuevaContrasenia]
  *             properties:
- *               correo_electronico:
+ *               tokenHash:
  *                 type: string
- *                 format: email
- *               codigo:
- *                 type: string
+ *                 description: token_hash que llega en el enlace del correo (un solo uso)
  *               nuevaContrasenia:
  *                 type: string
  *                 format: password
@@ -175,7 +141,7 @@ router.post('/recuperar', recuperarLimiter, validate(schemaClienteRecuperar), as
  *       200:
  *         description: Contraseña actualizada
  *       401:
- *         description: Código incorrecto o expirado
+ *         description: Enlace inválido, vencido o ya usado
  */
 router.post('/restablecer', restablecerLimiter, validate(schemaClienteRestablecer), async (req: Request, res: Response) => {
   const result = await UsuarioClienteController.restablecerContrasenia(req.body);

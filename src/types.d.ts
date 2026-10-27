@@ -182,6 +182,7 @@ export interface IUsuarioModel {
   getById: (id: number) => Promise<Omit<SelectUsuario, 'contrasenia'> | null>
   getByUsuario: (usuario: string) => Promise<SelectUsuario | null>
   getByUsuarioOrCorreo: (identificador: string) => Promise<SelectUsuario | null>
+  getByCorreo: (correo: string) => Promise<SelectUsuario | null>
   getByRol: (rol: string) => Promise<Omit<SelectUsuario, 'contrasenia'>[]>
   create: (data: InsertUsuario) => Promise<SelectUsuario>
   update: (id: number, data: Partial<InsertUsuario>) => Promise<SelectUsuario | null>

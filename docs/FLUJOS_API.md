@@ -7,7 +7,7 @@ Códigos habituales: `400` datos inválidos · `401` sin sesión / sesión cerra
 
 ## 1. Cliente final
 1. `POST /cliente/auth/registro` → `201` con `token` (contraseña ≥ 8 caracteres).
-2. Login con 2FA: `POST /cliente/auth/login` → `202 { tmpToken }` → `POST /cliente/auth/verificar { tmpToken, codigo }` → `200 { token }`.
+2. Login (sin segundo factor): `POST /cliente/auth/login { correo_electronico, contrasenia }` → `200 { cliente, token, vistas }`.
 3. Dirección: `POST /direcciones { municipio_id, direccion1, direccion2 }` (queda a nombre del cliente del token).
 4. Pedido: `POST /pedidos`
    ```json
@@ -84,5 +84,5 @@ Solo lo que pertenece a pedidos que tiene asignados (hoja de despacho con su `re
 `GET /pedidos` y `/pedidos/:id`, `GET /clientes/:id`, `GET /direcciones` y `/direcciones/:id`, `GET /repartidor/pedidos`. Además `GET /liquidaciones` (solo las suyas) y `GET /turnos` (solo turnos abiertos, para liquidar). **No** puede listar clientes ni ver hojas de despacho, cajas, facturas, gastos ni reportes.
 > Para que un pedido aparezca en su vista, el despachador debe asignarlo al crear la hoja de despacho (`repartidor_id`).
 
-## 8. SMS de verificación
-Los teléfonos se guardan a 8 dígitos (Guatemala); el backend antepone `502` (y no lo duplica si ya viene). En desarrollo, `SMS_DESTINO_PRUEBAS=58493915` envía TODOS los códigos a ese número (se ignora en producción).
+## 8. Segundo factor y recuperación (Supabase Auth)
+El personal usa una app autenticadora (TOTP); los clientes no tienen segundo factor. Los correos de recuperación los envía Supabase Auth con SMTP propio. Variables: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `PASSWORD_RESET_URL_STAFF`, `PASSWORD_RESET_URL_CLIENTE`. La plantilla "Reset Password" debe usar `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery`.

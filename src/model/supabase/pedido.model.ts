@@ -1,12 +1,12 @@
 import type { IPedidoModel } from "../../types.js";
 import { type SelectPedido, type InsertPedido, type UpdatePedido, pedidoTable } from "../../schemas/db.schema.js";
 import { db, type Tx } from "./db.model.js";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, asc } from "drizzle-orm";
 import logger from "../../config/logger.js";
 
 export const PedidoModel: IPedidoModel = {
   async getAll(): Promise<SelectPedido[]> {
-    const pedidos = await db.select().from(pedidoTable).limit(100).offset(0);
+    const pedidos = await db.select().from(pedidoTable).orderBy(asc(pedidoTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${pedidos.length} pedidos`);
     return pedidos;
   },

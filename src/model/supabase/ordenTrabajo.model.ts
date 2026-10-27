@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { ordenTrabajoTable } from "../../schemas/db.schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import type { IOrdenTrabajoModel } from "../../types.js";
 import type { InsertOrdenTrabajo, SelectOrdenTrabajo, UpdateOrdenTrabajo } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const OrdenTrabajoModel: IOrdenTrabajoModel = {
   async getAll(): Promise<SelectOrdenTrabajo[]> {
-    const ordenes = await db.select().from(ordenTrabajoTable).limit(100).offset(0);
+    const ordenes = await db.select().from(ordenTrabajoTable).orderBy(asc(ordenTrabajoTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${ordenes.length} órdenes de trabajo`);
     return ordenes;
   },

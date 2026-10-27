@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { facturaCompraTable, hojaRecepcionTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IFacturaCompraModel } from "../../types.js";
 import type { InsertFacturaCompra, SelectFacturaCompra } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const FacturaCompraModel: IFacturaCompraModel = {
   async getAll(): Promise<SelectFacturaCompra[]> {
-    const facturas = await db.select().from(facturaCompraTable).limit(100).offset(0);
+    const facturas = await db.select().from(facturaCompraTable).orderBy(asc(facturaCompraTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${facturas.length} facturas de compra`);
     return facturas;
   },

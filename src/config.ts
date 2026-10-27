@@ -13,17 +13,12 @@ const {
   AWS_ACCESS_KEY_ID = '',
   AWS_SECRET_ACCESS_KEY = '',
   S3_BUCKET_NAME = '',
-  SMS = '',
-  SMS_SECRET = '',
-  SMS_DESTINO_PRUEBAS = '',
-  SMS_FROM = '',
-  OTP_ENVIAR_AMBOS = '',
-  OTP_MOSTRAR_EN_LOG = '',
-  SMTP_HOST = '',
-  SMTP_PORT = '587',
-  SMTP_FROM = '"Mc restaurant" <mail@example.com>',
-  SMTP_USER = '',
-  SMTP_PASS = '',
+  // Supabase Auth: segundo factor (TOTP) del personal y correo de recuperacion de contrasena
+  SUPABASE_URL = '',
+  SUPABASE_PUBLISHABLE_KEY = '',
+  SUPABASE_SECRET_KEY = '',
+  PASSWORD_RESET_URL_STAFF = '',
+  PASSWORD_RESET_URL_CLIENTE = '',
   APP_NAME = 'COPAC',
   CORS_ORIGINS = '',
   STRIPE_SUCCESS_URL = '',
@@ -66,6 +61,9 @@ if (IS_PROD) {
   const faltantes: string[] = []
   if (!SECRET_KEY) faltantes.push('SECRET_KEY')
   if (!supabaseUrl) faltantes.push('DATABASE_URL')
+  if (!SUPABASE_URL) faltantes.push('SUPABASE_URL')
+  if (!SUPABASE_PUBLISHABLE_KEY) faltantes.push('SUPABASE_PUBLISHABLE_KEY')
+  if (!SUPABASE_SECRET_KEY) faltantes.push('SUPABASE_SECRET_KEY')
   if (faltantes.length > 0) {
     throw new Error(
       `Configuración inválida para producción: faltan variables obligatorias: ${faltantes.join(', ')}. ` +
@@ -73,14 +71,6 @@ if (IS_PROD) {
     )
   }
 }
-
-// Si es true, el código 2FA se envía por SMS Y por correo a la vez (el SMS puede ser aceptado por el
-// proveedor y aun así no llegar; el correo asegura una vía de entrega)
-const OTP_CANALES_AMBOS = OTP_ENVIAR_AMBOS.trim().toLowerCase() === 'true'
-
-// SOLO DESARROLLO: escribe el código 2FA en el log del servidor (para probar sin SMS ni correo).
-// En producción se ignora siempre, aunque la variable esté en true.
-const OTP_EN_LOG = !IS_PROD && OTP_MOSTRAR_EN_LOG.trim().toLowerCase() === 'true'
 
 // Swagger UI: siempre en desarrollo; en producción solo si ENABLE_DOCS=true
 const DOCS_HABILITADAS = IS_DEV || ENABLE_DOCS.trim().toLowerCase() === 'true'
@@ -91,8 +81,6 @@ export {
   SALT_ROUND,
   RATE_LIMIT_MAX,
   DOCS_HABILITADAS,
-  OTP_CANALES_AMBOS,
-  OTP_EN_LOG,
   SECRET_KEY,
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
@@ -104,15 +92,11 @@ export {
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY,
   S3_BUCKET_NAME,
-  SMS,
-  SMS_SECRET,
-  SMS_DESTINO_PRUEBAS,
-  SMS_FROM,
-  SMTP_HOST,
-  SMTP_PORT,
-  SMTP_FROM,
-  SMTP_USER,
-  SMTP_PASS,
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  SUPABASE_SECRET_KEY,
+  PASSWORD_RESET_URL_STAFF,
+  PASSWORD_RESET_URL_CLIENTE,
   APP_NAME,
   CORS_ORIGINS,
   STRIPE_SUCCESS_URL,

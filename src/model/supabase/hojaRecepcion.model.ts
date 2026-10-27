@@ -1,13 +1,13 @@
 import { db, type Tx } from "./db.model.js"
 import { hojaRecepcionTable, hojaRecepcionDetalleTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IHojaRecepcionModel, IHojaRecepcionDetalleModel } from "../../types.js";
 import type { InsertHojaRecepcion, SelectHojaRecepcion, UpdateHojaRecepcion, InsertHojaRecepcionDetalle, SelectHojaRecepcionDetalle } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const HojaRecepcionModel: IHojaRecepcionModel = {
   async getAll(): Promise<SelectHojaRecepcion[]> {
-    const hojas = await db.select().from(hojaRecepcionTable).limit(100).offset(0);
+    const hojas = await db.select().from(hojaRecepcionTable).orderBy(asc(hojaRecepcionTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${hojas.length} hojas de recepción`);
     return hojas;
   },

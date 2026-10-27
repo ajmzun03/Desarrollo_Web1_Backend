@@ -2,3 +2,9 @@ allowBuilds:
   bcrypt: true
   esbuild: false
   "@scarf/scarf": false
+overrides:
+  ip-address: ">=10.7.4"
+  qs: ">=6.16.1"
+  body-parser: ">=2.4.0"
+  fast-uri: ">=3.1.9"
+  zod: ">=4.6.6"

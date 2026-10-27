@@ -6,7 +6,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('config.ts guardia de producción', () => {
   const envBackup: Record<string, string | undefined> = {};
-  const KEYS = ['NODE_ENV', 'SECRET_KEY', 'DATABASE_URL', 'CORS_ORIGINS', 'SALT_ROUND'];
+  const KEYS = ['NODE_ENV', 'SECRET_KEY', 'DATABASE_URL', 'CORS_ORIGINS', 'SALT_ROUND', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY'];
+  // Variables de Supabase Auth, obligatorias en producción (segundo factor y recuperación)
+  const SUPA = { SUPABASE_URL: 'https://x.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_x', SUPABASE_SECRET_KEY: 'sb_secret_x' };
 
   function setEnv(overrides: Record<string, string>) {
     for (const k of KEYS) process.env[k] = overrides[k] ?? '';
@@ -34,20 +36,33 @@ describe('config.ts guardia de producción', () => {
   });
 
   it('en producción sin SECRET_KEY lanza error con el nombre de la variable', async () => {
-    setEnv({ NODE_ENV: 'production', DATABASE_URL: 'postgres://x' });
+    setEnv({ NODE_ENV: 'production', DATABASE_URL: 'postgres://x', ...SUPA });
     await expect(import('./config.js')).rejects.toThrow(/SECRET_KEY/);
   });
 
   it('en producción sin DATABASE_URL lanza error', async () => {
-    setEnv({ NODE_ENV: 'production', SECRET_KEY: 'secreta' });
+    setEnv({ NODE_ENV: 'production', SECRET_KEY: 'secreta', ...SUPA });
     await expect(import('./config.js')).rejects.toThrow(/DATABASE_URL/);
   });
 
   it('en producción con todos los secretos arranca', async () => {
-    setEnv({ NODE_ENV: 'production', SECRET_KEY: 'secreta', DATABASE_URL: 'postgres://x' });
+    setEnv({ NODE_ENV: 'production', SECRET_KEY: 'secreta', DATABASE_URL: 'postgres://x', ...SUPA });
     const config = await import('./config.js');
     expect(config.IS_PROD).toBe(true);
     expect(config.SECRET_KEY).toBe('secreta');
+  });
+
+  it.each(['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY'])('en producción sin %s lanza error con el nombre de la variable', async (falta) => {
+    const sinUna = { ...SUPA } as Record<string, string>;
+    delete sinUna[falta];
+    setEnv({ NODE_ENV: 'production', SECRET_KEY: 'secreta', DATABASE_URL: 'postgres://x', ...sinUna });
+    await expect(import('./config.js')).rejects.toThrow(new RegExp(falta));
+  });
+
+  it('en desarrollo no exige las variables de Supabase', async () => {
+    setEnv({ NODE_ENV: 'development' });
+    const config = await import('./config.js');
+    expect(config.SUPABASE_URL).toBe('');
   });
 
   it('SALT_ROUND inválido cae a 10 (no NaN)', async () => {
@@ -63,7 +78,7 @@ describe('config.ts guardia de producción', () => {
   });
 
   describe('normalización de NODE_ENV (falla cerrado)', () => {
-    const secretos = { SECRET_KEY: 'secreta', DATABASE_URL: 'postgres://x' };
+    const secretos = { SECRET_KEY: 'secreta', DATABASE_URL: 'postgres://x', ...SUPA };
 
     it('el valor legado "prod" cuenta como producción (no como dev)', async () => {
       setEnv({ NODE_ENV: 'prod', ...secretos });

@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { liquidacionRepartidorTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { ILiquidacionRepartidorModel } from "../../types.js";
 import type { InsertLiquidacionRepartidor, SelectLiquidacionRepartidor } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const LiquidacionRepartidorModel: ILiquidacionRepartidorModel = {
   async getAll(): Promise<SelectLiquidacionRepartidor[]> {
-    const liquidaciones = await db.select().from(liquidacionRepartidorTable).limit(100).offset(0);
+    const liquidaciones = await db.select().from(liquidacionRepartidorTable).orderBy(asc(liquidacionRepartidorTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${liquidaciones.length} liquidaciones de repartidor`);
     return liquidaciones;
   },

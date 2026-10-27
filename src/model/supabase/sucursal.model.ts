@@ -1,6 +1,6 @@
 import { db } from "./db.model.js";
 import { sucursalTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 import type { ISucursalModel } from "../../types.js";
 import type { InsertSucursal, SelectSucursal, UpdateSucursal } from "../../schemas/db.schema.js";
@@ -8,7 +8,7 @@ import logger from "../../config/logger.js";
 
 export const SucursalModel: ISucursalModel = {
     async getAll(): Promise<SelectSucursal[]> {
-        const sucursales = await db.select().from(sucursalTable).limit(100).offset(0);
+        const sucursales = await db.select().from(sucursalTable).orderBy(asc(sucursalTable.id)).limit(100).offset(0);
         return sucursales;
     },
     async getById(id: number): Promise<SelectSucursal | null> {
