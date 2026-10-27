@@ -1,13 +1,13 @@
 import { db, type Tx } from "./db.model.js"
 import { recetaTable, recetaDetalleTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IRecetaModel, IRecetaDetalleModel } from "../../types.js";
 import type { InsertReceta, SelectReceta, UpdateReceta, InsertRecetaDetalle, SelectRecetaDetalle } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const RecetaModel: IRecetaModel = {
   async getAll(): Promise<SelectReceta[]> {
-    const recetas = await db.select().from(recetaTable).limit(100).offset(0);
+    const recetas = await db.select().from(recetaTable).orderBy(asc(recetaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${recetas.length} recetas`);
     return recetas;
   },

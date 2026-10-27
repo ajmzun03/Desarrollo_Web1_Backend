@@ -8,6 +8,40 @@ const router: Router = Router();
 
 /**
  * @openapi
+ * /archivos/imagen:
+ *   get:
+ *     summary: Ver una imagen del catálogo (redirige a una URL firmada de 15 minutos)
+ *     description: El bucket de S3 es privado; las URLs directas de las imágenes responden 403. El frontend usa este endpoint público, limitado a la carpeta productos/.
+ *     tags: [Archivos]
+ *     parameters:
+ *       - in: query
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: productos/combos/Combo Bacon.jpg
+ *     responses:
+ *       302:
+ *         description: Redirección a la imagen (URL firmada)
+ *       400:
+ *         description: Clave inválida (fuera de productos/ o sin extensión de imagen)
+ */
+router.get('/imagen', async (req: Request, res: Response) => {
+  const key = Array.isArray(req.query.key) ? undefined : req.query.key;
+  const result = await ArchivosController.getImagenUrl(key);
+  if (result.status !== 200 || typeof result.data !== 'string') {
+    res.status(result.status).json({ data: null, error: result.error });
+    return;
+  }
+  // La imagen la carga un <img> de otro origen (el frontend): helmet pone same-origin por defecto.
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  // Se cachea menos que la vigencia de la firma (900 s) para no entregar redirecciones vencidas.
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.redirect(302, result.data);
+});
+
+/**
+ * @openapi
  * /archivos/upload-url:
  *   post:
  *     summary: Obtener URL prefirmada de AWS S3 para subir un archivo

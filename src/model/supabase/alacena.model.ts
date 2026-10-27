@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { alacenaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IAlacenaModel } from "../../types.js";
 import type { InsertAlacena, SelectAlacena, UpdateAlacena } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const AlacenaModel: IAlacenaModel = {
   async getAll(): Promise<SelectAlacena[]> {
-    const alacenas = await db.select().from(alacenaTable).limit(100).offset(0);
+    const alacenas = await db.select().from(alacenaTable).orderBy(asc(alacenaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${alacenas.length} alacenas`);
     return alacenas;
   },

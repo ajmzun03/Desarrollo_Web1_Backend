@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { AWS_ACCESS_KEY_ID, AWS_REGION, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } from '../config.js'
 
@@ -49,3 +49,12 @@ export const uploadFile = async (fileName: string, fileType: ContentType | strin
     finalUrl: `https://${S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${fileKey}`
   }
 } 
+/** Vigencia de la URL firmada de lectura (segundos). */
+export const LECTURA_EXPIRA_SEGUNDOS = 900;
+
+/**
+ * URL firmada de corta vida para LEER un objeto del bucket. El bucket es privado (las URLs directas
+ * responden 403), así que las imágenes se sirven por aquí.
+ */
+export const urlDeLectura = async (key: string): Promise<string> =>
+  getSignedUrl(s3Client, new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key }), { expiresIn: LECTURA_EXPIRA_SEGUNDOS });

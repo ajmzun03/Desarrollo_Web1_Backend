@@ -87,8 +87,19 @@ describe('PagosController — monto siempre del servidor', () => {
     expect(result.status).toBe(201);
     expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 50000 }),
-      { idempotencyKey: 'pagar-pedido:7:50000' }
+      { idempotencyKey: 'pagar-pedido:7:50000:pm_good' }
     );
+  });
+
+  it('reintentar con otro método de pago usa otra llave de idempotencia (tarjeta rechazada y luego válida)', async () => {
+    for (const pm of ['pm_rechazada', 'pm_valida']) {
+      mockPedido.getPedidoId.mockResolvedValueOnce(pedidoPropio);
+      vi.mocked(mockStripe.paymentMethods.retrieve).mockResolvedValueOnce({ id: pm } as any);
+      vi.mocked(mockStripe.paymentIntents.create).mockResolvedValueOnce({ id: 'pi_' + pm, status: 'requires_action', metadata: { pedido_id: '7' } } as any);
+      await PagosController.createPaymentIntent({ items: itemsMentirosos, payment_method: pm, pedido_id: 7 }, cliente);
+    }
+    const llaves = vi.mocked(mockStripe.paymentIntents.create).mock.calls.slice(-2).map((c) => (c[1] as { idempotencyKey: string }).idempotencyKey);
+    expect(llaves).toEqual(['pagar-pedido:7:50000:pm_rechazada', 'pagar-pedido:7:50000:pm_valida']);
   });
 
   it('un pedido de Q500 no se puede pagar Q1 (montos del cliente ignorados)', async () => {
@@ -230,7 +241,7 @@ describe('PagosController — tarjeta cruda', () => {
     });
     expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 50000, payment_method: 'pm_creado' }),
-      { idempotencyKey: 'pagar-pedido:7:50000' }
+      { idempotencyKey: 'pagar-pedido:7:50000:pm_creado' }
     );
   });
 

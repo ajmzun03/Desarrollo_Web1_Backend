@@ -5,13 +5,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('utils/origins.ts', () => {
   const envBackup: Record<string, string | undefined> = {};
-  const KEYS = ['CORS_ORIGINS', 'NODE_ENV', 'SECRET_KEY', 'DATABASE_URL'];
+  const KEYS = ['CORS_ORIGINS', 'NODE_ENV', 'SECRET_KEY', 'DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY'];
 
   function setEnv(overrides: Record<string, string>) {
     for (const k of KEYS) process.env[k] = overrides[k] ?? '';
     // Secretos mínimos para que la guardia de config no truene al importar origins
     process.env.SECRET_KEY = overrides['SECRET_KEY'] ?? 'test-secreta';
     process.env.DATABASE_URL = overrides['DATABASE_URL'] ?? 'postgres://test';
+    process.env.SUPABASE_URL = overrides['SUPABASE_URL'] ?? 'https://test.supabase.co';
+    process.env.SUPABASE_PUBLISHABLE_KEY = overrides['SUPABASE_PUBLISHABLE_KEY'] ?? 'sb_publishable_test';
+    process.env.SUPABASE_SECRET_KEY = overrides['SUPABASE_SECRET_KEY'] ?? 'sb_secret_test';
     for (const [k, v] of Object.entries(overrides)) process.env[k] = v;
   }
 

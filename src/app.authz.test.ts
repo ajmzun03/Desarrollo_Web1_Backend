@@ -17,10 +17,13 @@ vi.mock('./services/redis.js', () => ({
 }));
 vi.mock('./model/supabase/db.model.js', () => ({ db: {}, sql: {}, Tx: {} as never }));
 vi.mock('./config/stripe.js', () => ({ stripe: {}, testTokenParaTarjeta: () => undefined }));
-vi.mock('./services/sendSMS.js', () => ({ sendSMS: vi.fn() }));
-vi.mock('./services/sendMail.js', () => ({ sendEmail: vi.fn() }));
+vi.mock('./services/supabaseAuth.service.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./services/supabaseAuth.service.js')>()),
+  supabaseConfigurado: () => false,
+}));
 vi.mock('./services/s3.js', () => ({
   uploadFile: vi.fn(),
+  urlDeLectura: vi.fn(async (key: string) => `https://firmada.test/${encodeURIComponent(key)}?firma=1`),
   MAX_UPLOAD_BYTES: 5 * 1024 * 1024,
   ContentType: { PNG: 'image/png', JPEG: 'image/jpeg', JPG: 'image/jpg', GIF: 'image/gif', WEBP: 'image/webp' },
 }));
@@ -71,11 +74,12 @@ const protegidas: Array<[string, string]> = [
   ['GET', '/turnos'], ['POST', '/turnos/apertura'], ['GET', '/cajas'], ['GET', '/liquidaciones'],
   ['GET', '/facturas-venta'], ['GET', '/facturas-compra'], ['GET', '/gastos-sucursal'],
   ['GET', '/ordenes-compra'], ['GET', '/ordenes-trabajo'], ['PATCH', '/ordenes-trabajo/1/terminar'],
+  ['GET', '/proveedores'], ['GET', '/proveedores/1'], ['GET', '/materias-primas'], ['GET', '/materias-primas/1'],
   ['GET', '/bodegas'], ['GET', '/alacenas'], ['POST', '/alacenas/mermas'], ['POST', '/alacenas/traslados'],
   ['POST', '/traslados'], ['POST', '/inventario/cuadre'], ['POST', '/hojas-recepcion'], ['POST', '/hojas-despacho'],
   ['GET', '/stock-bodega'], ['GET', '/kardex-bodega'], ['GET', '/reportes/utilidad-diaria'],
   ['GET', '/repartidor/pedidos'], ['POST', '/archivos/upload-url'], ['POST', '/pagos/checkout'], ['GET', '/auth/me'],
-  ['POST', '/auth/logout'], ['GET', '/solicitudes-insumo'], ['GET', '/recetas'],
+  ['POST', '/auth/logout'], ['DELETE', '/auth/usuarios/1/mfa'], ['GET', '/solicitudes-insumo'], ['GET', '/recetas'],
 ];
 
 describe('autorización — sin token', () => {
@@ -177,5 +181,32 @@ describe('rutas públicas y manejo de errores', () => {
   it('no expone X-Powered-By', async () => {
     const res = await fetch(`${base}/health`);
     expect(res.headers.get('x-powered-by')).toBeNull();
+  });
+});
+
+describe('GET /archivos/imagen (pública, solo catálogo)', () => {
+  const url = (key?: string) => `${base}/archivos/imagen${key === undefined ? '' : `?key=${encodeURIComponent(key)}`}`;
+
+  it('no exige autenticación y redirige (302) a la URL firmada', async () => {
+    const res = await fetch(url('productos/combos/Combo Bacon.jpg'), { redirect: 'manual' });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toContain('firma=1');
+  });
+
+  it('permite que un <img> de otro origen la cargue y la cachea menos que la firma', async () => {
+    const res = await fetch(url('productos/a.jpg'), { redirect: 'manual' });
+    expect(res.headers.get('cross-origin-resource-policy')).toBe('cross-origin');
+    expect(res.headers.get('cache-control')).toBe('public, max-age=300');
+  });
+
+  it.each(['uploads/secreto.jpg', 'productos/../uploads/a.jpg', 'productos/lista.pdf', ''])('rechaza la clave %j con 400', async (key) => {
+    const res = await fetch(url(key), { redirect: 'manual' });
+    expect(res.status).toBe(400);
+  });
+
+  it('sin clave => 400, y con la clave repetida (arreglo) => 400', async () => {
+    expect((await fetch(url(), { redirect: 'manual' })).status).toBe(400);
+    const res = await fetch(`${base}/archivos/imagen?key=productos/a.jpg&key=productos/b.jpg`, { redirect: 'manual' });
+    expect(res.status).toBe(400);
   });
 });

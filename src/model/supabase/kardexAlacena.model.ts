@@ -1,13 +1,13 @@
 import type { IKardexAlacenaModel } from "../../types.js";
 import { kardexAlacenaTable, type SelectKardexAlacena, type InsertKardexAlacena } from "../../schemas/index.schema.js";
-import { and, eq } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 import { db } from "./db.model.js";
 import logger from "../../config/logger.js";
 
 export const KardexAlacenaModel: IKardexAlacenaModel = {
   async getAll(): Promise<SelectKardexAlacena[]> {
     try {
-      const kardex = await db.select().from(kardexAlacenaTable).limit(100).offset(0);
+      const kardex = await db.select().from(kardexAlacenaTable).orderBy(asc(kardexAlacenaTable.id)).limit(100).offset(0);
       logger.info(`Se encontraron ${kardex.length} movimientos de kardex alacena`);
       return kardex;
     } catch (error) {

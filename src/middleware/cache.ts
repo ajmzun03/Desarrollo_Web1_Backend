@@ -9,6 +9,15 @@ function cacheKey(tag: string, req: Request): string {
   return `cache:${tag}:${req.originalUrl}`;
 }
 
+// Limites de la clave de caché: una query demasiado larga o con demasiados parámetros no se cachea,
+// así nadie puede llenar Redis variando parámetros arbitrarios.
+const MAX_LARGO_URL = 200;
+const MAX_PARAMS = 5;
+
+function esCacheable(req: Request): boolean {
+  return req.originalUrl.length <= MAX_LARGO_URL && Object.keys(req.query ?? {}).length <= MAX_PARAMS;
+}
+
 /**
  * Caché de Redis para rutas GET.
  * - Si Redis no está listo, la petición pasa directo (sin caché, sin romper).
@@ -21,7 +30,7 @@ function cacheKey(tag: string, req: Request): string {
  */
 export function cache(tag: string, ttlSeconds: number): RequestHandler {
   return (req: Request, res: Response, next) => {
-    if (req.method !== 'GET' || !redis.isReady) return next();
+    if (req.method !== 'GET' || !redis.isReady || !esCacheable(req)) return next();
 
     const key = cacheKey(tag, req);
     redis

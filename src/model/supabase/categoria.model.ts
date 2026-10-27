@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { categoriaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { ICategoriaModel } from "../../types.js";
 import type { SelectCategoria, InsertCategoria, UpdateCategoria } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const CategoriaModel: ICategoriaModel = {
     async getAll(): Promise<SelectCategoria[]> {
-        const categorias = await db.select().from(categoriaTable).limit(100).offset(0);
+        const categorias = await db.select().from(categoriaTable).orderBy(asc(categoriaTable.id)).limit(100).offset(0);
         logger.info(`Se encontraron ${categorias.length} categorias`);
         return categorias;
     },

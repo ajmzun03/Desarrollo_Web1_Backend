@@ -20,7 +20,7 @@ const router: Router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', cache('materias-primas', 300), async (_req: Request, res: Response) => {
+router.get('/', authenticate, staffOnly, cache('materias-primas', 300), async (_req: Request, res: Response) => {
   const result = await MateriasPrimasController.getAll();
   res.status(result.status).json({ data: result.data, error: result.error });
 });
@@ -93,7 +93,7 @@ router.get('/criticas', authenticate, staffOnly, cache('materias-primas-criticas
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', cache('materias-primas', 300), async (req: Request, res: Response) => {
+router.get('/:id', authenticate, staffOnly, cache('materias-primas', 300), async (req: Request, res: Response) => {
   const result = await MateriasPrimasController.getById(Number(req.params.id));
   res.status(result.status).json({ data: result.data, error: result.error });
 });

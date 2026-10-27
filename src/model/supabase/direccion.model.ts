@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { direccionTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IDireccionModel } from "../../types.js";
 import type { SelectDireccion, InsertDireccion, UpdateDireccion } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const DireccionModel: IDireccionModel = {
     async getAll(): Promise<SelectDireccion[]> {
-        const direcciones = await db.select().from(direccionTable).limit(100).offset(0);
+        const direcciones = await db.select().from(direccionTable).orderBy(asc(direccionTable.id)).limit(100).offset(0);
         logger.info(`Se encontraron ${direcciones.length} direcciones`);
         return direcciones;
     },

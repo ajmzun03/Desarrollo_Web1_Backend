@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from 'express';
 import { AuthController } from '../controllers/auth.controller.js';
-import { authenticate, staffOnly, type AuthRequest } from '../middleware/auth.js';
+import { authenticate, requireRole, staffOnly, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { crearAuthLimiter } from '../middleware/authRateLimit.js';
-import { schemaVerificarCodigo, schemaRecuperar, schemaRestablecer } from '../schemas/auth.schema.js';
+import { schemaVerificarCodigo, schemaMfaEnrolar, schemaRecuperar, schemaRestablecer } from '../schemas/auth.schema.js';
 
 const router: Router = Router();
 
@@ -12,6 +12,7 @@ const router: Router = Router();
 // Clave por IP + identificador: los fallos de un usuario no bloquean a otro.
 const loginLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
 const verificarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 15 });
+const enrolarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10 });
 const recuperarLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 5, porIdentificador: true });
 const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, porIdentificador: true });
 
@@ -19,7 +20,7 @@ const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, po
  * @openapi
  * /auth/login:
  *   post:
- *     summary: Iniciar sesión (paso 1: valida contraseña y envía código 2FA)
+ *     summary: "Iniciar sesión (paso 1: valida la contraseña y abre el segundo factor)"
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -38,11 +39,15 @@ const restablecerLimiter = crearAuthLimiter({ ventanaMinutos: 15, limite: 10, po
  *                 example: umg123
  *     responses:
  *       202:
- *         description: Contraseña válida; se envió código 2FA. Devuelve tmpToken.
+ *         description: Contraseña válida. Devuelve requiereVerificacion, mfa ("verificar" si ya tiene autenticador, "enrolar" la primera vez) y tmpToken (10 min)
+ *       409:
+ *         description: El usuario no tiene correo registrado
  *       401:
  *         description: Credenciales inválidas
  *       429:
- *         description: Demasiados intentos de envío de código
+ *         description: Demasiados intentos
+ *       503:
+ *         description: Segundo factor no disponible (Supabase o Redis)
  */
 router.post('/login', loginLimiter, async (req: Request, res: Response) => {
   const { usuario, contrasenia } = req.body;
@@ -52,9 +57,38 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
 
 /**
  * @openapi
+ * /auth/mfa/enrolar:
+ *   post:
+ *     summary: Crear el autenticador (TOTP) la primera vez y obtener el QR
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [tmpToken]
+ *             properties:
+ *               tmpToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Devuelve qrCode (data URI SVG), secret (texto) y uri (otpauth)
+ *       401:
+ *         description: Sesión de verificación vencida
+ *       409:
+ *         description: El usuario ya tiene un autenticador configurado
+ */
+router.post('/mfa/enrolar', enrolarLimiter, validate(schemaMfaEnrolar), async (req: Request, res: Response) => {
+  const result = await AuthController.enrolarMfa(req.body.tmpToken);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
  * /auth/verificar:
  *   post:
- *     summary: Verificar código 2FA y obtener token de sesión (paso 2)
+ *     summary: Verificar el código del autenticador y obtener el token de sesión (paso 2)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -73,7 +107,13 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
  *       200:
  *         description: Código correcto; devuelve usuario + token de sesión
  *       401:
- *         description: Código incorrecto, expirado o token temporal inválido
+ *         description: Código incorrecto o sesión de verificación vencida
+ *       409:
+ *         description: Falta configurar el autenticador (usar /auth/mfa/enrolar)
+ *       429:
+ *         description: Demasiados códigos incorrectos; la sesión pendiente se destruyó
+ *       503:
+ *         description: Segundo factor no disponible
  */
 router.post('/verificar', verificarLimiter, validate(schemaVerificarCodigo), async (req: Request, res: Response) => {
   const { tmpToken, codigo } = req.body;
@@ -85,7 +125,7 @@ router.post('/verificar', verificarLimiter, validate(schemaVerificarCodigo), asy
  * @openapi
  * /auth/recuperar:
  *   post:
- *     summary: Solicitar código de recuperación de contraseña
+ *     summary: Solicitar el correo de recuperación de contraseña
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -120,12 +160,11 @@ router.post('/recuperar', recuperarLimiter, validate(schemaRecuperar), async (re
  *         application/json:
  *           schema:
  *             type: object
- *             required: [identificador, codigo, nuevaContrasenia]
+ *             required: [tokenHash, nuevaContrasenia]
  *             properties:
- *               identificador:
+ *               tokenHash:
  *                 type: string
- *               codigo:
- *                 type: string
+ *                 description: token_hash que llega en el enlace del correo (un solo uso)
  *               nuevaContrasenia:
  *                 type: string
  *                 format: password
@@ -133,10 +172,41 @@ router.post('/recuperar', recuperarLimiter, validate(schemaRecuperar), async (re
  *       200:
  *         description: Contraseña actualizada
  *       401:
- *         description: Código incorrecto o expirado
+ *         description: Enlace inválido, vencido o ya usado
  */
 router.post('/restablecer', restablecerLimiter, validate(schemaRestablecer), async (req: Request, res: Response) => {
   const result = await AuthController.restablecerContrasenia(req.body);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+/**
+ * @openapi
+ * /auth/usuarios/{id}/mfa:
+ *   delete:
+ *     summary: Reiniciar el autenticador de un usuario (solo ADMIN)
+ *     description: Para quien perdió su teléfono. Elimina sus factores TOTP y cierra sus sesiones; en el próximo login escanea un QR nuevo.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Autenticador reiniciado
+ *       404:
+ *         description: Usuario no encontrado
+ */
+router.delete('/usuarios/:id/mfa', authenticate, requireRole('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ data: null, error: 'ID de usuario inválido' });
+    return;
+  }
+  const result = await AuthController.reiniciarMfaDeUsuario(id);
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 

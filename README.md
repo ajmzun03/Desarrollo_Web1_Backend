@@ -44,19 +44,29 @@ src/
   middleware/         # auth (JWT), cors, cache, rate-limit, validación
   routes/             # un router por recurso
   controllers/        # lógica de negocio por recurso
-  services/           # lógica transaccional (inventario, pedidos, OTP, Redis)
+  services/           # lógica transaccional (inventario, pedidos, Supabase Auth/MFA, Redis)
   model/supabase/     # acceso a datos (Drizzle)
   schemas/            # schemas Zod + definiciones Drizzle
 ```
 
 ### Autenticación
 
-- **Staff** (`/auth/*`): login con 2FA por SMS/email. `POST /auth/login` → 202 con `tmpToken` → `POST /auth/verificar` → token de sesión.
-- **Clientes** (`/cliente/auth/*`): mismo flujo con tokens marcados `tipo: 'cliente'`.
-- Rutas protegidas usan `Authorization: Bearer <token>`. Tokens temporales de 2FA (`purpose`) **no** autorizan rutas normales.
+- **Staff** (`/auth/*`): contraseña (bcrypt) + segundo factor **TOTP** (app autenticadora) gestionado por Supabase Auth MFA.
+  1. `POST /auth/login` → `202 { requiereVerificacion, mfa: "verificar" | "enrolar", tmpToken }` (10 min).
+  2. Primera vez (`mfa = "enrolar"`): `POST /auth/mfa/enrolar { tmpToken }` → `{ qrCode, secret, uri }` para escanear.
+  3. `POST /auth/verificar { tmpToken, codigo }` → `200 { usuario, token, vistas }`. Tras 5 códigos incorrectos la sesión pendiente se destruye (429).
+  - La sesión de Supabase nunca llega al navegador: se guarda en el servidor (Redis, 10 min). **Redis es obligatorio en producción**; sin él el login responde 503.
+  - Recuperar contraseña: `POST /auth/recuperar` envía un correo (Supabase) con un enlace `...?token_hash=XXXX&type=recovery`; `POST /auth/restablecer { tokenHash, nuevaContrasenia }`. Restablecer **no** quita el autenticador.
+  - `DELETE /auth/usuarios/:id/mfa` (solo ADMIN) reinicia el autenticador de quien perdió su teléfono y cierra sus sesiones.
+- **Clientes** (`/cliente/auth/*`): correo y contraseña, **sin segundo factor**. `POST /cliente/auth/login` → `200 { cliente, token }`. Recuperación por correo igual que el personal (`PASSWORD_RESET_URL_CLIENTE`).
+- Rutas protegidas usan `Authorization: Bearer <token>`. Los tokens temporales de verificación (`purpose`) **no** autorizan rutas normales.
 - Un token de **cliente** nunca sirve en rutas de personal: `requireRole`/`staffOnly` lo rechazan con 403. Un cliente solo ve y modifica sus propios pedidos, direcciones y perfil.
 - **Sesiones**: `POST /auth/logout` y `POST /cliente/auth/logout` revocan el token (por `jti`); desactivar a un usuario (`PATCH /usuarios/:id {activo:false}`) o cambiar su contraseña cierra todas sus sesiones. La revocación requiere Redis; sin Redis solo aplica la expiración del token (1 día).
-- El cupo de envíos de códigos OTP es independiente para login y para recuperación de contraseña.
+- Los límites por IP de Supabase Auth se comparten entre todo el personal (las llamadas salen de la IP del servidor): en el panel de Supabase conviene subir los límites de MFA y de verificación.
+
+### Imágenes
+
+El bucket de S3 es **privado**: abrir directamente `imagen_url` (producto) o `imagen` (combo) responde 403. Para mostrarlas, el frontend usa `GET /archivos/imagen?key=<ruta del objeto>` (público, limitado a `productos/` y a extensiones de imagen), que responde `302` a una URL firmada de 15 minutos. La clave es la ruta de la URL guardada en la base, por ejemplo `productos/combos/Combo Bacon.jpg`.
 
 ### Pagos
 

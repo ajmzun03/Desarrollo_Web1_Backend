@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { bodegaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IBodegaModel } from "../../types.js";
 import type { InsertBodega, SelectBodega, UpdateBodega } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const BodegaModel: IBodegaModel = {
   async getAll(): Promise<SelectBodega[]> {
-    const bodegas = await db.select().from(bodegaTable).limit(100).offset(0);
+    const bodegas = await db.select().from(bodegaTable).orderBy(asc(bodegaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${bodegas.length} bodegas`);
     return bodegas;
   },

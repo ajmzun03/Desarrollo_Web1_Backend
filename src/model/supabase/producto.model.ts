@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { productoTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IProductoModel } from "../../types.js";
 import type { InsertProducto, SelectProducto, UpdateProducto } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const ProductoModel: IProductoModel = {
   async getAll(): Promise<SelectProducto[]> {
-    const productos = await db.select().from(productoTable).limit(100).offset(0);
+    const productos = await db.select().from(productoTable).orderBy(asc(productoTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${productos.length} productos`);
     return productos;
   },

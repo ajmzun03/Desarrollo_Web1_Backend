@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { turnoDespachadorTable } from "../../schemas/db.schema.js";
-import { eq, isNull } from "drizzle-orm";
+import { eq, isNull, asc } from "drizzle-orm";
 import type { ITurnoDespachadorModel } from "../../types.js";
 import type { InsertTurnoDespachador, SelectTurnoDespachador, UpdateTurnoDespachador } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const TurnoDespachadorModel: ITurnoDespachadorModel = {
   async getAll(): Promise<SelectTurnoDespachador[]> {
-    const turnos = await db.select().from(turnoDespachadorTable).limit(100).offset(0);
+    const turnos = await db.select().from(turnoDespachadorTable).orderBy(asc(turnoDespachadorTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${turnos.length} turnos de despachador`);
     return turnos;
   },

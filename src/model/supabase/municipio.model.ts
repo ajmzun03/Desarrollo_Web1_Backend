@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { municipioTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IMunicipioModel } from "../../types.js";
 import type { SelectMunicipio } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const MunicipioModel: IMunicipioModel = {
   async getAll(): Promise<SelectMunicipio[]> {
-    const municipios = await db.select().from(municipioTable).limit(100).offset(0);
+    const municipios = await db.select().from(municipioTable).orderBy(asc(municipioTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${municipios.length} municipios`);
     return municipios;
   },

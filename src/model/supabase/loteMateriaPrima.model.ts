@@ -7,7 +7,7 @@ import logger from "../../config/logger.js";
 
 export const LoteMateriaPrimaModel: ILoteMateriaPrimaModel = {
   async getAll(): Promise<SelectLoteMateriaPrima[]> {
-    const lotes = await db.select().from(loteMateriaPrimaTable).limit(100).offset(0);
+    const lotes = await db.select().from(loteMateriaPrimaTable).orderBy(asc(loteMateriaPrimaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${lotes.length} lotes de materia prima`);
     return lotes;
   },

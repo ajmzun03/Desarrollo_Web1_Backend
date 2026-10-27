@@ -1,13 +1,13 @@
 import { db, type Tx } from "./db.model.js"
 import { ordenCompraTable, detalleOrdenCompraTable } from "../../schemas/db.schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import type { IOrdenCompraModel, IDetalleOrdenCompraModel } from "../../types.js";
 import type { InsertOrdenCompra, SelectOrdenCompra, UpdateOrdenCompra, InsertDetalleOrdenCompra, SelectDetalleOrdenCompra } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const OrdenCompraModel: IOrdenCompraModel = {
   async getAll(): Promise<SelectOrdenCompra[]> {
-    const ordenes = await db.select().from(ordenCompraTable).limit(100).offset(0);
+    const ordenes = await db.select().from(ordenCompraTable).orderBy(asc(ordenCompraTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${ordenes.length} órdenes de compra`);
     return ordenes;
   },

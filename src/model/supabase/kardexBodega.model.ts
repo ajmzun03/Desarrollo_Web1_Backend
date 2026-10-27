@@ -1,13 +1,13 @@
 import { db, type Tx } from "./db.model.js"
 import { kardexBodegaTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IKardexBodegaModel } from "../../types.js";
 import type { InsertKardexBodega, SelectKardexBodega } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const KardexBodegaModel: IKardexBodegaModel = {
   async getAll(): Promise<SelectKardexBodega[]> {
-    const kardex = await db.select().from(kardexBodegaTable).limit(100).offset(0);
+    const kardex = await db.select().from(kardexBodegaTable).orderBy(asc(kardexBodegaTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${kardex.length} movimientos de kardex bodega`);
     return kardex;
   },

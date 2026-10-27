@@ -1,13 +1,13 @@
 import { db } from "./db.model.js"
 import { proveedorTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { IProveedorModel } from "../../types.js";
 import type { InsertProveedor, SelectProveedor } from "../../schemas/db.schema.js";
 import logger from "../../config/logger.js";
 
 export const ProveedorModel: IProveedorModel = {
   async getAll(): Promise<SelectProveedor[] | null> {
-    const proveedores = await db.select().from(proveedorTable).limit(100).offset(0);
+    const proveedores = await db.select().from(proveedorTable).orderBy(asc(proveedorTable.id)).limit(100).offset(0);
     logger.info(`Se encontraron ${proveedores.length} proveedores`);
     return proveedores;
   },

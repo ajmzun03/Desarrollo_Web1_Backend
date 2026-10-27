@@ -1,6 +1,6 @@
 import { db } from "./db.model.js";
 import { solicitudInsumoTable, detalleSolicitudInsumoTable } from "../../schemas/db.schema.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type {
   SelectSolicitudInsumo,
   InsertSolicitudInsumo,
@@ -12,7 +12,7 @@ import logger from "../../config/logger.js";
 
 export const SolicitudInsumoModel = {
   async getAll(): Promise<SelectSolicitudInsumo[]> {
-    const solicitudes = await db.select().from(solicitudInsumoTable).limit(100);
+    const solicitudes = await db.select().from(solicitudInsumoTable).orderBy(asc(solicitudInsumoTable.id)).limit(100);
     logger.info(`Se encontraron ${solicitudes.length} solicitudes de insumos`);
     return solicitudes;
   },

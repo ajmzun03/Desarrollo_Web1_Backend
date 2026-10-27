@@ -2,17 +2,34 @@ import { UsuarioClienteModel } from '../model/supabase/usuarioCliente.model.js';
 import { ClienteModel } from '../model/supabase/cliente.model.js';
 import { hashPassword, comparePassword } from '../utils/hashPassword.js';
 import { generarToken, getInfoToToken } from '../utils/generateToken.js';
-import { generarCodigo, guardarCodigo, verificarCodigo as verificarOtp, puedeGenerarCodigo } from '../services/otp.service.js';
-import { enviarCodigo } from '../services/notificarCodigo.service.js';
-import { IS_PROD } from '../config.js';
+import { PASSWORD_RESET_URL_CLIENTE } from '../config.js';
 import logger from '../config/logger.js';
 import { vistasDe } from '../config/vistas.js';
 import { revocarToken, revocarSesionesDe } from '../services/sesiones.service.js';
+import {
+  SupabaseAuthError,
+  enviarCorreoRecuperacion,
+  supabaseConfigurado,
+  verificarEnlaceRecuperacion
+} from '../services/supabaseAuth.service.js';
 import type { DecodedToken } from '../jwt.js';
 
-const OTP_SCOPE_LOGIN = 'login' as const;
-const OTP_SCOPE_RESET = 'reset' as const;
+const ENLACE_INVALIDO = 'El enlace es inválido, venció o ya fue usado. Solicita uno nuevo.';
 
+/** Token de sesión de un cliente final. */
+function tokenDeCliente(cliente: { id: number | string; correo_electronico: string | null }) {
+  return generarToken({
+    id: Number(cliente.id),
+    correo_electronico: cliente.correo_electronico,
+    rol: 'CLIENTE',
+    tipo: 'cliente'
+  });
+}
+
+/**
+ * Autenticación del cliente final: correo y contraseña, SIN segundo factor.
+ * Supabase Auth solo se usa para el correo de recuperación de contraseña.
+ */
 export const UsuarioClienteController = {
   async registro(data: {
     nombre: string;
@@ -40,30 +57,33 @@ export const UsuarioClienteController = {
         contrasenia: hashedPassword
       });
 
-      const token = generarToken({
-        id: Number(resultado.cliente.id),
-        correo_electronico: resultado.cliente.correo_electronico,
-        rol: 'CLIENTE',
-        tipo: 'cliente'
-      });
-
       return {
         data: {
           cliente: resultado.cliente,
-          token,
+          token: tokenDeCliente(resultado.cliente),
           vistas: vistasDe('CLIENTE')
         },
         error: null,
         status: 201
       };
     } catch (error: any) {
+      const pg = error?.cause ?? error;
+      if (pg?.code === '23505') {
+        const campo = String(pg.constraint_name ?? pg.constraint ?? error?.message ?? '');
+        const mensaje = /telefono_ref/.test(campo)
+          ? 'El teléfono de referencia ya está registrado'
+          : /telefono/.test(campo)
+            ? 'Ya existe una cuenta con este número de teléfono'
+            : 'Ya existe una cuenta con estos datos';
+        return { data: null, error: mensaje, status: 409 };
+      }
       logger.error({ err: error }, 'Error al registrar cliente:');
       return { data: null, error: 'Error al registrar cliente', status: 500 };
     }
   },
 
   /**
-   * Paso 1 del login cliente: valida contraseña y envía código 2FA.
+   * Login del cliente: valida correo y contraseña (bcrypt) y devuelve el token de sesión.
    */
   async login(correo_electronico: string, contrasenia: string) {
     try {
@@ -81,64 +101,15 @@ export const UsuarioClienteController = {
         return { data: null, error: 'Credenciales inválidas', status: 401 };
       }
 
-      const clienteId = Number(registro.cliente.id);
-      const puedeEnviar = await puedeGenerarCodigo('cliente', clienteId, OTP_SCOPE_LOGIN);
-      if (!puedeEnviar) {
-        return { data: null, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.', status: 429 };
-      }
-
-      const codigo = generarCodigo();
-      const guardado = await guardarCodigo(OTP_SCOPE_LOGIN, 'cliente', clienteId, codigo);
-
-      if (!guardado) {
-        // Redis caído: en prod falla cerrado (503); en dev degrada a login simple
-        if (IS_PROD) {
-          logger.error({ clienteId }, 'Redis no disponible en producción; login cliente bloqueado');
-          return { data: null, error: 'Servicio de verificación no disponible. Intenta más tarde.', status: 503 };
-        }
-        logger.warn({ clienteId }, 'Redis no disponible; login cliente sin 2FA (degradado)');
-        const token = generarToken({
-          id: clienteId,
-          correo_electronico: registro.cliente.correo_electronico,
-          rol: 'CLIENTE',
-          tipo: 'cliente'
-        });
-        return {
-          data: { cliente: registro.cliente, token, twoFactor: false, vistas: vistasDe('CLIENTE') },
-          error: null,
-          status: 200
-        };
-      }
-
-      const canal = await enviarCodigo(
-        { telefono: registro.cliente.telefono, correo: registro.cliente.correo_electronico },
-        codigo,
-        'login'
-      );
-
-      if (!canal) {
-        return { data: null, error: 'No se pudo enviar el código de verificación', status: 502 };
-      }
-
-      const tmpToken = generarToken(
-        {
-          id: clienteId,
-          correo_electronico: registro.cliente.correo_electronico,
-          rol: 'CLIENTE',
-          tipo: 'cliente',
-          purpose: '2fa'
-        },
-        '10m'
-      );
-
-      if (!tmpToken) {
-        return { data: null, error: 'Error al generar token temporal', status: 500 };
+      const token = tokenDeCliente(registro.cliente);
+      if (!token) {
+        return { data: null, error: 'Error al generar token', status: 500 };
       }
 
       return {
-        data: { requiereVerificacion: true, tmpToken, canal },
+        data: { cliente: registro.cliente, token, vistas: vistasDe('CLIENTE') },
         error: null,
-        status: 202
+        status: 200
       };
     } catch (error: any) {
       logger.error({ err: error }, 'Error al iniciar sesión cliente:');
@@ -147,59 +118,8 @@ export const UsuarioClienteController = {
   },
 
   /**
-   * Paso 2 del login cliente: verifica código OTP y emite token de sesión.
-   */
-  async verificarCodigo(tmpToken: string, codigo: string) {
-    try {
-      if (!tmpToken || !codigo) {
-        return { data: null, error: 'tmpToken y código son requeridos', status: 400 };
-      }
-
-      let decoded;
-      try {
-        decoded = getInfoToToken(tmpToken);
-      } catch {
-        return { data: null, error: 'Token temporal inválido o expirado', status: 401 };
-      }
-
-      if (!decoded || decoded.purpose !== '2fa' || !decoded.id || decoded.tipo !== 'cliente') {
-        return { data: null, error: 'Token temporal inválido o expirado', status: 401 };
-      }
-
-      const clienteId = Number(decoded.id);
-      const verdict = await verificarOtp(OTP_SCOPE_LOGIN, 'cliente', clienteId, codigo);
-
-      if (verdict !== 'ok') {
-        const mensajes: Record<string, string> = {
-          invalido: 'Código incorrecto',
-          expirado: 'Código expirado. Solicita uno nuevo.',
-          agotado: 'Demasiados intentos fallidos. Solicita un código nuevo.'
-        };
-        return { data: null, error: mensajes[verdict] ?? 'Código inválido', status: 401 };
-      }
-
-      const token = generarToken({
-        id: decoded.id,
-        correo_electronico: decoded.correo_electronico,
-        rol: 'CLIENTE',
-        tipo: 'cliente'
-      });
-
-      const cliente = await ClienteModel.getById(clienteId);
-      if (!cliente) {
-        return { data: null, error: 'Cliente no encontrado', status: 404 };
-      }
-
-      return { data: { cliente, token, vistas: vistasDe('CLIENTE') }, error: null, status: 200 };
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al verificar código cliente:');
-      return { data: null, error: 'Error al verificar el código', status: 500 };
-    }
-  },
-
-  /**
-   * Recuperar contraseña de cliente: envía código OTP al correo.
-   * Siempre responde 202 (anti-enumeración).
+   * Recuperar contraseña de cliente: Supabase envía un correo con un enlace de un solo uso hacia
+   * PASSWORD_RESET_URL_CLIENTE. Siempre responde 202 (anti-enumeración).
    */
   async recuperarContrasenia(correo_electronico: string) {
     try {
@@ -209,24 +129,17 @@ export const UsuarioClienteController = {
 
       const registro = await UsuarioClienteModel.getByCorreo(correo_electronico);
 
-      if (registro && registro.usuarioCliente.activo) {
-        const clienteId = Number(registro.cliente.id);
-        const puedeEnviar = await puedeGenerarCodigo('cliente', clienteId, OTP_SCOPE_RESET);
-        if (puedeEnviar) {
-          const codigo = generarCodigo();
-          const guardado = await guardarCodigo(OTP_SCOPE_RESET, 'cliente', clienteId, codigo);
-          if (guardado) {
-            await enviarCodigo(
-              { telefono: registro.cliente.telefono, correo: registro.cliente.correo_electronico },
-              codigo,
-              'reset'
-            );
-          }
+      if (registro && registro.usuarioCliente.activo && registro.cliente.correo_electronico && supabaseConfigurado()) {
+        try {
+          await enviarCorreoRecuperacion(registro.cliente.correo_electronico, PASSWORD_RESET_URL_CLIENTE);
+        } catch (err) {
+          // No se informa al cliente: la respuesta es la misma exista o no la cuenta.
+          logger.error({ err, clienteId: registro.cliente.id }, 'No se pudo enviar el correo de recuperación');
         }
       }
 
       return {
-        data: { message: 'Si el correo existe, se envió un código de recuperación.' },
+        data: { message: 'Si el correo existe, se envió un enlace de recuperación.' },
         error: null,
         status: 202
       };
@@ -237,31 +150,31 @@ export const UsuarioClienteController = {
   },
 
   /**
-   * Restablecer contraseña de cliente: verifica código OTP y actualiza.
+   * Restablecer contraseña de cliente: valida el token_hash del enlace (un solo uso) y actualiza el hash.
    */
-  async restablecerContrasenia(data: { correo_electronico: string; codigo: string; nuevaContrasenia: string }) {
+  async restablecerContrasenia(data: { tokenHash: string; nuevaContrasenia: string }) {
     try {
-      if (!data.correo_electronico || !data.codigo || !data.nuevaContrasenia) {
-        return { data: null, error: 'correo, código y nueva contraseña son requeridos', status: 400 };
+      if (!data.tokenHash || !data.nuevaContrasenia) {
+        return { data: null, error: 'tokenHash y nueva contraseña son requeridos', status: 400 };
       }
 
-      const registro = await UsuarioClienteModel.getByCorreo(data.correo_electronico);
-      if (!registro) {
-        return { data: null, error: 'Código incorrecto o expirado', status: 401 };
+      let correo: string;
+      try {
+        correo = await verificarEnlaceRecuperacion(data.tokenHash);
+      } catch (err) {
+        if (err instanceof SupabaseAuthError && err.codigo === 'enlace_invalido') {
+          return { data: null, error: ENLACE_INVALIDO, status: 401 };
+        }
+        logger.error({ err }, 'Error al validar el enlace de recuperación del cliente');
+        return { data: null, error: 'Servicio de verificación no disponible. Intenta más tarde.', status: 503 };
+      }
+
+      const registro = await UsuarioClienteModel.getByCorreo(correo);
+      if (!registro || !registro.usuarioCliente.activo) {
+        return { data: null, error: ENLACE_INVALIDO, status: 401 };
       }
 
       const clienteId = Number(registro.cliente.id);
-      const verdict = await verificarOtp(OTP_SCOPE_RESET, 'cliente', clienteId, data.codigo);
-
-      if (verdict !== 'ok') {
-        const mensajes: Record<string, string> = {
-          invalido: 'Código incorrecto',
-          expirado: 'Código expirado. Solicita uno nuevo.',
-          agotado: 'Demasiados intentos fallidos. Solicita un código nuevo.'
-        };
-        return { data: null, error: mensajes[verdict] ?? 'Código inválido', status: 401 };
-      }
-
       const hash = await hashPassword(data.nuevaContrasenia);
       const ok = await UsuarioClienteModel.updateContrasenia(clienteId, hash);
 
