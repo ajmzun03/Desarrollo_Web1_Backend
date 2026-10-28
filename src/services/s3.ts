@@ -3,13 +3,19 @@ import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { AWS_ACCESS_KEY_ID, AWS_REGION, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } from '../config.js'
 
-const s3Client = new S3Client({
-  region: AWS_REGION,
-  credentials: {
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  },
-});
+// El cliente se crea al usarse, no al importar el módulo: sin las variables AWS_* (tests, CI) importar este
+// archivo no debe fallar ("Region is missing"); solo falla si de verdad se intenta firmar una URL.
+let s3Client: S3Client | undefined;
+function getS3Client(): S3Client {
+  s3Client ??= new S3Client({
+    region: AWS_REGION,
+    credentials: {
+      accessKeyId: AWS_ACCESS_KEY_ID,
+      secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    },
+  });
+  return s3Client;
+}
 
 export enum ContentType {
   PNG = 'image/png',
@@ -41,7 +47,7 @@ export const uploadFile = async (fileName: string, fileType: ContentType | strin
   });
 
   // Genera una URL que vence en 5 minutos (300 segundos)
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+  const uploadUrl = await getSignedUrl(getS3Client(), command, { expiresIn: 300 });
 
   return {
     uploadUrl,
@@ -57,4 +63,4 @@ export const LECTURA_EXPIRA_SEGUNDOS = 900;
  * responden 403), así que las imágenes se sirven por aquí.
  */
 export const urlDeLectura = async (key: string): Promise<string> =>
-  getSignedUrl(s3Client, new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key }), { expiresIn: LECTURA_EXPIRA_SEGUNDOS });
+  getSignedUrl(getS3Client(), new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key }), { expiresIn: LECTURA_EXPIRA_SEGUNDOS });
