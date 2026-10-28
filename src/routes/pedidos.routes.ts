@@ -229,6 +229,60 @@ router.patch('/:id/metodo-efectivo', authenticate, async (req: AuthRequest, res:
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
+// PATCH /pedidos/:id/preparar — cocina empieza el pedido y se descuenta el stock de insumos
+/**
+ * @openapi
+ * /pedidos/{id}/preparar:
+ *   patch:
+ *     summary: Iniciar la preparación de un pedido (descuenta insumos de alacena/bodega)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Pedido EN_PREPARACION
+ *       409:
+ *         description: Sin pago confirmado, estado inválido o stock insuficiente
+ */
+router.patch('/:id/preparar', authenticate, requireRole('ADMIN', 'JEFE_COCINA', 'COCINERO'), async (req: Request, res: Response) => {
+  const result = await PedidosController.preparar(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('pedidos-listos', 'ordenes-cola');
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
+// PATCH /pedidos/:id/listo — cocina marca el pedido como LISTO para despachar
+/**
+ * @openapi
+ * /pedidos/{id}/listo:
+ *   patch:
+ *     summary: Marcar el pedido como LISTO para despacho (cocina)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Pedido LISTO
+ *       409:
+ *         description: Sin pago confirmado o transición inválida
+ */
+router.patch('/:id/listo', authenticate, requireRole('ADMIN', 'JEFE_COCINA', 'COCINERO'), async (req: Request, res: Response) => {
+  const result = await PedidosController.listo(Number(req.params.id));
+  if (result.status < 300) await invalidateTags('pedidos-listos', 'ordenes-cola');
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
 // PATCH /pedidos/:id/confirmar — ADMIN o CAJERO
 /**
  * @openapi

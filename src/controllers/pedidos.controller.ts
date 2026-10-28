@@ -2,6 +2,7 @@ import { PedidoModel } from '../model/supabase/pedido.model.js';
 import logger from '../config/logger.js';
 import { DetallePedidoModel } from '../model/supabase/detallePedido.model.js';
 import { HojaDespachoModel } from '../model/supabase/hojaDespacho.model.js';
+import { iniciarPreparacionPedido } from '../services/preparacion.service.js';
 import { crearPedido, type CrearPedidoInput } from '../services/pedidos.service.js';
 import { errorDb, ErrorNegocio } from '../utils/errors.js';
 import { TRANSICIONES_PEDIDO, validarTransicion } from '../utils/transiciones.js';
@@ -97,6 +98,22 @@ export const PedidosController = {
       logger.error({ err: error }, 'Error create pedido:');
       return errorDb(error, 'Error al crear pedido');
     }
+  },
+
+  /** Cocina empieza el pedido: pasa a EN_PREPARACION y descuenta los insumos de la receta del stock de la sucursal. */
+  async preparar(id: number) {
+    try {
+      const pedido = await iniciarPreparacionPedido(id);
+      return { data: pedido, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ err: error }, 'Error preparar pedido:');
+      return errorDb(error, 'Error al iniciar la preparación del pedido');
+    }
+  },
+
+  /** Cocina termina el pedido: EN_PREPARACION -> LISTO (exige pago confirmado si es con tarjeta). */
+  async listo(id: number) {
+    return PedidosController.confirmar(id);
   },
 
   async confirmar(id: number) {
