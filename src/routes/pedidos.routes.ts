@@ -201,6 +201,34 @@ router.patch('/:id/estado', authenticate, requireRole('ADMIN'), validate(schemaP
   res.status(result.status).json({ data: result.data, error: result.error });
 });
 
+// PATCH /pedidos/:id/metodo-efectivo — el dueño del pedido pasa de tarjeta a efectivo si aún no pagó
+/**
+ * @openapi
+ * /pedidos/{id}/metodo-efectivo:
+ *   patch:
+ *     summary: Cambiar un pedido con tarjeta sin pagar a efectivo contra entrega
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Pedido actualizado a pago en efectivo
+ *       404:
+ *         description: Pedido no encontrado
+ *       409:
+ *         description: El pedido ya está pagado, no es de tarjeta o ya avanzó
+ */
+router.patch('/:id/metodo-efectivo', authenticate, async (req: AuthRequest, res: Response) => {
+  const result = await PedidosController.cambiarAEfectivo(Number(req.params.id), req.user!);
+  res.status(result.status).json({ data: result.data, error: result.error });
+});
+
 // PATCH /pedidos/:id/confirmar — ADMIN o CAJERO
 /**
  * @openapi

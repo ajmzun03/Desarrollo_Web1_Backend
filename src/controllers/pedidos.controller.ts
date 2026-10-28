@@ -114,10 +114,33 @@ export const PedidosController = {
     }
   },
 
+  /** El cliente deja de pagar con tarjeta y pasa a efectivo contra entrega (solo si aún no se cobró nada). */
+  async cambiarAEfectivo(id: number, user: DecodedToken) {
+    try {
+      const actual = await obtenerPedido(id);
+      verificarAcceso(actual, user);
+      if (actual.metodo_pago !== 'TARJETA' || actual.pagado) {
+        return { data: null, error: 'Solo se puede cambiar a efectivo un pedido con tarjeta que aún no está pagado', status: 409 };
+      }
+      if (actual.estado !== 'CREADO') {
+        return { data: null, error: 'El pedido ya no admite cambiar el método de pago', status: 409 };
+      }
+      const pedido = await PedidoModel.updatePedido(id, { metodo_pago: 'EFECTIVO' });
+      return { data: pedido, error: null, status: 200 };
+    } catch (error) {
+      logger.error({ err: error }, 'Error cambiar a efectivo:');
+      return errorDb(error, 'Error al cambiar el método de pago');
+    }
+  },
+
   async updateEstado(id: number, estado: EstadoPedido) {
     try {
       const actual = await obtenerPedido(id);
       validarTransicion(TRANSICIONES_PEDIDO, actual.estado, estado, 'el pedido');
+      // Un pedido con tarjeta no avanza (cocina, despacho) hasta que Stripe confirme el pago; solo se puede anular.
+      if (estado !== 'ANULADO' && actual.metodo_pago === 'TARJETA' && !actual.pagado) {
+        return { data: null, error: 'El pedido con tarjeta aún no tiene el pago confirmado', status: 409 };
+      }
 
       // Anular un pedido ya cobrado con tarjeta devuelve el dinero. Si el reembolso falla,
       // el pedido NO se anula (así no queda anulado y cobrado sin que nadie lo note).
