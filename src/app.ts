@@ -57,7 +57,9 @@ const app: Express = express();
 if (IS_PROD) app.set('trust proxy', 1) // trust first proxy
 
 app.use(requestLogger);
-app.use(helmet());
+// El frontend vive en otro origen y carga las fotos con <img>: con CORP "same-origin" el navegador las bloquea.
+// La API sigue protegida por CORS; esto solo permite incrustar recursos como las imagenes del catalogo.
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
